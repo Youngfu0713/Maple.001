@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ArTale 卷軸助推器 - Firebase 雲端版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #f8fafc; 
+            -webkit-tap-highlight-color: transparent;
+            font-size: 16px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 0.75rem;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        th, td { 
+            padding: 8px 10px !important; 
+            line-height: 1.3;
+            font-size: 16px;
+            vertical-align: middle;
+        }
+
+        .col-handle { min-width: 40px; text-align: center; cursor: grab; color: #cbd5e1; }
+        .col-name { min-width: 180px; text-align: center; }
+        .col-price { min-width: 110px; text-align: center; cursor: pointer; }
+        .col-bonus { min-width: 110px; text-align: center; color: #059669; white-space: pre-line !important; font-weight: bold; }
+        .col-inventory { min-width: 75px; text-align: center; }
+        .col-total-value { min-width: 130px; text-align: center; color: #d97706; font-weight: 900; }
+        .col-drops { min-width: 200px; text-align: left; white-space: normal !important; word-break: break-all; }
+        .col-action { min-width: 100px; text-align: center; }
+
+        .price-text { font-family: 'Courier New', Courier, monospace; font-weight: 900; color: #2563eb; }
+        .value-text { font-family: 'Courier New', Courier, monospace; }
+        
+        .edit-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 16px;
+            background-color: #fff;
+            outline: none;
+            text-align: inherit;
+        }
+        .edit-input:focus { border-color: #3b82f6; background-color: #f0f7ff; }
+
+        .inv-cell-input {
+            width: 100%;
+            background-color: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px;
+            text-align: center;
+            font-weight: bold;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .inv-cell-input:hover { border-color: #e2e8f0; background-color: #f1f5f9; }
+        .inv-cell-input:focus { border-color: #3b82f6; background-color: #fff; }
+
+        .dragging { opacity: 0.5; background-color: #eff6ff; }
+        .sort-icon::after { content: ' ↕'; opacity: 0.3; font-size: 12px; }
+
+        button, select, input, textarea { font-size: 16px !important; }
+
+        .csv-textarea {
+            width: 100%;
+            height: 350px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            padding: 12px;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            background-color: #fcfcfc;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-24 text-slate-800">
+
+    <!-- Top Navigation -->
+    <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 p-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+                <h1 class="text-xl font-black text-blue-600 tracking-tighter">ArTale 卷軸管理</h1>
+                <div class="text-[10px] font-bold text-gray-400 flex items-center gap-1 mt-0.5">
+                    <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-yellow-500"></span> 
+                    <span id="sync-status-text">正在連接雲端...</span>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+                <label for="csv-import" class="text-xs font-bold text-amber-600 border border-amber-200 bg-amber-50 px-3 py-1.5 rounded-lg cursor-pointer active:bg-amber-100 transition-colors">
+                    插入 CSV 檔
+                </label>
+                <input type="file" id="csv-import" accept=".csv" class="hidden" onchange="importFromCSV(event)">
+
+                <button onclick="openCsvTextModal()" class="text-xs font-bold text-indigo-600 border border-indigo-100 bg-indigo-50 px-3 py-1.5 rounded-lg active:bg-indigo-100">
+                    文字編輯/插入
+                </button>
+                
+                <button onclick="toggleTableEditMode()" id="btn-edit-mode" class="text-xs font-bold text-blue-600 border border-blue-100 bg-blue-50 px-3 py-1.5 rounded-lg active:bg-blue-100">
+                    編輯整表
+                </button>
+
+                <button onclick="exportToCSV()" class="text-xs font-bold text-green-600 border border-green-100 bg-green-50 px-3 py-1.5 rounded-lg active:bg-green-100">
+                    匯出
+                </button>
+                
+                <button onclick="openModal()" class="bg-blue-600 text-white px-4 py-1.5 rounded-lg font-black shadow-md text-xs active:scale-95 transition-all">
+                    + 新增紀錄
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-3 space-y-4">
+        <!-- Search Bar -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex items-center px-4">
+            <input type="text" id="search-input" placeholder="搜尋卷軸、加成、角色、怪物..." class="w-full bg-transparent py-3 text-base focus:outline-none font-bold" oninput="renderTable()">
+        </div>
+
+        <div id="edit-tools" class="hidden flex justify-end">
+            <button onclick="addNewBlankRow()" class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg font-bold text-xs border border-blue-100 active:scale-95">
+                + 新增空白列
+            </button>
+        </div>
+
+        <!-- Scrollable Table -->
+        <div class="table-container custom-scrollbar">
+            <table class="w-full border-collapse" id="main-table">
+                <thead class="bg-gray-50 border-b border-gray-100 text-gray-400 text-center">
+                    <tr>
+                        <th class="col-handle">#</th>
+                        <th class="font-black uppercase tracking-tighter col-name cursor-pointer sort-icon" onclick="sortBy('name')">卷軸名稱</th>
+                        <th class="font-black text-blue-600 uppercase tracking-tighter col-price cursor-pointer sort-icon" onclick="sortBy('price')">單價</th>
+                        <th class="font-black text-emerald-600 uppercase tracking-tighter col-bonus">加成</th>
+                        <th class="font-black text-orange-500 col-inventory">火毒</th>
+                        <th class="font-black text-blue-500 col-inventory">十字軍</th>
+                        <th class="font-black text-purple-500 col-inventory">槍手</th>
+                        <th class="font-black text-amber-600 uppercase tracking-tighter col-total-value cursor-pointer sort-icon" onclick="sortBy('totalValue')">總價值</th>
+                        <th class="font-black uppercase tracking-tighter col-drops">來源</th>
+                        <th class="font-black uppercase tracking-tighter col-action">管理</th>
+                    </tr>
+                </thead>
+                <tbody id="scroll-tbody" class="divide-y divide-gray-50 text-slate-700">
+                    <!-- JS Populated -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="empty-state" class="hidden text-center py-24 text-gray-300 font-bold text-sm">
+            目前無卷軸資料
+        </div>
+    </main>
+
+    <!-- Modal: CSV Text Editor -->
+    <div id="csv-text-modal" class="fixed inset-0 z-50 bg-black/60 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-t-[2rem] sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-white flex-shrink-0">
+                <div>
+                    <h2 class="text-lg font-black text-gray-800 tracking-tight">CSV 文字管理</h2>
+                    <p class="text-[10px] text-gray-400 font-bold">格式：名稱, 價位, 加成, 火毒, 十字軍, 槍手, 怪物</p>
+                </div>
+                <button onclick="closeCsvTextModal()" class="text-xs font-bold text-gray-400 bg-gray-100 px-4 py-2 rounded-full">返回</button>
+            </div>
+            <div class="p-5 overflow-y-auto">
+                <textarea id="csv-raw-text" class="csv-textarea custom-scrollbar" placeholder="名稱,價格,加成,火毒,十字軍,槍手,怪物..."></textarea>
+                <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 text-[12px] text-amber-700 font-bold">
+                    小提示：您可以在此貼上從 Excel 複製的資料。點擊「插入」會追加到現有清單，「替換」則會覆蓋全部。
+                </div>
+            </div>
+            <div class="p-5 bg-white border-t border-gray-50 flex flex-col gap-2 flex-shrink-0">
+                <div class="flex gap-2 w-full">
+                    <button onclick="loadCurrentToCsvText()" class="flex-1 py-3 text-sm font-bold text-blue-600 bg-blue-50 rounded-xl">讀取現有資料</button>
+                </div>
+                <div class="flex gap-2 w-full">
+                    <button onclick="saveCsvFromText('append')" class="flex-1 py-4 text-base font-bold text-emerald-600 bg-emerald-50 rounded-xl active:bg-emerald-100 transition-all border border-emerald-100">追加插入資料</button>
+                    <button onclick="saveCsvFromText('replace')" class="flex-1 py-4 text-base font-bold text-white bg-indigo-600 rounded-xl active:bg-indigo-700 shadow-lg">覆蓋替換內容</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Single Record Detailed Edit -->
+    <div id="modal" class="fixed inset-0 z-50 bg-black/60 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-xl rounded-t-[2rem] sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="p-5 border-b border-gray-50 flex justify-between items-center bg-white flex-shrink-0">
+                <h2 id="modal-title" class="text-lg font-black text-gray-800">卷軸詳細資料</h2>
+                <button onclick="closeModal()" class="text-xs font-bold text-gray-400 bg-gray-100 px-4 py-2 rounded-full">關閉</button>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar">
+                <form id="scroll-form" class="space-y-4">
+                    <input type="hidden" id="edit-id">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-black text-gray-700">名稱</label>
+                            <input type="text" id="scroll-name" required class="w-full border-gray-100 bg-gray-50 rounded-xl p-4 font-bold outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-sm font-black text-blue-600">單價</label>
+                                <input type="number" id="scroll-price" required class="w-full border-blue-100 bg-blue-50/20 rounded-xl p-4 font-black outline-none" value="0">
+                            </div>
+                            <div>
+                                <label class="text-sm font-black text-emerald-600">屬性加成 (多行)</label>
+                                <textarea id="scroll-bonus" rows="2" class="w-full border-emerald-100 bg-emerald-50/20 rounded-xl p-4 font-bold outline-none"></textarea>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl space-y-2">
+                            <label class="text-[12px] font-black text-slate-500 uppercase tracking-widest">角色庫存數量</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="text-center">
+                                    <span class="text-[10px] font-bold text-orange-500">火毒</span>
+                                    <input type="number" id="scroll-char1" class="w-full border-gray-200 bg-white rounded-lg p-3 text-center outline-none" value="0">
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-[10px] font-bold text-blue-500">十字軍</span>
+                                    <input type="number" id="scroll-char2" class="w-full border-gray-200 bg-white rounded-lg p-3 text-center outline-none" value="0">
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-[10px] font-bold text-purple-500">槍手</span>
+                                    <input type="number" id="scroll-char3" class="w-full border-gray-200 bg-white rounded-lg p-3 text-center outline-none" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-sm font-black text-gray-700">來源</label>
+                            <input type="text" id="monster-name" class="w-full border-gray-100 bg-gray-50 rounded-xl p-4 font-bold outline-none">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="p-5 bg-white border-t border-gray-50 flex gap-3 flex-shrink-0">
+                <button onclick="closeModal()" class="flex-1 py-4 text-base font-bold text-gray-400 bg-gray-50 rounded-2xl">取消</button>
+                <button onclick="submitForm()" class="flex-[2] bg-blue-600 py-4 rounded-xl text-white font-black shadow-xl text-lg">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Dialog (替代 native confirm) -->
+    <div id="confirm-dialog" class="fixed inset-0 z-[110] bg-black/60 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+            <h3 id="confirm-title" class="text-lg font-black text-gray-800 mb-2">確認操作</h3>
+            <p id="confirm-msg" class="text-gray-500 font-bold text-sm mb-6">您確定要執行此操作嗎？</p>
+            <div class="flex gap-3">
+                <button id="confirm-cancel" class="flex-1 py-3 bg-gray-100 text-gray-400 font-bold rounded-xl">取消</button>
+                <button id="confirm-ok" class="flex-1 py-3 bg-red-500 text-white font-black rounded-xl shadow-lg shadow-red-200">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-gray-900/95 text-white px-6 py-3 rounded-2xl text-sm font-black shadow-2xl opacity-0 pointer-events-none transition-all z-[100] text-center min-w-[150px]"></div>
+
+    <script type="module">
+        // Import Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration (由使用者提供)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBR47swtnh4Pp__yND88m71wJMmQRj4vog",
+            authDomain: "maplev01.firebaseapp.com",
+            projectId: "maplev01",
+            storageBucket: "maplev01.firebasestorage.app",
+            messagingSenderId: "608781544196",
+            appId: "1:608781544196:web:3540e4209b2b9ef8be7e51",
+            measurementId: "G-GQZYLPLBEB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'maplev01';
+        
+        // 全域狀態
+        window.scrolls = [];
+        window.isEditMode = false;
+        window.sortOrder = { key: null, direction: 'asc' };
+        let currentUser = null;
+
+        const showToast = (msg) => {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.innerText = msg;
+            t.classList.replace('opacity-0', 'opacity-100');
+            setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 2000);
+        };
+
+        const setSyncStatus = (status, text) => {
+            const dot = document.getElementById('sync-status-dot');
+            const txt = document.getElementById('sync-status-text');
+            if (status === 'ok') {
+                dot.className = 'w-2 h-2 rounded-full bg-green-500';
+            } else if (status === 'error') {
+                dot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-yellow-500 animate-bounce';
+            }
+            txt.innerText = text;
+        };
+
+        // 自定義確認視窗
+        const customConfirm = (title, msg) => {
+            return new Promise((resolve) => {
+                const dialog = document.getElementById('confirm-dialog');
+                document.getElementById('confirm-title').innerText = title;
+                document.getElementById('confirm-msg').innerText = msg;
+                dialog.classList.remove('hidden');
+                
+                const cleanup = (val) => {
+                    dialog.classList.add('hidden');
+                    resolve(val);
+                };
+                
+                document.getElementById('confirm-ok').onclick = () => cleanup(true);
+                document.getElementById('confirm-cancel').onclick = () => cleanup(false);
+            });
+        };
+
+        // Firebase Auth Init
+        signInAnonymously(auth).catch(err => {
+            console.error("Auth Error:", err);
+            setSyncStatus('error', '驗證失敗，請檢查網路');
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                initDataSync();
+            }
+        });
+
+        // 核心：Firebase 即時同步
+        const initDataSync = () => {
+            const scrollsRef = collection(db, 'artifacts', appId, 'public', 'data', 'scrolls');
+            onSnapshot(scrollsRef, (snapshot) => {
+                window.scrolls = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                setSyncStatus('ok', '雲端同步中');
+                renderTable();
+            }, (err) => {
+                console.error("Firestore Error:", err);
+                setSyncStatus('error', '同步出錯');
+            });
+        };
+
+        // 儲存到雲端
+        const saveToFirestore = async (item) => {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'scrolls', item.id);
+                await setDoc(docRef, { ...item, updatedAt: Date.now() });
+            } catch (e) {
+                showToast("存檔失敗");
+            }
+        };
+
+        const batchSaveToFirestore = async (items, replace = false) => {
+            if (!currentUser) return;
+            const batch = writeBatch(db);
+            
+            // 如果是替換模式，實際上建議先刪除舊的，但這裡為了安全使用合併或逐一處理
+            items.forEach(item => {
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'scrolls', item.id);
+                batch.set(ref, { ...item, updatedAt: Date.now() });
+            });
+            await batch.commit();
+        };
+
+        // 核心：快速更新庫存格子
+        window.quickUpdateInventory = async (id, field, value) => {
+            const index = window.scrolls.findIndex(s => s.id === id);
+            if (index !== -1) {
+                const updatedItem = { ...window.scrolls[index], [field]: parseInt(value) || 0 };
+                await saveToFirestore(updatedItem);
+                showToast("庫存已同步");
+            }
+        };
+
+        // 渲染表格
+        window.renderTable = () => {
+            const term = document.getElementById('search-input').value.toLowerCase();
+            const tbody = document.getElementById('scroll-tbody');
+            const filtered = window.scrolls.filter(s => 
+                (s.name || '').toLowerCase().includes(term) || 
+                (s.monsterName || '').toLowerCase().includes(term) ||
+                (s.bonus || '').toLowerCase().includes(term)
+            );
+            
+            document.getElementById('empty-state').classList.toggle('hidden', filtered.length > 0);
+
+            tbody.innerHTML = filtered.map((s, idx) => {
+                const totalCount = (parseInt(s.char1) || 0) + (parseInt(s.char2) || 0) + (parseInt(s.char3) || 0);
+                const totalValue = (parseInt(s.price) || 0) * totalCount;
+
+                if (window.isEditMode) {
+                    return `
+                    <tr data-id="${s.id}" class="bg-blue-50/20">
+                        <td class="col-handle text-blue-300">#</td>
+                        <td class="col-name"><input class="edit-input edit-name font-bold" value="${s.name || ''}" onkeydown="window.handleEnterKey(event, ${idx})"></td>
+                        <td class="col-price"><input type="number" class="edit-input edit-price font-black text-blue-600" value="${s.price || 0}" onkeydown="window.handleEnterKey(event, ${idx})"></td>
+                        <td class="col-bonus"><textarea class="edit-input edit-textarea edit-bonus font-black text-emerald-600" onkeydown="window.handleEnterKey(event, ${idx})">${s.bonus || ''}</textarea></td>
+                        <td class="col-inventory"><input type="number" class="edit-input edit-char1 text-center" value="${s.char1 || 0}" onkeydown="window.handleEnterKey(event, ${idx})"></td>
+                        <td class="col-inventory"><input type="number" class="edit-input edit-char2 text-center" value="${s.char2 || 0}" onkeydown="window.handleEnterKey(event, ${idx})"></td>
+                        <td class="col-inventory"><input type="number" class="edit-input edit-char3 text-center" value="${s.char3 || 0}" onkeydown="window.handleEnterKey(event, ${idx})"></td>
+                        <td class="col-total-value text-amber-600 font-black value-text text-sm">${totalValue.toLocaleString()}</td>
+                        <td class="col-drops"><input class="edit-input edit-drops" value="${s.monsterName || ''}" onkeydown="window.handleEnterKey(event, ${idx})"></td>
+                        <td class="col-action">
+                            <button onclick="window.deleteScroll('${s.id}')" class="text-red-500 font-bold px-2 py-1">刪</button>
+                        </td>
+                    </tr>`;
+                } else {
+                    return `
+                    <tr data-id="${s.id}" class="hover:bg-gray-50 transition-colors">
+                        <td class="col-handle text-slate-200">⠿</td>
+                        <td class="col-name font-bold text-gray-900 whitespace-normal break-words">${s.name || '未命名'}</td>
+                        <td class="col-price"><span class="price-text">${(parseInt(s.price) || 0).toLocaleString()}</span></td>
+                        <td class="col-bonus">${s.bonus || '-'}</td>
+                        <td class="col-inventory">
+                            <input type="number" class="inv-cell-input text-orange-600" value="${s.char1 || 0}" onchange="window.quickUpdateInventory('${s.id}', 'char1', this.value)">
+                        </td>
+                        <td class="col-inventory">
+                            <input type="number" class="inv-cell-input text-blue-600" value="${s.char2 || 0}" onchange="window.quickUpdateInventory('${s.id}', 'char2', this.value)">
+                        </td>
+                        <td class="col-inventory">
+                            <input type="number" class="inv-cell-input text-purple-600" value="${s.char3 || 0}" onchange="window.quickUpdateInventory('${s.id}', 'char3', this.value)">
+                        </td>
+                        <td class="col-total-value value-text">${totalValue.toLocaleString()}</td>
+                        <td class="col-drops text-gray-500 text-xs">${s.monsterName || '-'}</td>
+                        <td class="col-action">
+                            <div class="flex justify-center gap-1.5">
+                                <button onclick="window.openModal('${s.id}')" class="text-blue-500 font-bold px-2 py-1">改</button>
+                                <button onclick="window.deleteScroll('${s.id}')" class="text-red-400 font-bold px-2 py-1">刪</button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            }).join('');
+        };
+
+        window.updateMemoryFromTable = async () => {
+            if (!window.isEditMode) return;
+            const rows = document.querySelectorAll('#scroll-tbody tr');
+            const updates = [];
+            rows.forEach(row => {
+                const id = row.dataset.id;
+                const index = window.scrolls.findIndex(s => s.id === id);
+                if (index !== -1) {
+                    const updated = {
+                        ...window.scrolls[index],
+                        name: row.querySelector('.edit-name').value,
+                        price: parseInt(row.querySelector('.edit-price').value) || 0,
+                        bonus: row.querySelector('.edit-bonus').value,
+                        char1: parseInt(row.querySelector('.edit-char1').value) || 0,
+                        char2: parseInt(row.querySelector('.edit-char2').value) || 0,
+                        char3: parseInt(row.querySelector('.edit-char3').value) || 0,
+                        monsterName: row.querySelector('.edit-drops').value
+                    };
+                    updates.push(updated);
+                }
+            });
+            if (updates.length > 0) {
+                await batchSaveToFirestore(updates);
+            }
+        };
+
+        window.addNewBlankRow = async () => {
+            await window.updateMemoryFromTable();
+            const newId = Date.now().toString() + Math.random().toString(36).substring(7);
+            const newItem = { id: newId, name: '', price: 0, bonus: '', char1: 0, char2: 0, char3: 0, monsterName: '', updatedAt: Date.now() };
+            await saveToFirestore(newItem);
+        };
+
+        window.handleEnterKey = async (e, index) => {
+            if (e.target.classList.contains('edit-bonus') && e.key === 'Enter' && !e.ctrlKey) return; 
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                await window.updateMemoryFromTable();
+                const newId = Date.now().toString() + Math.random().toString(36).substring(7);
+                const newItem = { id: newId, name: '', price: 0, bonus: '', char1: 0, char2: 0, char3: 0, monsterName: '', updatedAt: Date.now() };
+                await saveToFirestore(newItem);
+                setTimeout(() => { document.querySelectorAll('#scroll-tbody tr')[0]?.querySelector('.edit-name').focus(); }, 100);
+            }
+        };
+
+        window.sortBy = (key) => {
+            if (window.isEditMode) return showToast("編輯中不可排序");
+            window.scrolls.forEach(s => s.totalValue = (parseInt(s.price) || 0) * ((parseInt(s.char1) || 0) + (parseInt(s.char2) || 0) + (parseInt(s.char3) || 0)));
+            window.sortOrder.direction = (window.sortOrder.key === key && window.sortOrder.direction === 'asc') ? 'desc' : 'asc';
+            window.sortOrder.key = key;
+            window.scrolls.sort((a, b) => {
+                let vA = a[key], vB = b[key];
+                return window.sortOrder.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+            });
+            renderTable();
+        };
+
+        window.submitForm = async () => {
+            const form = document.getElementById('scroll-form');
+            if (!form.checkValidity()) return form.reportValidity();
+            const editId = document.getElementById('edit-id').value;
+            const data = {
+                id: editId || Date.now().toString(),
+                name: document.getElementById('scroll-name').value,
+                price: parseInt(document.getElementById('scroll-price').value) || 0,
+                bonus: document.getElementById('scroll-bonus').value,
+                char1: parseInt(document.getElementById('scroll-char1').value) || 0,
+                char2: parseInt(document.getElementById('scroll-char2').value) || 0,
+                char3: parseInt(document.getElementById('scroll-char3').value) || 0,
+                monsterName: document.getElementById('monster-name').value,
+                updatedAt: Date.now()
+            };
+            await saveToFirestore(data);
+            window.closeModal();
+            showToast("已儲存至雲端");
+        };
+
+        window.toggleTableEditMode = async () => {
+            const btn = document.getElementById('btn-edit-mode');
+            const tools = document.getElementById('edit-tools');
+            if (window.isEditMode) {
+                await window.updateMemoryFromTable();
+                window.isEditMode = false;
+                btn.innerText = "編輯整表";
+                btn.className = "text-xs font-bold text-blue-600 border border-blue-100 bg-blue-50 px-3 py-1.5 rounded-lg active:bg-blue-100";
+                tools.classList.add('hidden');
+                showToast("變更已儲存");
+            } else {
+                window.isEditMode = true;
+                btn.innerText = "完成並儲存";
+                btn.className = "text-xs font-bold text-white border border-blue-600 bg-blue-600 px-3 py-1.5 rounded-lg active:bg-blue-700";
+                tools.classList.remove('hidden');
+                window.renderTable();
+            }
+        };
+
+        window.loadCurrentToCsvText = () => {
+            const csv = Papa.unparse(window.scrolls.map(s => ({ "名稱": s.name, "價位": s.price, "加成": s.bonus, "火毒": s.char1, "十字軍": s.char2, "槍手": s.char3, "怪物": s.monsterName })));
+            document.getElementById('csv-raw-text').value = csv;
+        };
+
+        window.openCsvTextModal = () => { 
+            window.loadCurrentToCsvText();
+            document.getElementById('csv-text-modal').classList.remove('hidden'); 
+        };
+        window.closeCsvTextModal = () => document.getElementById('csv-text-modal').classList.add('hidden');
+        
+        window.saveCsvFromText = async (mode) => {
+            const text = document.getElementById('csv-raw-text').value;
+            Papa.parse(text, { header: true, skipEmptyLines: true, complete: async (res) => {
+                const newItems = res.data.map(r => ({ 
+                    id: Math.random().toString(36).substr(7), 
+                    name: r["名稱"] || r["卷軸名稱"] || "新卷軸", 
+                    price: parseInt(r["價位"] || r["價格"] || 0), 
+                    bonus: r["加成"] || r["卷軸加成"] || "", 
+                    char1: parseInt(r["火毒"] || 0), 
+                    char2: parseInt(r["十字軍"] || 0), 
+                    char3: parseInt(r["槍手"] || 0), 
+                    monsterName: r["怪物"] || r["掉落怪物"] || "", 
+                    updatedAt: Date.now() 
+                }));
+                
+                if (mode === 'replace') {
+                    if (!(await customConfirm("覆蓋替換", "確定要覆蓋所有雲端資料嗎？"))) return;
+                    // 先清空（需逐個刪除或特殊邏輯，這裡簡化為批次覆蓋）
+                    await batchSaveToFirestore(newItems);
+                } else {
+                    await batchSaveToFirestore(newItems);
+                }
+                
+                window.closeCsvTextModal(); 
+                showToast(mode === 'replace' ? "已替換雲端資料" : "已插入雲端資料");
+            }});
+        };
+
+        window.importFromCSV = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            Papa.parse(file, { header: true, skipEmptyLines: true, complete: async (res) => {
+                const newItems = res.data.map(r => ({ 
+                    id: Math.random().toString(36).substr(7), 
+                    name: r["名稱"] || r["卷軸名稱"] || "新卷軸", 
+                    price: parseInt(r["價位"] || r["價格"] || 0), 
+                    bonus: r["加成"] || "", 
+                    char1: parseInt(r["火毒"] || 0), 
+                    char2: parseInt(r["十字軍"] || 0), 
+                    char3: parseInt(r["槍手"] || 0), 
+                    monsterName: r["怪物"] || "", 
+                    updatedAt: Date.now() 
+                }));
+                await batchSaveToFirestore(newItems);
+                showToast("檔案已成功插入雲端"); e.target.value = "";
+            }});
+        };
+
+        window.exportToCSV = () => {
+            const csv = Papa.unparse(window.scrolls.map(s => ({ "名稱": s.name, "價位": s.price, "加成": s.bonus, "火毒": s.char1, "十字軍": s.char2, "槍手": s.char3, "怪物": s.monsterName })));
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `ArTale_Cloud_Export_${new Date().toLocaleDateString()}.csv`; link.click();
+        };
+
+        window.openModal = (id = null) => {
+            document.getElementById('scroll-form').reset();
+            document.getElementById('edit-id').value = id || "";
+            if (id) {
+                const s = window.scrolls.find(x => x.id === id);
+                document.getElementById('scroll-name').value = s.name || "";
+                document.getElementById('scroll-price').value = s.price || 0;
+                document.getElementById('scroll-bonus').value = s.bonus || "";
+                document.getElementById('scroll-char1').value = s.char1 || 0;
+                document.getElementById('scroll-char2').value = s.char2 || 0;
+                document.getElementById('scroll-char3').value = s.char3 || 0;
+                document.getElementById('monster-name').value = s.monsterName || "";
+            }
+            document.getElementById('modal').classList.remove('hidden');
+        };
+        
+        window.closeModal = () => document.getElementById('modal').classList.add('hidden');
+        
+        window.deleteScroll = async (id) => { 
+            if (await customConfirm("刪除確認", "確定要從雲端永久刪除這筆紀錄嗎？")) { 
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'scrolls', id));
+                    showToast("已刪除");
+                } catch (e) {
+                    showToast("刪除失敗");
+                }
+            } 
+        };
+
+        window.onload = () => { 
+            // 如果連線太久沒反應顯示提示
+            setTimeout(() => {
+                if (window.scrolls.length === 0 && currentUser) {
+                    setSyncStatus('ok', '雲端庫存為空');
+                }
+            }, 3000);
+        };
+    </script>
+</body>
+</html>
+
