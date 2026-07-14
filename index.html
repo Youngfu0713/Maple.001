@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 全端通用完美拖曳版</title>
+    <title>極簡美學個人日程管理系統 - 精準編號與自動排序版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -27,7 +27,6 @@
             
             --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
             --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
-            --shadow-active: 0 20px 40px -15px rgba(81, 81, 229, 0.25);
             
             --radius-sm: 6px;
             --radius-md: 10px;
@@ -45,7 +44,6 @@
             overscroll-behavior-y: contain;
             letter-spacing: -0.01em;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         .calendar-container {
@@ -191,11 +189,30 @@
 
         .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
 
-        /* 列表與全新拖曳樣式 */
-        .timeline { padding: 18px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
+        /* 💎 排序控制吧（全新功能） */
+        .sort-control-bar {
+            padding: 10px 20px 0 20px;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sort-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
+        .sort-select-wrapper { display: flex; gap: 4px; }
+        .sort-btn {
+            font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px;
+            border-radius: 6px; border: 1px solid var(--border-hover); background: #ffffff;
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+        }
+        .sort-btn.active {
+            background: var(--primary); color: #ffffff; border-color: var(--primary);
+        }
+
+        /* 列表與卡片樣式 */
+        .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
 
-        /* 💎 頂級 Pointer-Based 拖曳卡片 */
+        /* 💎 高級卡片（無任何拖曳干涉，點擊極速響應） */
         .event-card {
             border: none;
             border-radius: var(--radius-md);
@@ -206,35 +223,27 @@
             justify-content: space-between;
             box-shadow: var(--shadow-sm);
             position: relative;
-            cursor: grab;
-            user-select: none;
-            /* 💎 關鍵：禁止手機網頁預設的長按選取與滾動干涉 */
-            touch-action: none; 
-            -webkit-user-drag: none;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
         }
-        .event-card:active { cursor: grabbing; }
+        .event-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); }
 
-        /* 💎 被真正拖曳中的虛擬浮空狀態 */
-        .event-card.dragging {
-            position: fixed !important;
-            z-index: 9999 !important;
-            pointer-events: none !important; /* 避免阻擋下方的碰撞偵測 */
-            box-shadow: var(--shadow-active);
-            transform: scale(1.04);
-            opacity: 0.9;
-            margin: 0 !important;
+        /* 💎 序號欄位樣式 */
+        .event-order-badge {
+            font-size: 0.78rem; font-weight: 800; color: var(--text-muted);
+            background: rgba(15, 23, 42, 0.05); width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; flex-shrink: 0; margin-right: 4px;
         }
-
-        /* 💎 留在原地的虛線占位區 */
-        .drag-placeholder {
-            background: rgba(81, 81, 229, 0.05);
-            border: 2px dashed rgba(81, 81, 229, 0.35);
-            border-radius: var(--radius-md);
-            margin-bottom: 10px;
-            box-sizing: border-box;
+        /* 手動排序輸入框 */
+        .event-order-input {
+            width: 32px; padding: 3px 2px; font-family: inherit; font-size: 0.78rem;
+            font-weight: 800; text-align: center; border: 1px solid var(--border-hover);
+            border-radius: var(--radius-sm); outline: none; color: var(--primary);
+            margin-right: 8px; flex-shrink: 0; background: #ffffff;
         }
 
-        .event-info { flex-grow: 1; display: flex; align-items: center; gap: 10px; padding-right: 12px; min-width: 0; pointer-events: none; }
+        .event-info { flex-grow: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
         .category-badge { font-size: 0.7rem; font-weight: 800; padding: 3.5px 9px; border-radius: 12px; color: white; white-space: nowrap; flex-shrink: 0; }
         .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex-grow: 1; min-width: 0; }
 
@@ -334,6 +343,15 @@
             <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
         </div>
 
+        <div class="sort-control-bar">
+            <span class="sort-label">排列順序：</span>
+            <div class="sort-select-wrapper">
+                <button class="sort-btn" id="sort-btn-manual">✍️ 手動</button>
+                <button class="sort-btn" id="sort-btn-az">🔤 A-Z</button>
+                <button class="sort-btn" id="sort-btn-za">🔤 Z-A</button>
+            </div>
+        </div>
+
         <div class="timeline" id="timeline-list"></div>
     </div>
 
@@ -412,6 +430,10 @@
         const btnToday = document.getElementById('btn-today');
         const btnNext = document.getElementById('btn-next');
 
+        const sortBtnManual = document.getElementById('sort-btn-manual');
+        const sortBtnAz = document.getElementById('sort-btn-az');
+        const sortBtnZa = document.getElementById('sort-btn-za');
+
         const actionModal = document.getElementById('action-modal');
         const modalEventTitle = document.getElementById('modal-event-title');
         const modalBtnEdit = document.getElementById('modal-btn-edit');
@@ -433,6 +455,9 @@
         const modalCategoryGrid = document.getElementById('modal-category-grid');
 
         let activeEventIndex = null;
+
+        // 💎 排序模式狀態管理："manual" (手動), "az" (A-Z), "za" (Z-A)
+        let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
 
         let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories')) || [
             { id: "personal", name: "個人", color: "#47b881" },
@@ -522,7 +547,7 @@
 
         if (Object.keys(allEvents).length === 0) {
             allEvents[selectedDateStr] = [
-                { title: "滑鼠或直接手指按住卡片進行上下拖曳排序", cat: "work", color: "#9c27b0" },
+                { title: "在上方切換「手動排序」，可直接修改編號排序行程", cat: "work", color: "#9c27b0" },
                 { title: "輕點本卡片即可彈出修改文字內容", cat: "personal", color: "#47b881" }
             ];
             localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
@@ -533,155 +558,93 @@
             currentDayText.textContent = `${selectedDateStr} (${new Date(selectedDateStr).toLocaleDateString('zh-TW', options)})`;
         }
 
-        // ------------------ 💎 終極完美 PointerEvent 物理拖曳排序系統 ------------------
-        let dragEl = null;
-        let placeholderEl = null;
-        let startY = 0;
-        let startTop = 0;
-        let isMoveTriggered = false;
+        // 💎 排序按鈕 UI 更新
+        function updateSortButtonsUI() {
+            [sortBtnManual, sortBtnAz, sortBtnZa].forEach(btn => btn.classList.remove('active'));
+            if (currentSortMode === 'manual') sortBtnManual.classList.add('active');
+            else if (currentSortMode === 'az') sortBtnAz.classList.add('active');
+            else if (currentSortMode === 'za') sortBtnZa.classList.add('active');
+        }
 
+        // 💎 核心渲染與編號/自動排序邏輯
         function renderTimeline() {
             timeline.innerHTML = '';
-            const events = allEvents[selectedDateStr] || [];
+            let events = allEvents[selectedDateStr] || [];
 
             if (events.length === 0) {
                 timeline.innerHTML = '<div class="no-events">📅 本日尚無安排日程</div>';
                 return;
             }
 
-            events.forEach((evt, idx) => {
+            // 💎 自動排序處理 (如果不是手動模式，則執行複製並排序)
+            let displayEvents = events.map((e, index) => ({ ...e, originalIndex: index }));
+            
+            if (currentSortMode === 'az') {
+                displayEvents.sort((a, b) => a.title.localeCompare(b.title, 'zh-Hant'));
+            } else if (currentSortMode === 'za') {
+                displayEvents.sort((a, b) => b.title.localeCompare(a.title, 'zh-Hant'));
+            }
+
+            displayEvents.forEach((evt, displayIdx) => {
                 const card = document.createElement('div');
                 card.className = `event-card`;
-                card.dataset.index = idx;
 
                 const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8" };
                 card.style.backgroundColor = hexToRgba(catInfo.color, 0.12);
 
+                // 左側排序機制（手動模式顯示輸入框，自動模式顯示純圓圈編號）
+                let orderAddon = '';
+                if (currentSortMode === 'manual') {
+                    orderAddon = `<input type="number" class="event-order-input" value="${displayIdx + 1}" data-orig-idx="${evt.originalIndex}" min="1" max="${events.length}">`;
+                } else {
+                    orderAddon = `<div class="event-order-badge">${displayIdx + 1}</div>`;
+                }
+
                 card.innerHTML = `
-                    <div class="event-info">
+                    <div class="event-info" style="pointer-events: none;">
+                        ${orderAddon}
                         <span class="category-badge" style="background-color: ${catInfo.color};">${catInfo.name}</span>
                         <p class="event-title" style="color: ${evt.color || catInfo.color}">${evt.title}</p>
                     </div>
                 `;
 
-                // 💎 使用通用指標事件 (滑鼠與觸控一網打盡)
-                card.addEventListener('pointerdown', (e) => {
-                    // 如果點擊到的是按鈕之類的就不觸發拖曳 (這裡只有純文字跟徽章)
-                    if (e.button !== 0 && e.pointerType === 'mouse') return; // 僅限滑鼠左鍵
+                // 阻擋輸入框的點擊事件傳播，避免點擊修改數字時彈出選單
+                const inputEl = card.querySelector('.event-order-input');
+                if (inputEl) {
+                    inputEl.style.pointerEvents = 'auto'; // 允許輸入框互動
+                    inputEl.addEventListener('click', (e) => e.stopPropagation());
+                    inputEl.addEventListener('change', (e) => handleManualOrderChange(e));
+                }
 
-                    dragEl = card;
-                    startY = e.clientY;
-                    isMoveTriggered = false;
-
-                    // 記錄卡片當前相對於視窗的絕對位置
-                    const rect = card.getBoundingClientRect();
-                    startTop = rect.top;
-
-                    // 設定指標捕捉
-                    card.setPointerCapture(e.pointerId);
-                });
-
-                card.addEventListener('pointermove', (e) => {
-                    if (!dragEl || dragEl !== card) return;
-                    
-                    const deltaY = e.clientY - startY;
-
-                    // 判定是否真正開始移動 (大於 4 像素才算，防止輕微手震誤判)
-                    if (!isMoveTriggered && Math.abs(deltaY) > 4) {
-                        isMoveTriggered = true;
-
-                        // 建立留在原地的虛線占位區
-                        placeholderEl = document.createElement('div');
-                        placeholderEl.className = 'drag-placeholder';
-                        placeholderEl.style.height = `${card.offsetHeight}px`;
-                        card.parentNode.insertBefore(placeholderEl, card);
-
-                        // 把卡片轉為絕對浮空狀態
-                        card.style.width = `${card.offsetWidth}px`;
-                        card.classList.add('dragging');
-                    }
-
-                    if (isMoveTriggered) {
-                        // 讓卡片緊緊跟隨指標位置
-                        card.style.top = `${startTop + deltaY}px`;
-
-                        // 核心碰撞偵測：找出目前指標下方是哪張卡片
-                        const siblings = [...timeline.querySelectorAll('.event-card:not(.dragging)')];
-                        let nextSibling = siblings.find(sibling => {
-                            const r = sibling.getBoundingClientRect();
-                            return e.clientY < r.top + r.height / 2;
-                        });
-
-                        // 動態搬移虛線占位區
-                        if (nextSibling) {
-                            timeline.insertBefore(placeholderEl, nextSibling);
-                        } else {
-                            timeline.appendChild(placeholderEl);
-                        }
-                    }
-                });
-
-                card.addEventListener('pointerup', (e) => {
-                    if (!dragEl || dragEl !== card) return;
-                    card.releasePointerCapture(e.pointerId);
-
-                    if (isMoveTriggered) {
-                        // 把卡片放進剛剛預留的虛線占位區位置
-                        if (placeholderEl && placeholderEl.parentNode) {
-                            placeholderEl.parentNode.insertBefore(card, placeholderEl);
-                        }
-
-                        // 清除所有暫存屬性
-                        card.classList.remove('dragging');
-                        card.style.position = '';
-                        card.style.top = '';
-                        card.style.width = '';
-                        if (placeholderEl) { placeholderEl.remove(); placeholderEl = null; }
-
-                        // 儲存新排序
-                        saveOrder();
-                    } else {
-                        // 💎 沒發生移動，代表只是「單純點擊」，彈出選單！
-                        openActionModal(idx, evt);
-                    }
-
-                    dragEl = null;
-                    isMoveTriggered = false;
-                });
-
-                card.addEventListener('pointercancel', (e) => {
-                    if (!dragEl) return;
-                    card.releasePointerCapture(e.pointerId);
-                    card.classList.remove('dragging');
-                    card.style.position = '';
-                    card.style.top = '';
-                    card.style.width = '';
-                    if (placeholderEl) { placeholderEl.remove(); placeholderEl = null; }
-                    dragEl = null;
-                    isMoveTriggered = false;
+                // 點擊整張卡片彈出五大功能選單
+                card.addEventListener('click', () => {
+                    openActionModal(evt.originalIndex, evt);
                 });
 
                 timeline.appendChild(card);
             });
         }
 
-        function saveOrder() {
-            const currentCards = [...timeline.querySelectorAll('.event-card')];
-            const newEventsList = [];
-            const oldEvents = allEvents[selectedDateStr] || [];
+        // 💎 處理手動修改編號後的重新排序
+        function handleManualOrderChange(e) {
+            const origIdx = parseInt(e.target.dataset.origIdx);
+            let newPosition = parseInt(e.target.value) - 1;
+            let events = allEvents[selectedDateStr] || [];
 
-            currentCards.forEach(card => {
-                const oldIndex = parseInt(card.dataset.index);
-                if (oldEvents[oldIndex]) {
-                    newEventsList.push(oldEvents[oldIndex]);
-                }
-            });
+            if (isNaN(newPosition) || newPosition < 0) newPosition = 0;
+            if (newPosition >= events.length) newPosition = events.length - 1;
 
-            if (newEventsList.length > 0) {
-                allEvents[selectedDateStr] = newEventsList;
-                saveAndRender();
-            }
+            // 物理搬移陣列元素
+            const targetEvt = events.splice(origIdx, 1)[0];
+            events.splice(newPosition, 0, targetEvt);
+
+            saveAndRender();
         }
+
+        // 💎 排序切換監聽
+        sortBtnManual.addEventListener('click', () => { currentSortMode = 'manual'; localStorage.setItem('pro_calendar_sort_mode', 'manual'); updateSortButtonsUI(); renderTimeline(); });
+        sortBtnAz.addEventListener('click', () => { currentSortMode = 'az'; localStorage.setItem('pro_calendar_sort_mode', 'az'); updateSortButtonsUI(); renderTimeline(); });
+        sortBtnZa.addEventListener('click', () => { currentSortMode = 'za'; localStorage.setItem('pro_calendar_sort_mode', 'za'); updateSortButtonsUI(); renderTimeline(); });
 
         // ------------------ 五大功能選單處理 ------------------
         function openActionModal(idx, evt) {
@@ -782,8 +745,8 @@
         });
 
         renderCategorySelectionButtons();
+        updateSortButtonsUI();
         changeSelectedDate(selectedDateStr);
     </script>
 </body>
 </html>
-
