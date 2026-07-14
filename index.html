@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 終極拖曳與編輯版</title>
+    <title>極簡美學個人日程管理系統 - 全端通用完美拖曳版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -15,7 +15,6 @@
         }
 
         :root {
-            /* 頂級設計師調配：莫蘭迪與大地暖色系 */
             --primary: #5151e5;
             --primary-hover: #3d3dbd;
             --primary-light: #eef2ff;
@@ -26,12 +25,10 @@
             --border: #f1f5f9;
             --border-hover: #cbd5e1;
             
-            /* 微立體物理陰影 */
             --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
             --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
             --shadow-active: 0 20px 40px -15px rgba(81, 81, 229, 0.25);
             
-            /* 圓角美學 */
             --radius-sm: 6px;
             --radius-md: 10px;
             --radius-lg: 14px;
@@ -64,7 +61,7 @@
             position: relative;
         }
 
-        /* 頂部導覽列與日期切換 */
+        /* 頂部導覽列 */
         .calendar-header {
             padding: 16px 20px 10px 20px;
             background: #ffffff;
@@ -99,15 +96,13 @@
             font-weight: 700;
             color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex: 1;
         }
 
-        #btn-prev, #btn-next { flex: 1; }
-        #btn-prev:hover, #btn-next:hover { background: #f1f5f9; color: var(--text-main); }
         #btn-today { flex: 1.5; background: var(--primary); color: white; border: none; font-weight: 800; }
         #btn-today:hover { background: var(--primary-hover); }
 
@@ -129,10 +124,9 @@
             color: var(--text-muted);
             background-color: #f8fafc;
             outline: none;
-            cursor: pointer;
         }
 
-        /* 新增表單區域 */
+        /* 表單區域 */
         .event-form {
             padding: 14px 20px;
             background: #ffffff;
@@ -153,9 +147,7 @@
             background: #f8fafc;
             color: var(--text-main);
             outline: none;
-            transition: all 0.2s;
         }
-        .event-form input[type="text"]:focus { background: #ffffff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(81, 81, 229, 0.08); }
 
         .font-color-picker-container {
             display: flex;
@@ -179,33 +171,31 @@
             font-weight: 700;
             border: 2px solid transparent;
             cursor: pointer;
-            transition: all 0.2s;
             opacity: 0.45;
             color: white;
-            transform: scale(0.96);
         }
-        .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); transform: scale(1.02); }
+        .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
 
         .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; margin-left: auto; }
         .category-manage-panel { display: none; background: #f8fafc; padding: 12px; border-radius: var(--radius-md); border: 1px dashed var(--border-hover); gap: 8px; flex-direction: column; }
         .category-manage-panel.active { display: flex; }
         .manage-list-item { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
         .manage-list-item .left { display: flex; align-items: center; gap: 8px; }
-        .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; cursor: pointer; background: none; padding: 0; }
+        .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; }
         .cat-del-btn { font-family: inherit; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78rem; font-weight: bold; }
 
         .add-new-cat-row { display: flex; gap: 6px; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 10px; align-items: center; }
         .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; }
-        .add-new-cat-row input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: none; padding: 0; }
+        .add-new-cat-row input[type="color"] { border: none; width: 30px; height: 30px; background: none; padding: 0; }
         .add-cat-submit-btn { font-family: inherit; background: #1e293b; color: white; border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
 
-        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 3px 8px rgba(81, 81, 229, 0.12); }
+        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
 
-        /* 日程時間軸列表 */
-        .timeline { padding: 18px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 200px; }
+        /* 列表與全新拖曳樣式 */
+        .timeline { padding: 18px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
 
-        /* 💎 UI與拖曳優化：可手動拖曳的高級卡片 */
+        /* 💎 頂級 Pointer-Based 拖曳卡片 */
         .event-card {
             border: none;
             border-radius: var(--radius-md);
@@ -216,37 +206,39 @@
             justify-content: space-between;
             box-shadow: var(--shadow-sm);
             position: relative;
-            cursor: grab; /* 提示使用者這張卡片可以抓取拖曳 */
-            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s ease;
+            cursor: grab;
             user-select: none;
+            /* 💎 關鍵：禁止手機網頁預設的長按選取與滾動干涉 */
+            touch-action: none; 
+            -webkit-user-drag: none;
         }
         .event-card:active { cursor: grabbing; }
-        .event-card:hover { box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); transform: translateY(-1px); }
 
-        /* 💎 拖曳狀態樣式 */
+        /* 💎 被真正拖曳中的虛擬浮空狀態 */
         .event-card.dragging {
-            opacity: 0.4;
+            position: fixed !important;
+            z-index: 9999 !important;
+            pointer-events: none !important; /* 避免阻擋下方的碰撞偵測 */
             box-shadow: var(--shadow-active);
-            transform: scale(0.98);
-            border: 1px dashed var(--primary);
+            transform: scale(1.04);
+            opacity: 0.9;
+            margin: 0 !important;
         }
 
-        /* 💎 拖曳時的虛線占位目標 */
+        /* 💎 留在原地的虛線占位區 */
         .drag-placeholder {
-            background: rgba(81, 81, 229, 0.04);
-            border: 2px dashed rgba(81, 81, 229, 0.3);
+            background: rgba(81, 81, 229, 0.05);
+            border: 2px dashed rgba(81, 81, 229, 0.35);
             border-radius: var(--radius-md);
-            height: 48px;
             margin-bottom: 10px;
             box-sizing: border-box;
-            transition: all 0.2s ease;
         }
 
-        .event-info { flex-grow: 1; display: flex; align-items: center; gap: 10px; padding-right: 12px; min-width: 0; }
-        .category-badge { font-size: 0.7rem; font-weight: 800; padding: 3.5px 9px; border-radius: 12px; color: white; white-space: nowrap; flex-shrink: 0; pointer-events: none; }
+        .event-info { flex-grow: 1; display: flex; align-items: center; gap: 10px; padding-right: 12px; min-width: 0; pointer-events: none; }
+        .category-badge { font-size: 0.7rem; font-weight: 800; padding: 3.5px 9px; border-radius: 12px; color: white; white-space: nowrap; flex-shrink: 0; }
         .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex-grow: 1; min-width: 0; }
 
-        /* ------------------ 彈出式視窗 (Bottom Sheet Modal) ------------------ */
+        /* Bottom Sheet Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px);
@@ -270,53 +262,35 @@
         .sheet-title-desc { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
         .sheet-event-title { font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.4; }
 
-        /* 💎 五大功能網格佈局：改成 3 欄或彈性佈局 */
-        .sheet-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        /* 讓最後一個刪除按鈕滿版，形成完美的視覺平衡 */
-        .sheet-btn.danger-btn {
-            grid-column: span 2;
-        }
+        .sheet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .sheet-btn.danger-btn { grid-column: span 2; }
 
         .sheet-btn {
             font-family: inherit; background-color: #f8fafc; border: 1px solid #f1f5f9;
             border-radius: var(--radius-lg); padding: 14px;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-            cursor: pointer; transition: all 0.22s; color: var(--text-main); font-weight: 800; font-size: 0.88rem;
+            cursor: pointer; color: var(--text-main); font-weight: 800; font-size: 0.88rem;
         }
-        .sheet-btn:hover { background-color: #eef2ff; border-color: rgba(81, 81, 229, 0.25); transform: scale(1.02); }
+        .sheet-btn:hover { background-color: #eef2ff; border-color: rgba(81, 81, 229, 0.25); }
         .sheet-btn.danger-btn:hover { background-color: #fef2f2; border-color: rgba(239, 68, 68, 0.25); color: #ef4444; }
-        .sheet-btn svg { width: 22px; height: 22px; transition: transform 0.2s; }
-        .sheet-btn:hover svg { transform: scale(1.1); }
+        .sheet-btn svg { width: 22px; height: 22px; }
 
-        /* 💎 編輯文本專屬隱藏面板 */
-        .sheet-edit-panel {
-            display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px;
-            flex-direction: column; gap: 10px; animation: fadeIn 0.25s ease-out;
-        }
+        .sheet-edit-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px; flex-direction: column; gap: 10px; }
         .sheet-edit-panel.show { display: flex; }
         .sheet-edit-panel input[type="text"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; }
         
-        /* 跨日期移動與類別隱藏面板 */
-        .sheet-move-date-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px; flex-direction: column; gap: 10px; animation: fadeIn 0.25s ease-out; }
+        .sheet-move-date-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px; flex-direction: column; gap: 10px; }
         .sheet-move-date-panel.show { display: flex; }
         .sheet-move-date-panel input[type="date"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; font-weight: bold; }
 
-        .sheet-category-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 14px; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease-out; }
+        .sheet-category-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 14px; flex-direction: column; gap: 8px; }
         .sheet-category-panel.show { display: flex; }
         .sheet-category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .sheet-category-item { padding: 10px 14px; border-radius: var(--radius-md); background: #ffffff; border: 1px solid #f1f5f9; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .sheet-category-item:hover { border-color: var(--primary); background: var(--primary-light); }
         .sheet-category-item .dot { width: 10px; height: 10px; border-radius: 50%; }
 
         .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
-        .sheet-panel-submit:hover { background: var(--primary-hover); }
-
         .sheet-close-btn { font-family: inherit; background: none; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); background-color: #f1f5f9; text-align: center; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -376,22 +350,18 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     <span>編輯內文</span>
                 </button>
-
                 <button class="sheet-btn" id="modal-btn-move">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L14.5 21a.55.55 0 0 1-1 0L10 14l-7-3.5a.55.55 0 0 1 0-1L21 3z"/><path d="M21 3L10 14"/></svg>
                     <span>跨日期移動</span>
                 </button>
-
                 <button class="sheet-btn" id="modal-btn-copy">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     <span>複製本事件</span>
                 </button>
-
                 <button class="sheet-btn" id="modal-btn-category">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                     <span>切換類別</span>
                 </button>
-
                 <button class="sheet-btn danger-btn" id="modal-btn-delete">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     <span style="color: #ef4444;">刪除本行程</span>
@@ -442,7 +412,6 @@
         const btnToday = document.getElementById('btn-today');
         const btnNext = document.getElementById('btn-next');
 
-        // 彈出式視窗 DOM
         const actionModal = document.getElementById('action-modal');
         const modalEventTitle = document.getElementById('modal-event-title');
         const modalBtnEdit = document.getElementById('modal-btn-edit');
@@ -465,7 +434,6 @@
 
         let activeEventIndex = null;
 
-        // 1. 類別資料
         let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories')) || [
             { id: "personal", name: "個人", color: "#47b881" },
             { id: "family", name: "家庭", color: "#4c90e2" },
@@ -544,7 +512,6 @@
             if (colorPanel.classList.contains('active')) renderManageCategoriesList();
         });
 
-        // 日期控制
         function getLocalDateString(date) {
             return new Date(date.getTime() - (date.getTimezoneOffset() * 60 * 1000)).toISOString().split('T')[0];
         }
@@ -555,8 +522,8 @@
 
         if (Object.keys(allEvents).length === 0) {
             allEvents[selectedDateStr] = [
-                { title: "長按或直接拖曳本卡片調整順序", cat: "work", color: "#9c27b0" },
-                { title: "點擊本卡片即可修改文字內容", cat: "personal", color: "#47b881" }
+                { title: "滑鼠或直接手指按住卡片進行上下拖曳排序", cat: "work", color: "#9c27b0" },
+                { title: "輕點本卡片即可彈出修改文字內容", cat: "personal", color: "#47b881" }
             ];
             localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
         }
@@ -566,7 +533,13 @@
             currentDayText.textContent = `${selectedDateStr} (${new Date(selectedDateStr).toLocaleDateString('zh-TW', options)})`;
         }
 
-        // ------------------ 💎 核心渲染與手動拖曳邏輯 ------------------
+        // ------------------ 💎 終極完美 PointerEvent 物理拖曳排序系統 ------------------
+        let dragEl = null;
+        let placeholderEl = null;
+        let startY = 0;
+        let startTop = 0;
+        let isMoveTriggered = false;
+
         function renderTimeline() {
             timeline.innerHTML = '';
             const events = allEvents[selectedDateStr] || [];
@@ -580,28 +553,9 @@
                 const card = document.createElement('div');
                 card.className = `event-card`;
                 card.dataset.index = idx;
-                card.draggable = true; // 啟動 HTML5 原生拖曳功能
 
                 const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8" };
-                const bgLight = hexToRgba(catInfo.color, 0.12);
-                card.style.backgroundColor = bgLight;
-
-                // 點擊事件 (防拖曳誤觸)
-                let isDraggingDetected = false;
-                card.addEventListener('dragstart', () => {
-                    isDraggingDetected = true;
-                    card.classList.add('dragging');
-                });
-                card.addEventListener('dragend', () => {
-                    card.classList.remove('dragging');
-                    // 移除所有暫存的占位符
-                    document.querySelectorAll('.drag-placeholder').forEach(el => el.remove());
-                    saveOrder();
-                });
-
-                card.addEventListener('click', () => {
-                    if (!isDraggingDetected) openActionModal(idx, evt);
-                });
+                card.style.backgroundColor = hexToRgba(catInfo.color, 0.12);
 
                 card.innerHTML = `
                     <div class="event-info">
@@ -609,41 +563,108 @@
                         <p class="event-title" style="color: ${evt.color || catInfo.color}">${evt.title}</p>
                     </div>
                 `;
+
+                // 💎 使用通用指標事件 (滑鼠與觸控一網打盡)
+                card.addEventListener('pointerdown', (e) => {
+                    // 如果點擊到的是按鈕之類的就不觸發拖曳 (這裡只有純文字跟徽章)
+                    if (e.button !== 0 && e.pointerType === 'mouse') return; // 僅限滑鼠左鍵
+
+                    dragEl = card;
+                    startY = e.clientY;
+                    isMoveTriggered = false;
+
+                    // 記錄卡片當前相對於視窗的絕對位置
+                    const rect = card.getBoundingClientRect();
+                    startTop = rect.top;
+
+                    // 設定指標捕捉
+                    card.setPointerCapture(e.pointerId);
+                });
+
+                card.addEventListener('pointermove', (e) => {
+                    if (!dragEl || dragEl !== card) return;
+                    
+                    const deltaY = e.clientY - startY;
+
+                    // 判定是否真正開始移動 (大於 4 像素才算，防止輕微手震誤判)
+                    if (!isMoveTriggered && Math.abs(deltaY) > 4) {
+                        isMoveTriggered = true;
+
+                        // 建立留在原地的虛線占位區
+                        placeholderEl = document.createElement('div');
+                        placeholderEl.className = 'drag-placeholder';
+                        placeholderEl.style.height = `${card.offsetHeight}px`;
+                        card.parentNode.insertBefore(placeholderEl, card);
+
+                        // 把卡片轉為絕對浮空狀態
+                        card.style.width = `${card.offsetWidth}px`;
+                        card.classList.add('dragging');
+                    }
+
+                    if (isMoveTriggered) {
+                        // 讓卡片緊緊跟隨指標位置
+                        card.style.top = `${startTop + deltaY}px`;
+
+                        // 核心碰撞偵測：找出目前指標下方是哪張卡片
+                        const siblings = [...timeline.querySelectorAll('.event-card:not(.dragging)')];
+                        let nextSibling = siblings.find(sibling => {
+                            const r = sibling.getBoundingClientRect();
+                            return e.clientY < r.top + r.height / 2;
+                        });
+
+                        // 動態搬移虛線占位區
+                        if (nextSibling) {
+                            timeline.insertBefore(placeholderEl, nextSibling);
+                        } else {
+                            timeline.appendChild(placeholderEl);
+                        }
+                    }
+                });
+
+                card.addEventListener('pointerup', (e) => {
+                    if (!dragEl || dragEl !== card) return;
+                    card.releasePointerCapture(e.pointerId);
+
+                    if (isMoveTriggered) {
+                        // 把卡片放進剛剛預留的虛線占位區位置
+                        if (placeholderEl && placeholderEl.parentNode) {
+                            placeholderEl.parentNode.insertBefore(card, placeholderEl);
+                        }
+
+                        // 清除所有暫存屬性
+                        card.classList.remove('dragging');
+                        card.style.position = '';
+                        card.style.top = '';
+                        card.style.width = '';
+                        if (placeholderEl) { placeholderEl.remove(); placeholderEl = null; }
+
+                        // 儲存新排序
+                        saveOrder();
+                    } else {
+                        // 💎 沒發生移動，代表只是「單純點擊」，彈出選單！
+                        openActionModal(idx, evt);
+                    }
+
+                    dragEl = null;
+                    isMoveTriggered = false;
+                });
+
+                card.addEventListener('pointercancel', (e) => {
+                    if (!dragEl) return;
+                    card.releasePointerCapture(e.pointerId);
+                    card.classList.remove('dragging');
+                    card.style.position = '';
+                    card.style.top = '';
+                    card.style.width = '';
+                    if (placeholderEl) { placeholderEl.remove(); placeholderEl = null; }
+                    dragEl = null;
+                    isMoveTriggered = false;
+                });
+
                 timeline.appendChild(card);
             });
         }
 
-        // 💎 拖曳排序處理
-        timeline.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            const draggingCard = document.querySelector('.event-card.dragging');
-            if (!draggingCard) return;
-
-            const afterElement = getDragAfterElement(timeline, e.clientY);
-            const placeholder = document.querySelector('.drag-placeholder') || document.createElement('div');
-            placeholder.className = 'drag-placeholder';
-
-            if (afterElement == null) {
-                timeline.appendChild(placeholder);
-            } else {
-                timeline.insertBefore(placeholder, afterElement);
-            }
-        });
-
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.event-card:not(.dragging)')];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-
-        // 💎 儲存拖曳後的全新順序
         function saveOrder() {
             const currentCards = [...timeline.querySelectorAll('.event-card')];
             const newEventsList = [];
@@ -662,48 +683,36 @@
             }
         }
 
-        // ------------------ 💎 彈出選單五大功能 ------------------
+        // ------------------ 五大功能選單處理 ------------------
         function openActionModal(idx, evt) {
             activeEventIndex = idx;
             modalEventTitle.textContent = evt.title;
-            
-            // 收合所有次級面板
             modalEditPanel.classList.remove('show');
             modalMovePanel.classList.remove('show');
             modalCategoryPanel.classList.remove('show');
-
             actionModal.classList.add('show');
         }
 
         function closeActionModal() { actionModal.classList.remove('show'); activeEventIndex = null; }
 
-        // 點擊「編輯內文」按鈕
         modalBtnEdit.addEventListener('click', () => {
             modalMovePanel.classList.remove('show');
             modalCategoryPanel.classList.remove('show');
-            
             const evt = allEvents[selectedDateStr][activeEventIndex];
             modalEditTitleInput.value = evt.title;
-            
             const catInfo = customCategories.find(c => c.id === evt.cat);
             modalEditColorInput.value = evt.color || (catInfo ? catInfo.color : "#5151e5");
-            
             modalEditPanel.classList.toggle('show');
         });
 
-        // 儲存文字編輯
         modalEditSubmitBtn.addEventListener('click', () => {
             const newTitle = modalEditTitleInput.value.trim();
-            if (!newTitle) { alert('行程名稱不能留空！'); return; }
-
+            if (!newTitle) return;
             allEvents[selectedDateStr][activeEventIndex].title = newTitle;
             allEvents[selectedDateStr][activeEventIndex].color = modalEditColorInput.value;
-
-            saveAndRender();
-            closeActionModal();
+            saveAndRender(); closeActionModal();
         });
 
-        // 跨日期移動
         modalBtnMove.addEventListener('click', () => {
             modalEditPanel.classList.remove('show');
             modalCategoryPanel.classList.remove('show');
@@ -714,33 +723,25 @@
         modalMoveSubmitBtn.addEventListener('click', () => {
             const target = modalMoveDateInput.value;
             if (!target || target === selectedDateStr) return;
-
             const targetEvt = allEvents[selectedDateStr].splice(activeEventIndex, 1)[0];
             if (allEvents[selectedDateStr].length === 0) delete allEvents[selectedDateStr];
-
             if (!allEvents[target]) allEvents[target] = [];
             allEvents[target].push(targetEvt);
-
             localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
-            closeActionModal();
-            changeSelectedDate(target);
+            closeActionModal(); changeSelectedDate(target);
         });
 
-        // 複製事件
         modalBtnCopy.addEventListener('click', () => {
             const original = allEvents[selectedDateStr][activeEventIndex];
             allEvents[selectedDateStr].splice(activeEventIndex + 1, 0, { ...original });
             saveAndRender(); closeActionModal();
         });
 
-        // 快速類別面板
         modalBtnCategory.addEventListener('click', () => {
             modalEditPanel.classList.remove('show');
             modalMovePanel.classList.remove('show');
-            
             modalCategoryGrid.innerHTML = '';
             const currentCatId = allEvents[selectedDateStr][activeEventIndex].cat;
-            
             customCategories.forEach(cat => {
                 const isCurrent = cat.id === currentCatId;
                 const item = document.createElement('div');
@@ -756,7 +757,6 @@
             modalCategoryPanel.classList.toggle('show');
         });
 
-        // 刪除事件
         modalBtnDelete.addEventListener('click', () => {
             if (confirm('確定要刪除此行程嗎？')) {
                 allEvents[selectedDateStr].splice(activeEventIndex, 1);
@@ -786,3 +786,4 @@
     </script>
 </body>
 </html>
+
