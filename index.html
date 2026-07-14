@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 清爽排序版</title>
+    <title>極簡美學個人日程管理系統 - 週總覽版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -101,8 +101,10 @@
             flex: 1;
         }
 
-        #btn-today { flex: 1.5; background: var(--primary); color: white; border: none; font-weight: 800; }
+        #btn-today { flex: 1.2; background: var(--primary); color: white; border: none; font-weight: 800; }
         #btn-today:hover { background: var(--primary-hover); }
+        #btn-week-overview { flex: 1.4; background: #eef2ff; color: var(--primary); border: 1px solid rgba(81, 81, 229, 0.15); font-weight: 800; }
+        #btn-week-overview:hover { background: #e0e7ff; }
 
         .date-picker-row {
             display: flex;
@@ -244,7 +246,7 @@
         }
         .move-step-btn:hover { background: #f1f5f9; color: var(--primary); }
 
-        /* Bottom Sheet Modal */
+        /* Bottom Sheet Modal & 通用彈出視窗 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px);
@@ -260,11 +262,12 @@
             box-shadow: 0 -15px 40px rgba(15, 23, 42, 0.12);
             transform: translateY(100%); transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex; flex-direction: column; gap: 16px;
+            max-height: 85vh; overflow-y: auto;
         }
         .modal-overlay.show .action-sheet { transform: translateY(0); }
 
-        .sheet-drag-indicator { width: 40px; height: 5px; background-color: #e2e8f0; border-radius: 3px; align-self: center; margin-bottom: 4px; }
-        .sheet-header { display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
+        .sheet-drag-indicator { width: 40px; height: 5px; background-color: #e2e8f0; border-radius: 3px; align-self: center; margin-bottom: 4px; flex-shrink: 0; }
+        .sheet-header { display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; flex-shrink: 0; }
         .sheet-title-desc { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
         .sheet-event-title { font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.4; }
 
@@ -297,6 +300,13 @@
 
         .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
         .sheet-close-btn { font-family: inherit; background: none; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); background-color: #f1f5f9; text-align: center; }
+
+        /* 📅 週總覽專屬樣式 */
+        .week-day-section { margin-bottom: 16px; }
+        .week-day-title { font-size: 0.82rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 6px; display: inline-block; margin: 0 0 8px 0; }
+        .week-event-mini-card { background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 8px 12px; margin-bottom: 6px; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: space-between; }
+        .week-event-mini-title { font-size: 0.88rem; font-weight: 700; margin: 0; }
+        .week-event-mini-cat { font-size: 0.68rem; font-weight: 800; color: #ffffff; padding: 2px 6px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -307,6 +317,7 @@
             <div class="quick-nav">
                 <button class="nav-btn" id="btn-prev">◀ 前一天</button>
                 <button class="nav-btn" id="btn-today">今天</button>
+                <button class="nav-btn" id="btn-week-overview">📅 本週總覽</button>
                 <button class="nav-btn" id="btn-next">後一天 ▶</button>
             </div>
             <div class="date-picker-row">
@@ -408,6 +419,20 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="week-modal" onclick="closeWeekModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-drag-indicator"></div>
+            <div class="sheet-header">
+                <span class="sheet-title-desc">📆 WEEKLY OVERVIEW</span>
+                <p class="sheet-event-title" id="week-modal-title">本週行程總覽</p>
+            </div>
+
+            <div id="week-overview-content" style="display: flex; flex-direction: column; gap: 4px; padding: 4px 0;"></div>
+
+            <button class="sheet-close-btn" onclick="closeWeekModal()">關閉總覽</button>
+        </div>
+    </div>
+
     <script>
         const dateSelect = document.getElementById('date-select');
         const timeline = document.getElementById('timeline-list');
@@ -426,6 +451,7 @@
         const btnPrev = document.getElementById('btn-prev');
         const btnToday = document.getElementById('btn-today');
         const btnNext = document.getElementById('btn-next');
+        const btnWeekOverview = document.getElementById('btn-week-overview'); // 週總覽按鈕
 
         const sortBtnManual = document.getElementById('sort-btn-manual');
         const sortBtnAz = document.getElementById('sort-btn-az');
@@ -451,6 +477,11 @@
         const modalCategoryPanel = document.getElementById('modal-category-panel');
         const modalCategoryGrid = document.getElementById('modal-category-grid');
 
+        // 週總覽 Modal 元素
+        const weekModal = document.getElementById('week-modal');
+        const weekOverviewContent = document.getElementById('week-overview-content');
+        const weekModalTitle = document.getElementById('week-modal-title');
+
         let activeEventIndex = null;
         let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
 
@@ -463,10 +494,7 @@
 
         let selectedCategoryId = localStorage.getItem('pro_calendar_selected_cat') || customCategories[0]?.id || "";
 
-        // 💎 已取消跟隨類別自動變更顏色，預設維持黑色
-        function updateDefaultFontColorPicker() {
-            // 保留此空函式或僅用於其他狀態同步，不再強制覆蓋為 cat.color
-        }
+        function updateDefaultFontColorPicker() {}
 
         function hexToRgba(hex, alpha) {
             hex = hex.replace('#', '');
@@ -641,6 +669,7 @@
         sortBtnAz.addEventListener('click', () => { currentSortMode = 'az'; localStorage.setItem('pro_calendar_sort_mode', 'az'); updateSortButtonsUI(); renderTimeline(); });
         sortBtnZa.addEventListener('click', () => { currentSortMode = 'za'; localStorage.setItem('pro_calendar_sort_mode', 'za'); updateSortButtonsUI(); renderTimeline(); });
 
+        // ------------------ 彈出視窗處理 ------------------
         function openActionModal(idx, evt) {
             activeEventIndex = idx;
             modalEventTitle.textContent = evt.title;
@@ -652,6 +681,73 @@
 
         function closeActionModal() { actionModal.classList.remove('show'); activeEventIndex = null; }
 
+        // 📅 週總覽核心邏輯
+        function openWeekOverview() {
+            weekOverviewContent.innerHTML = '';
+            
+            // 計算當前選取日期那一週的週一與週日
+            const current = new Date(selectedDateStr);
+            const currentDayOfWeek = current.getDay(); // 0 是週日, 1-6 是週一至週六
+            const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+            
+            const monday = new Date(current);
+            monday.setDate(current.getDate() + distanceToMonday);
+
+            let weekHasEvents = false;
+            const weekDaysName = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"];
+
+            // 跑 7 天循環
+            for (let i = 0; i < 7; i++) {
+                const targetDate = new Date(monday);
+                targetDate.setDate(monday.getDate() + i);
+                const dateStr = getLocalDateString(targetDate);
+                const dayEvents = allEvents[dateStr] || [];
+
+                if (dayEvents.length > 0) {
+                    weekHasEvents = true;
+                    
+                    const section = document.createElement('div');
+                    section.className = 'week-day-section';
+                    
+                    // 日期標題 (例如: 2026-04-14 週二)
+                    section.innerHTML = `<h3 class="week-day-title">${dateStr} (${weekDaysName[i]})</h3>`;
+                    
+                    // 填入該日的所有行程
+                    dayEvents.forEach(evt => {
+                        const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8" };
+                        const miniCard = document.createElement('div');
+                        miniCard.className = 'week-event-mini-card';
+                        miniCard.style.borderLeftColor = catInfo.color;
+                        miniCard.style.backgroundColor = hexToRgba(catInfo.color, 0.05);
+                        
+                        miniCard.innerHTML = `
+                            <p class="week-event-mini-title" style="color: ${evt.color || '#000000'}">${evt.title}</p>
+                            <span class="week-event-mini-cat" style="background-color: ${catInfo.color}">${catInfo.name}</span>
+                        `;
+                        section.appendChild(miniCard);
+                    });
+                    
+                    weekOverviewContent.appendChild(section);
+                }
+            }
+
+            if (!weekHasEvents) {
+                weekOverviewContent.innerHTML = '<div class="no-events" style="padding: 30px 0;">🏖️ 本週非常悠閒，沒有安排任何行程。</div>';
+            }
+
+            // 設定標題範圍顯示
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            weekModalTitle.textContent = `${getLocalDateString(monday)} ~ ${getLocalDateString(sunday)} 行程`;
+
+            weekModal.classList.add('show');
+        }
+
+        function closeWeekModal() { weekModal.classList.remove('show'); }
+
+        btnWeekOverview.addEventListener('click', openWeekOverview);
+
+        // 事件修改設定
         modalBtnEdit.addEventListener('click', () => {
             modalMovePanel.classList.remove('show');
             modalCategoryPanel.classList.remove('show');
@@ -733,7 +829,6 @@
             const title = document.getElementById('evt-title').value.trim();
             if(!title) return;
             if (!allEvents[selectedDateStr]) allEvents[selectedDateStr] = [];
-            // 💎 直接帶入當前字體調色盤的值（預設即為黑色）
             allEvents[selectedDateStr].push({ title: title, cat: selectedCategoryId, color: evtFontColorInput.value });
             document.getElementById('evt-title').value = ''; saveAndRender();
         });
@@ -744,3 +839,4 @@
     </script>
 </body>
 </html>
+
