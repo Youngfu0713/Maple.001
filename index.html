@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 雙層類別專業版</title>
+    <title>極簡美學個人日程管理系統 - 雙層總覽旗艦版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -173,7 +173,7 @@
         }
         .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
 
-        /* 子類別專屬容器 (優雅容器) */
+        /* 子類別主頁容器 */
         .sub-cat-container-box {
             display: none; background: #f8fafc; padding: 10px 12px; border-radius: var(--radius-md);
             border: 1px dashed var(--border-hover); animation: fadeIn 0.25s ease-out forwards;
@@ -272,6 +272,17 @@
 
         .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
         .sheet-close-btn { font-family: inherit; background: none; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); background-color: #f1f5f9; text-align: center; }
+
+        /* 💎 類別總覽彈出內嵌：子類別切換列樣式 */
+        .modal-overview-sub-filter-row {
+            display: flex; gap: 6px; flex-wrap: wrap; background: #f1f5f9; padding: 10px; border-radius: var(--radius-md); margin-bottom: 12px; align-items: center;
+        }
+        .overview-sub-filter-btn {
+            font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: var(--text-muted); cursor: pointer;
+        }
+        .overview-sub-filter-btn.active {
+            background: var(--primary); color: white; border-color: var(--primary);
+        }
 
         /* 類別總覽佈局 */
         .cat-group-section { margin-bottom: 14px; }
@@ -411,6 +422,8 @@
                 <p class="sheet-event-title" id="cat-modal-title">特定類別事件總覽</p>
             </div>
 
+            <div class="modal-overview-sub-filter-row" id="overview-sub-filter-container"></div>
+
             <div id="cat-overview-content" style="display: flex; flex-direction: column; gap: 6px; padding: 4px 0;"></div>
 
             <button class="sheet-close-btn" onclick="closeCatModal()">關閉總覽</button>
@@ -466,11 +479,11 @@
         const catModal = document.getElementById('cat-modal');
         const catOverviewContent = document.getElementById('cat-overview-content');
         const catModalTitle = document.getElementById('cat-modal-title');
+        const overviewSubFilterContainer = document.getElementById('overview-sub-filter-container');
 
         let activeEventIndex = null;
         let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
 
-        // 💎 結構升級：支援 subCategories 陣列
         let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories_v4')) || [
             { id: "personal", name: "個人", color: "#47b881", subCategories: [] },
             { id: "family", name: "家庭", color: "#4c90e2", subCategories: [{id: "sub_1", name: "軒"}, {id: "sub_2", name: "恩恩"}] },
@@ -481,13 +494,15 @@
         let selectedCategoryId = localStorage.getItem('pro_calendar_selected_cat') || customCategories[0]?.id || "";
         let selectedSubCategoryId = localStorage.getItem('pro_calendar_selected_sub_cat') || "";
 
+        // 💎 記錄當前在「總覽彈出視窗內」選中的子類別過濾條件
+        let currentOverviewSubFilterId = "";
+
         function hexToRgba(hex, alpha) {
             hex = hex.replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(char => char + char).join('');
             return `rgba(${parseInt(hex.substring(0, 2), 16)}, ${parseInt(hex.substring(2, 4), 16)}, ${parseInt(hex.substring(4, 6), 16)}, ${alpha})`;
         }
 
-        // 渲染主類別與關聯子類別標籤
         function renderCategorySelectionButtons() {
             categoryButtonsList.innerHTML = '';
             if (!customCategories.some(c => c.id === selectedCategoryId) && customCategories.length > 0) {
@@ -504,7 +519,7 @@
                     document.querySelectorAll('.cat-tag-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     selectedCategoryId = cat.id;
-                    selectedSubCategoryId = ""; // 切換主類別時重設子類別
+                    selectedSubCategoryId = "";
                     localStorage.setItem('pro_calendar_selected_cat', selectedCategoryId);
                     localStorage.setItem('pro_calendar_selected_sub_cat', selectedSubCategoryId);
                     renderSubCategoryButtons();
@@ -515,7 +530,6 @@
             renderSubCategoryButtons();
         }
 
-        // 渲染子類別區塊
         function renderSubCategoryButtons() {
             subCategoryButtonsList.innerHTML = '';
             const currentCat = customCategories.find(c => c.id === selectedCategoryId);
@@ -523,7 +537,6 @@
             if (currentCat && currentCat.subCategories && currentCat.subCategories.length > 0) {
                 subCategoryContainer.classList.add('active');
                 
-                // 不分類/全部子項目按鍵
                 const allBtn = document.createElement('button');
                 allBtn.className = `sub-cat-tag-btn ${selectedSubCategoryId === "" ? 'active' : ''}`;
                 allBtn.textContent = "全部";
@@ -554,14 +567,12 @@
             }
         }
 
-        // 高級管理面板管理後台
         function renderManageCategoriesList() {
             manageCategoriesList.innerHTML = '';
             customCategories.forEach(cat => {
                 const item = document.createElement('div');
                 item.className = 'manage-list-item';
                 
-                // 主類別橫列
                 const mainRow = document.createElement('div');
                 mainRow.className = 'manage-main-row';
                 mainRow.innerHTML = `
@@ -585,7 +596,6 @@
                 });
                 item.appendChild(mainRow);
 
-                // 子類別內嵌小盒子板塊
                 const subBox = document.createElement('div');
                 subBox.className = 'manage-sub-box';
                 
@@ -607,7 +617,6 @@
                     </div>
                 `;
 
-                // 綁定刪除子項目
                 subBox.querySelectorAll('.sub-del').forEach(delBtn => {
                     delBtn.addEventListener('click', (e) => {
                         const sId = e.target.getAttribute('data-sub-id');
@@ -616,7 +625,6 @@
                     });
                 });
 
-                // 綁定新增子項目
                 subBox.querySelector('.inline-sub-add-btn').addEventListener('click', () => {
                     const input = subBox.querySelector('.inline-sub-input');
                     const val = input.value.trim();
@@ -698,7 +706,6 @@
                 const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8", subCategories:[] };
                 card.style.backgroundColor = hexToRgba(catInfo.color, 0.12);
 
-                // 找尋子類別細項文字
                 let subBadgeHtml = '';
                 if(evt.subCat && catInfo.subCategories) {
                     const subObj = catInfo.subCategories.find(s => s.id === evt.subCat);
@@ -761,25 +768,27 @@
         }
         function closeActionModal() { actionModal.classList.remove('show'); activeEventIndex = null; }
 
-        // 💎 升級版類別大局總覽邏輯
-        function openCategoryOverview() {
+        // 💎 升級旗艦版：雙層聯動總覽核心渲染函數
+        function renderOverviewContent(targetCat) {
             catOverviewContent.innerHTML = '';
-            const targetCat = customCategories.find(c => c.id === selectedCategoryId) || { name: "未知分類", color: "#5151e5", subCategories:[] };
-            catModalTitle.textContent = `「${targetCat.name}」全部行程大局觀`;
-
             let matchedData = [];
             const sortedDates = Object.keys(allEvents).sort((a, b) => b.localeCompare(a));
 
             sortedDates.forEach(dateKey => {
                 const dayEvts = allEvents[dateKey] || [];
-                const matchedEvts = dayEvts.filter(e => e.cat === selectedCategoryId);
+                // 💎 同時過濾主類別，以及當前視窗內點選的子類別篩選條件
+                const matchedEvts = dayEvts.filter(e => {
+                    const matchMain = e.cat === selectedCategoryId;
+                    const matchSub = (currentOverviewSubFilterId === "") || (e.subCat === currentOverviewSubFilterId);
+                    return matchMain && matchSub;
+                });
                 if (matchedEvts.length > 0) {
                     matchedData.push({ date: dateKey, events: matchedEvts });
                 }
             });
 
             if (matchedData.length === 0) {
-                catOverviewContent.innerHTML = `<div class="no-events" style="padding: 30px 0;">🍃 目前沒有任何「${targetCat.name}」相關項目。</div>`;
+                catOverviewContent.innerHTML = `<div class="no-events" style="padding: 30px 0;">🍃 目前沒有符合篩選條件的行程項目。</div>`;
             } else {
                 matchedData.forEach(group => {
                     const section = document.createElement('div');
@@ -806,8 +815,54 @@
                     catOverviewContent.appendChild(section);
                 });
             }
+        }
+
+        // 開啟類別/子類別大局總覽
+        function openCategoryOverview() {
+            overviewSubFilterContainer.innerHTML = '';
+            currentOverviewSubFilterId = ""; // 預設進來顯示「全部」
+            
+            const targetCat = customCategories.find(c => c.id === selectedCategoryId) || { name: "未知分類", color: "#5151e5", subCategories:[] };
+            catModalTitle.textContent = `「${targetCat.name}」全部行程大局觀`;
+
+            // 💎 建立視窗內嵌子類別過濾 UI
+            if (targetCat.subCategories && targetCat.subCategories.length > 0) {
+                overviewSubFilterContainer.style.display = 'flex';
+                
+                // 全部 按鈕
+                const allBtn = document.createElement('button');
+                allBtn.className = 'overview-sub-filter-btn active';
+                allBtn.textContent = '全部細項';
+                allBtn.addEventListener('click', () => {
+                    document.querySelectorAll('.overview-sub-filter-btn').forEach(b => b.classList.remove('active'));
+                    allBtn.classList.add('active');
+                    currentOverviewSubFilterId = "";
+                    renderOverviewContent(targetCat);
+                });
+                overviewSubFilterContainer.appendChild(allBtn);
+
+                // 個別子類別細項按鈕
+                targetCat.subCategories.forEach(sub => {
+                    const subBtn = document.createElement('button');
+                    subBtn.className = 'overview-sub-filter-btn';
+                    subBtn.textContent = sub.name;
+                    subBtn.addEventListener('click', () => {
+                        document.querySelectorAll('.overview-sub-filter-btn').forEach(b => b.classList.remove('active'));
+                        subBtn.classList.add('active');
+                        currentOverviewSubFilterId = sub.id;
+                        renderOverviewContent(targetCat); // 重新篩選
+                    });
+                    overviewSubFilterContainer.appendChild(subBtn);
+                });
+            } else {
+                overviewSubFilterContainer.style.display = 'none';
+            }
+
+            // 初次渲染內容
+            renderOverviewContent(targetCat);
             catModal.classList.add('show');
         }
+        
         function closeCatModal() { catModal.classList.remove('show'); }
         btnCatOverview.addEventListener('click', openCategoryOverview);
 
@@ -848,7 +903,6 @@
             saveAndRender(); closeActionModal();
         });
 
-        // 💎 彈出式切換階層面板
         modalBtnCategory.addEventListener('click', () => {
             modalEditPanel.classList.remove('show'); modalMovePanel.classList.remove('show');
             modalCategoryGrid.innerHTML = '';
@@ -868,7 +922,7 @@
                 
                 mainRow.addEventListener('click', () => {
                     currentEvt.cat = cat.id;
-                    currentEvt.subCat = ""; // 純選大類別
+                    currentEvt.subCat = "";
                     saveAndRender(); closeActionModal();
                 });
                 wrapper.appendChild(mainRow);
