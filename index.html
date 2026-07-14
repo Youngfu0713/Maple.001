@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 週總覽版</title>
+    <title>極簡美學個人日程管理系統 - 類別總覽版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -103,8 +103,9 @@
 
         #btn-today { flex: 1.2; background: var(--primary); color: white; border: none; font-weight: 800; }
         #btn-today:hover { background: var(--primary-hover); }
-        #btn-week-overview { flex: 1.4; background: #eef2ff; color: var(--primary); border: 1px solid rgba(81, 81, 229, 0.15); font-weight: 800; }
-        #btn-week-overview:hover { background: #e0e7ff; }
+        /* 💎 已將本週總覽修改為類別總覽按鈕風格 */
+        #btn-cat-overview { flex: 1.4; background: #eef2ff; color: var(--primary); border: 1px solid rgba(81, 81, 229, 0.15); font-weight: 800; }
+        #btn-cat-overview:hover { background: #e0e7ff; }
 
         .date-picker-row {
             display: flex;
@@ -301,12 +302,11 @@
         .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
         .sheet-close-btn { font-family: inherit; background: none; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); background-color: #f1f5f9; text-align: center; }
 
-        /* 📅 週總覽專屬樣式 */
-        .week-day-section { margin-bottom: 16px; }
-        .week-day-title { font-size: 0.82rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 6px; display: inline-block; margin: 0 0 8px 0; }
-        .week-event-mini-card { background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 8px 12px; margin-bottom: 6px; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: space-between; }
-        .week-event-mini-title { font-size: 0.88rem; font-weight: 700; margin: 0; }
-        .week-event-mini-cat { font-size: 0.68rem; font-weight: 800; color: #ffffff; padding: 2px 6px; border-radius: 10px; }
+        /* 💎 類別總覽專屬樣式 */
+        .cat-group-section { margin-bottom: 14px; }
+        .cat-group-date-label { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 4px; display: inline-block; margin: 0 0 6px 0; }
+        .cat-group-mini-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 10px 12px; margin-bottom: 5px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
+        .cat-group-mini-title { font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -317,7 +317,7 @@
             <div class="quick-nav">
                 <button class="nav-btn" id="btn-prev">◀ 前一天</button>
                 <button class="nav-btn" id="btn-today">今天</button>
-                <button class="nav-btn" id="btn-week-overview">📅 本週總覽</button>
+                <button class="nav-btn" id="btn-cat-overview">🏷️ 類別總覽</button>
                 <button class="nav-btn" id="btn-next">後一天 ▶</button>
             </div>
             <div class="date-picker-row">
@@ -419,17 +419,17 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="week-modal" onclick="closeWeekModal()">
+    <div class="modal-overlay" id="cat-modal" onclick="closeCatModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
             <div class="sheet-header">
-                <span class="sheet-title-desc">📆 WEEKLY OVERVIEW</span>
-                <p class="sheet-event-title" id="week-modal-title">本週行程總覽</p>
+                <span class="sheet-title-desc">📋 CATEGORY OVERVIEW</span>
+                <p class="sheet-event-title" id="cat-modal-title">特定類別事件總覽</p>
             </div>
 
-            <div id="week-overview-content" style="display: flex; flex-direction: column; gap: 4px; padding: 4px 0;"></div>
+            <div id="cat-overview-content" style="display: flex; flex-direction: column; gap: 6px; padding: 4px 0;"></div>
 
-            <button class="sheet-close-btn" onclick="closeWeekModal()">關閉總覽</button>
+            <button class="sheet-close-btn" onclick="closeCatModal()">關閉總覽</button>
         </div>
     </div>
 
@@ -451,7 +451,7 @@
         const btnPrev = document.getElementById('btn-prev');
         const btnToday = document.getElementById('btn-today');
         const btnNext = document.getElementById('btn-next');
-        const btnWeekOverview = document.getElementById('btn-week-overview'); // 週總覽按鈕
+        const btnCatOverview = document.getElementById('btn-cat-overview'); // 類別總覽按鈕
 
         const sortBtnManual = document.getElementById('sort-btn-manual');
         const sortBtnAz = document.getElementById('sort-btn-az');
@@ -477,10 +477,10 @@
         const modalCategoryPanel = document.getElementById('modal-category-panel');
         const modalCategoryGrid = document.getElementById('modal-category-grid');
 
-        // 週總覽 Modal 元素
-        const weekModal = document.getElementById('week-modal');
-        const weekOverviewContent = document.getElementById('week-overview-content');
-        const weekModalTitle = document.getElementById('week-modal-title');
+        // 類別總覽 Modal 元素
+        const catModal = document.getElementById('cat-modal');
+        const catOverviewContent = document.getElementById('cat-overview-content');
+        const catModalTitle = document.getElementById('cat-modal-title');
 
         let activeEventIndex = null;
         let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
@@ -681,71 +681,63 @@
 
         function closeActionModal() { actionModal.classList.remove('show'); activeEventIndex = null; }
 
-        // 📅 週總覽核心邏輯
-        function openWeekOverview() {
-            weekOverviewContent.innerHTML = '';
+        // 💎 類別總覽核心邏輯
+        function openCategoryOverview() {
+            catOverviewContent.innerHTML = '';
             
-            // 計算當前選取日期那一週的週一與週日
-            const current = new Date(selectedDateStr);
-            const currentDayOfWeek = current.getDay(); // 0 是週日, 1-6 是週一至週六
-            const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
-            
-            const monday = new Date(current);
-            monday.setDate(current.getDate() + distanceToMonday);
+            // 獲取目前選中的類別詳細資料
+            const targetCat = customCategories.find(c => c.id === selectedCategoryId) || { name: "未知分類", color: "#5151e5" };
+            catModalTitle.textContent = `「${targetCat.name}」全部行程總覽`;
 
-            let weekHasEvents = false;
-            const weekDaysName = ["週一", "週二", "週三", "週四", "週五", "週六", "週日"];
+            // 撈取所有日期中屬於 selectedCategoryId 的事項
+            let matchedData = []; // 用於存放結構化資料 { date: '...', title: '...', color: '...' }
 
-            // 跑 7 天循環
-            for (let i = 0; i < 7; i++) {
-                const targetDate = new Date(monday);
-                targetDate.setDate(monday.getDate() + i);
-                const dateStr = getLocalDateString(targetDate);
-                const dayEvents = allEvents[dateStr] || [];
+            // 遍歷所有存儲日期
+            const sortedDates = Object.keys(allEvents).sort((a, b) => b.localeCompare(a)); // 日期由新到舊排列
 
-                if (dayEvents.length > 0) {
-                    weekHasEvents = true;
-                    
+            sortedDates.forEach(dateKey => {
+                const dayEvts = allEvents[dateKey] || [];
+                const matchedEvts = dayEvts.filter(e => e.cat === selectedCategoryId);
+                
+                if (matchedEvts.length > 0) {
+                    matchedData.push({
+                        date: dateKey,
+                        events: matchedEvts
+                    });
+                }
+            });
+
+            if (matchedData.length === 0) {
+                catOverviewContent.innerHTML = `<div class="no-events" style="padding: 30px 0;">🍃 目前沒有找到任何與「${targetCat.name}」關聯的行程。</div>`;
+            } else {
+                matchedData.forEach(group => {
                     const section = document.createElement('div');
-                    section.className = 'week-day-section';
+                    section.className = 'cat-group-section';
                     
-                    // 日期標題 (例如: 2026-04-14 週二)
-                    section.innerHTML = `<h3 class="week-day-title">${dateStr} (${weekDaysName[i]})</h3>`;
+                    section.innerHTML = `<span class="cat-group-date-label">${group.date}</span>`;
                     
-                    // 填入該日的所有行程
-                    dayEvents.forEach(evt => {
-                        const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8" };
+                    group.events.forEach(evt => {
                         const miniCard = document.createElement('div');
-                        miniCard.className = 'week-event-mini-card';
-                        miniCard.style.borderLeftColor = catInfo.color;
-                        miniCard.style.backgroundColor = hexToRgba(catInfo.color, 0.05);
+                        miniCard.className = 'cat-group-mini-card';
+                        // 使用當前分類色彩作為左側指示條，並帶入自訂字體顏色
+                        miniCard.style.borderLeft = `3px solid ${targetCat.color}`;
                         
                         miniCard.innerHTML = `
-                            <p class="week-event-mini-title" style="color: ${evt.color || '#000000'}">${evt.title}</p>
-                            <span class="week-event-mini-cat" style="background-color: ${catInfo.color}">${catInfo.name}</span>
+                            <p class="cat-group-mini-title" style="color: ${evt.color || '#000000'}">${evt.title}</p>
                         `;
                         section.appendChild(miniCard);
                     });
                     
-                    weekOverviewContent.appendChild(section);
-                }
+                    catOverviewContent.appendChild(section);
+                });
             }
 
-            if (!weekHasEvents) {
-                weekOverviewContent.innerHTML = '<div class="no-events" style="padding: 30px 0;">🏖️ 本週非常悠閒，沒有安排任何行程。</div>';
-            }
-
-            // 設定標題範圍顯示
-            const sunday = new Date(monday);
-            sunday.setDate(monday.getDate() + 6);
-            weekModalTitle.textContent = `${getLocalDateString(monday)} ~ ${getLocalDateString(sunday)} 行程`;
-
-            weekModal.classList.add('show');
+            catModal.classList.add('show');
         }
 
-        function closeWeekModal() { weekModal.classList.remove('show'); }
+        function closeCatModal() { catModal.classList.remove('show'); }
 
-        btnWeekOverview.addEventListener('click', openWeekOverview);
+        btnCatOverview.addEventListener('click', openCategoryOverview);
 
         // 事件修改設定
         modalBtnEdit.addEventListener('click', () => {
