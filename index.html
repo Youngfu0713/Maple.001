@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 精準編號與自動排序版</title>
+    <title>極簡美學個人日程管理系統 - 清爽排序版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -189,7 +189,7 @@
 
         .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
 
-        /* 💎 排序控制吧（全新功能） */
+        /* 排序控制列 */
         .sort-control-bar {
             padding: 10px 20px 0 20px;
             background: var(--bg-main);
@@ -212,7 +212,7 @@
         .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
 
-        /* 💎 高級卡片（無任何拖曳干涉，點擊極速響應） */
+        /* 💎 高級卡片（絕無編號、不卡觸控、極速響應） */
         .event-card {
             border: none;
             border-radius: var(--radius-md);
@@ -228,24 +228,21 @@
         }
         .event-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); }
 
-        /* 💎 序號欄位樣式 */
-        .event-order-badge {
-            font-size: 0.78rem; font-weight: 800; color: var(--text-muted);
-            background: rgba(15, 23, 42, 0.05); width: 22px; height: 22px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; flex-shrink: 0; margin-right: 4px;
-        }
-        /* 手動排序輸入框 */
-        .event-order-input {
-            width: 32px; padding: 3px 2px; font-family: inherit; font-size: 0.78rem;
-            font-weight: 800; text-align: center; border: 1px solid var(--border-hover);
-            border-radius: var(--radius-sm); outline: none; color: var(--primary);
-            margin-right: 8px; flex-shrink: 0; background: #ffffff;
-        }
-
         .event-info { flex-grow: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
         .category-badge { font-size: 0.7rem; font-weight: 800; padding: 3.5px 9px; border-radius: 12px; color: white; white-space: nowrap; flex-shrink: 0; }
         .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex-grow: 1; min-width: 0; }
+
+        /* 💎 乾淨的手動排序控制鈕（僅在手動模式出現） */
+        .manual-move-actions {
+            display: flex; gap: 2px; flex-shrink: 0; margin-left: 8px;
+        }
+        .move-step-btn {
+            border: 1px solid var(--border-hover); background: #ffffff;
+            color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px;
+            font-size: 0.65rem; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.15s; pointer-events: auto;
+        }
+        .move-step-btn:hover { background: #f1f5f9; color: var(--primary); }
 
         /* Bottom Sheet Modal */
         .modal-overlay {
@@ -455,8 +452,6 @@
         const modalCategoryGrid = document.getElementById('modal-category-grid');
 
         let activeEventIndex = null;
-
-        // 💎 排序模式狀態管理："manual" (手動), "az" (A-Z), "za" (Z-A)
         let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
 
         let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories')) || [
@@ -547,8 +542,8 @@
 
         if (Object.keys(allEvents).length === 0) {
             allEvents[selectedDateStr] = [
-                { title: "在上方切換「手動排序」，可直接修改編號排序行程", cat: "work", color: "#9c27b0" },
-                { title: "輕點本卡片即可彈出修改文字內容", cat: "personal", color: "#47b881" }
+                { title: "上方切換為「手動排序」，可利用右側 ▲ ▼ 調整順序", cat: "work", color: "#9c27b0" },
+                { title: "輕點本卡片即可彈出修改文字內容與其他設定", cat: "personal", color: "#47b881" }
             ];
             localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
         }
@@ -558,7 +553,6 @@
             currentDayText.textContent = `${selectedDateStr} (${new Date(selectedDateStr).toLocaleDateString('zh-TW', options)})`;
         }
 
-        // 💎 排序按鈕 UI 更新
         function updateSortButtonsUI() {
             [sortBtnManual, sortBtnAz, sortBtnZa].forEach(btn => btn.classList.remove('active'));
             if (currentSortMode === 'manual') sortBtnManual.classList.add('active');
@@ -566,7 +560,7 @@
             else if (currentSortMode === 'za') sortBtnZa.classList.add('active');
         }
 
-        // 💎 核心渲染與編號/自動排序邏輯
+        // 💎 核心渲染與排序處理（無編號，按鈕移軸）
         function renderTimeline() {
             timeline.innerHTML = '';
             let events = allEvents[selectedDateStr] || [];
@@ -576,7 +570,6 @@
                 return;
             }
 
-            // 💎 自動排序處理 (如果不是手動模式，則執行複製並排序)
             let displayEvents = events.map((e, index) => ({ ...e, originalIndex: index }));
             
             if (currentSortMode === 'az') {
@@ -592,28 +585,38 @@
                 const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8" };
                 card.style.backgroundColor = hexToRgba(catInfo.color, 0.12);
 
-                // 左側排序機制（手動模式顯示輸入框，自動模式顯示純圓圈編號）
-                let orderAddon = '';
+                // 右側微型上下調整鍵
+                let actionAddon = '';
                 if (currentSortMode === 'manual') {
-                    orderAddon = `<input type="number" class="event-order-input" value="${displayIdx + 1}" data-orig-idx="${evt.originalIndex}" min="1" max="${events.length}">`;
-                } else {
-                    orderAddon = `<div class="event-order-badge">${displayIdx + 1}</div>`;
+                    actionAddon = `
+                        <div class="manual-move-actions">
+                            <button class="move-step-btn btn-up" data-orig-idx="${evt.originalIndex}">▲</button>
+                            <button class="move-step-btn btn-down" data-orig-idx="${evt.originalIndex}">▼</button>
+                        </div>
+                    `;
                 }
 
                 card.innerHTML = `
-                    <div class="event-info" style="pointer-events: none;">
-                        ${orderAddon}
+                    <div class="event-info">
                         <span class="category-badge" style="background-color: ${catInfo.color};">${catInfo.name}</span>
                         <p class="event-title" style="color: ${evt.color || catInfo.color}">${evt.title}</p>
                     </div>
+                    ${actionAddon}
                 `;
 
-                // 阻擋輸入框的點擊事件傳播，避免點擊修改數字時彈出選單
-                const inputEl = card.querySelector('.event-order-input');
-                if (inputEl) {
-                    inputEl.style.pointerEvents = 'auto'; // 允許輸入框互動
-                    inputEl.addEventListener('click', (e) => e.stopPropagation());
-                    inputEl.addEventListener('change', (e) => handleManualOrderChange(e));
+                // 綁定上下移按鈕點擊，防止點擊冒泡到卡片主體
+                if (currentSortMode === 'manual') {
+                    const btnUp = card.querySelector('.btn-up');
+                    const btnDown = card.querySelector('.btn-down');
+
+                    btnUp.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        moveItem(evt.originalIndex, -1);
+                    });
+                    btnDown.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        moveItem(evt.originalIndex, 1);
+                    });
                 }
 
                 // 點擊整張卡片彈出五大功能選單
@@ -625,23 +628,22 @@
             });
         }
 
-        // 💎 處理手動修改編號後的重新排序
-        function handleManualOrderChange(e) {
-            const origIdx = parseInt(e.target.dataset.origIdx);
-            let newPosition = parseInt(e.target.value) - 1;
+        // 💎 搬移元素位置
+        function moveItem(origIdx, direction) {
             let events = allEvents[selectedDateStr] || [];
+            let targetIdx = origIdx + direction;
 
-            if (isNaN(newPosition) || newPosition < 0) newPosition = 0;
-            if (newPosition >= events.length) newPosition = events.length - 1;
+            if (targetIdx < 0 || targetIdx >= events.length) return;
 
-            // 物理搬移陣列元素
-            const targetEvt = events.splice(origIdx, 1)[0];
-            events.splice(newPosition, 0, targetEvt);
+            // 交換陣列位置
+            const temp = events[origIdx];
+            events[origIdx] = events[targetIdx];
+            events[targetIdx] = temp;
 
             saveAndRender();
         }
 
-        // 💎 排序切換監聽
+        // 排序切換監聽
         sortBtnManual.addEventListener('click', () => { currentSortMode = 'manual'; localStorage.setItem('pro_calendar_sort_mode', 'manual'); updateSortButtonsUI(); renderTimeline(); });
         sortBtnAz.addEventListener('click', () => { currentSortMode = 'az'; localStorage.setItem('pro_calendar_sort_mode', 'az'); updateSortButtonsUI(); renderTimeline(); });
         sortBtnZa.addEventListener('click', () => { currentSortMode = 'za'; localStorage.setItem('pro_calendar_sort_mode', 'za'); updateSortButtonsUI(); renderTimeline(); });
@@ -750,3 +752,4 @@
     </script>
 </body>
 </html>
+
