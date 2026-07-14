@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 頂級自訂字體版</title>
+    <title>極簡美學個人日程管理系統 - 終極拖曳與編輯版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
             font-family: 'MiaoFont';
-            /* 使用相對路徑，只要 Miao.ttf 與此 index.html 放在同一個 GitHub 目錄下即可完美讀取 */
             src: url('Miao.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
-            font-display: swap; /* 性能優化：避免加載時畫面短暫空白 */
+            font-display: swap;
         }
 
         :root {
@@ -20,9 +19,9 @@
             --primary: #5151e5;
             --primary-hover: #3d3dbd;
             --primary-light: #eef2ff;
-            --bg-main: #fcfbfa; /* 暖砂極淺灰，溫潤不刺眼 */
+            --bg-main: #fcfbfa; 
             --bg-card: #ffffff;
-            --text-main: #1e293b; /* 深石板灰，比純黑更有質感 */
+            --text-main: #1e293b; 
             --text-muted: #64748b;
             --border: #f1f5f9;
             --border-hover: #cbd5e1;
@@ -39,7 +38,6 @@
         }
 
         body {
-            /* 💎 將自訂字體 'MiaoFont' 設為最優先載入，後面接系統高級黑體作為後備（Fallback） */
             font-family: "MiaoFont", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
@@ -49,8 +47,6 @@
             justify-content: center;
             overscroll-behavior-y: contain;
             letter-spacing: -0.01em;
-            
-            /* 💎 自訂字體邊緣平滑抗鋸齒優化 */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -82,12 +78,10 @@
             margin: 0 0 8px 0;
             font-size: 1.15rem;
             font-weight: 800;
-            letter-spacing: -0.02em;
             color: var(--text-main);
             text-align: center;
         }
 
-        /* 緊湊整合型日期導覽列 */
         .quick-nav {
             display: flex;
             gap: 6px;
@@ -96,7 +90,6 @@
         }
 
         .nav-btn {
-            /* 💎 強制套用自訂字型，確保按鈕內的字體風格統一 */
             font-family: inherit;
             padding: 8px 10px;
             background: #f8fafc;
@@ -113,28 +106,11 @@
             justify-content: center;
         }
 
-        #btn-prev, #btn-next {
-            flex: 1;
-        }
+        #btn-prev, #btn-next { flex: 1; }
+        #btn-prev:hover, #btn-next:hover { background: #f1f5f9; color: var(--text-main); }
+        #btn-today { flex: 1.5; background: var(--primary); color: white; border: none; font-weight: 800; }
+        #btn-today:hover { background: var(--primary-hover); }
 
-        #btn-prev:hover, #btn-next:hover {
-            background: #f1f5f9;
-            color: var(--text-main);
-        }
-
-        #btn-today {
-            flex: 1.5;
-            background: var(--primary);
-            color: white;
-            border: none;
-            font-weight: 800;
-        }
-
-        #btn-today:hover {
-            background: var(--primary-hover);
-        }
-
-        /* 日期選擇器與導覽列融合 */
         .date-picker-row {
             display: flex;
             align-items: center;
@@ -142,13 +118,7 @@
             gap: 6px;
         }
 
-        .date-picker-row label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            letter-spacing: 0.02em;
-        }
-
+        .date-picker-row label { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
         .date-picker-row input[type="date"] {
             font-family: inherit;
             padding: 5px 8px;
@@ -159,14 +129,7 @@
             color: var(--text-muted);
             background-color: #f8fafc;
             outline: none;
-            transition: all 0.2s;
             cursor: pointer;
-        }
-
-        .date-picker-row input[type="date"]:focus {
-            border-color: var(--primary);
-            background-color: #ffffff;
-            color: var(--text-main);
         }
 
         /* 新增表單區域 */
@@ -179,12 +142,7 @@
             gap: 10px;
         }
 
-        .form-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
+        .form-row { display: flex; gap: 8px; align-items: center; }
         .event-form input[type="text"] {
             font-family: inherit;
             flex: 1;
@@ -197,18 +155,8 @@
             outline: none;
             transition: all 0.2s;
         }
+        .event-form input[type="text"]:focus { background: #ffffff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(81, 81, 229, 0.08); }
 
-        .event-form input[type="text"]::placeholder {
-            color: #94a3b8;
-        }
-
-        .event-form input[type="text"]:focus {
-            background: #ffffff;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(81, 81, 229, 0.08);
-        }
-
-        /* 自訂字體顏色選擇區域 */
         .font-color-picker-container {
             display: flex;
             align-items: center;
@@ -219,31 +167,10 @@
             border: 1px solid var(--border);
             align-self: flex-start;
         }
+        .font-color-picker-container label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+        .font-color-picker-container input[type="color"] { border: none; width: 24px; height: 24px; cursor: pointer; background: none; padding: 0; }
 
-        .font-color-picker-container label {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-muted);
-        }
-
-        .font-color-picker-container input[type="color"] {
-            border: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            background: none;
-            padding: 0;
-        }
-
-        /* 類別標籤按鈕 */
-        .category-selector-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-        }
-
+        .category-selector-container { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .cat-tag-btn {
             font-family: inherit;
             padding: 5px 12px;
@@ -257,182 +184,28 @@
             color: white;
             transform: scale(0.96);
         }
+        .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); transform: scale(1.02); }
 
-        .cat-tag-btn.active {
-            opacity: 1;
-            border-color: rgba(30, 41, 59, 0.7);
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
-            transform: scale(1.02);
-        }
+        .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; margin-left: auto; }
+        .category-manage-panel { display: none; background: #f8fafc; padding: 12px; border-radius: var(--radius-md); border: 1px dashed var(--border-hover); gap: 8px; flex-direction: column; }
+        .category-manage-panel.active { display: flex; }
+        .manage-list-item { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+        .manage-list-item .left { display: flex; align-items: center; gap: 8px; }
+        .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; cursor: pointer; background: none; padding: 0; }
+        .cat-del-btn { font-family: inherit; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78rem; font-weight: bold; }
 
-        /* 管理類別切換按鈕 */
-        .color-edit-toggle {
-            font-family: inherit;
-            padding: 5px 10px;
-            border-radius: 20px;
-            background: #f1f5f9;
-            border: none;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-            margin-left: auto;
-            transition: all 0.2s;
-        }
+        .add-new-cat-row { display: flex; gap: 6px; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 10px; align-items: center; }
+        .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; }
+        .add-new-cat-row input[type="color"] { border: none; width: 30px; height: 30px; cursor: pointer; background: none; padding: 0; }
+        .add-cat-submit-btn { font-family: inherit; background: #1e293b; color: white; border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
 
-        .color-edit-toggle:hover {
-            background: #e2e8f0;
-            color: var(--text-main);
-        }
-
-        /* 類別管理面板 */
-        .category-manage-panel {
-            display: none;
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: var(--radius-md);
-            border: 1px dashed var(--border-hover);
-            gap: 8px;
-            flex-direction: column;
-            animation: fadeIn 0.25s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-3px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .category-manage-panel.active {
-            display: flex;
-        }
-
-        /* 類別列表項目 */
-        .manage-list-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fff;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-        }
-
-        .manage-list-item .left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .manage-list-item input[type="color"] {
-            border: none;
-            width: 28px;
-            height: 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            background: none;
-            padding: 0;
-        }
-
-        .manage-list-item span {
-            font-size: 0.82rem;
-            font-weight: 700;
-        }
-
-        .cat-del-btn {
-            font-family: inherit;
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: 0.78rem;
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .cat-del-btn:hover {
-            color: #ef4444;
-            background: #fef2f2;
-        }
-
-        /* 新增自訂類別輸入區 */
-        .add-new-cat-row {
-            display: flex;
-            gap: 6px;
-            margin-top: 4px;
-            border-top: 1px dashed #cbd5e1;
-            padding-top: 10px;
-            align-items: center;
-        }
-
-        .add-new-cat-row input[type="text"] {
-            font-family: inherit;
-            flex: 1;
-            padding: 6px 10px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 0.78rem;
-            outline: none;
-            background: #ffffff;
-        }
-
-        .add-new-cat-row input[type="color"] {
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            cursor: pointer;
-            background: none;
-            padding: 0;
-        }
-
-        .add-cat-submit-btn {
-            font-family: inherit;
-            background: #1e293b;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            font-size: 0.78rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        /* 新增按鈕 */
-        .submit-btn {
-            font-family: inherit;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 11px;
-            border-radius: var(--radius-md);
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            box-shadow: 0 3px 8px rgba(81, 81, 229, 0.12);
-            transition: all 0.2s;
-        }
-        .submit-btn:hover { 
-            background: var(--primary-hover); 
-            box-shadow: 0 5px 12px rgba(81, 81, 229, 0.2);
-        }
+        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 3px 8px rgba(81, 81, 229, 0.12); }
 
         /* 日程時間軸列表 */
-        .timeline {
-            padding: 18px 20px;
-            flex-grow: 1;
-            position: relative;
-            background: var(--bg-main);
-        }
+        .timeline { padding: 18px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 200px; }
+        .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
 
-        .no-events {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 50px 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* 極簡滿版高級卡片 */
+        /* 💎 UI與拖曳優化：可手動拖曳的高級卡片 */
         .event-card {
             border: none;
             border-radius: var(--radius-md);
@@ -442,308 +215,108 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: var(--shadow-sm);
-            touch-action: none;
             position: relative;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease;
-        }
-
-        .event-card:hover {
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-            transform: translateY(-1px);
-        }
-
-        /* 拖動中底版完全不透明 */
-        .event-card.dragging {
-            opacity: 1 !important;
-            box-shadow: var(--shadow-active);
-            position: absolute;
-            width: calc(100% - 40px);
-            z-index: 100;
-            transform: scale(1.02);
-        }
-
-        .placeholder {
-            background: rgba(81, 81, 229, 0.02);
-            border: 1.5px dashed rgba(81, 81, 229, 0.25);
-            border-radius: var(--radius-md);
-            margin-bottom: 10px;
-        }
-
-        /* 卡片內部佈局 */
-        .event-info {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-right: 12px;
-            min-width: 0;
-        }
-
-        /* 類別徽章樣式 */
-        .category-badge {
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 3.5px 9px;
-            border-radius: 12px;
-            color: white;
-            white-space: nowrap;
-            letter-spacing: 0.01em;
+            cursor: grab; /* 提示使用者這張卡片可以抓取拖曳 */
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s ease;
             user-select: none;
-            flex-shrink: 0;
-            pointer-events: none;
+        }
+        .event-card:active { cursor: grabbing; }
+        .event-card:hover { box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); transform: translateY(-1px); }
+
+        /* 💎 拖曳狀態樣式 */
+        .event-card.dragging {
+            opacity: 0.4;
+            box-shadow: var(--shadow-active);
+            transform: scale(0.98);
+            border: 1px dashed var(--primary);
         }
 
-        .event-title {
-            font-size: 0.92rem;
-            font-weight: 700;
-            margin: 0;
-            line-height: 1.5;
-            word-break: break-all;
-            flex-grow: 1;
-            min-width: 0;
-            transition: color 0.3s ease;
+        /* 💎 拖曳時的虛線占位目標 */
+        .drag-placeholder {
+            background: rgba(81, 81, 229, 0.04);
+            border: 2px dashed rgba(81, 81, 229, 0.3);
+            border-radius: var(--radius-md);
+            height: 48px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
         }
+
+        .event-info { flex-grow: 1; display: flex; align-items: center; gap: 10px; padding-right: 12px; min-width: 0; }
+        .category-badge { font-size: 0.7rem; font-weight: 800; padding: 3.5px 9px; border-radius: 12px; color: white; white-space: nowrap; flex-shrink: 0; pointer-events: none; }
+        .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex-grow: 1; min-width: 0; }
 
         /* ------------------ 彈出式視窗 (Bottom Sheet Modal) ------------------ */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(4px);
-            z-index: 200;
-            opacity: 0;
-            pointer-events: none;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px);
+            z-index: 200; opacity: 0; pointer-events: none;
             transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
+            display: flex; align-items: flex-end; justify-content: center;
         }
-
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
 
         .action-sheet {
-            /* 💎 繼承自訂字體 */
-            font-family: inherit;
-            width: 100%;
-            max-width: 550px;
-            background: #ffffff;
-            border-radius: 20px 20px 0 0;
-            padding: 24px 20px 34px 20px;
+            font-family: inherit; width: 100%; max-width: 550px; background: #ffffff;
+            border-radius: 20px 20px 0 0; padding: 24px 20px 34px 20px;
             box-shadow: 0 -15px 40px rgba(15, 23, 42, 0.12);
-            transform: translateY(100%);
-            transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            transform: translateY(100%); transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; gap: 16px;
         }
+        .modal-overlay.show .action-sheet { transform: translateY(0); }
 
-        .modal-overlay.show .action-sheet {
-            transform: translateY(0);
-        }
+        .sheet-drag-indicator { width: 40px; height: 5px; background-color: #e2e8f0; border-radius: 3px; align-self: center; margin-bottom: 4px; }
+        .sheet-header { display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
+        .sheet-title-desc { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .sheet-event-title { font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.4; }
 
-        .sheet-drag-indicator {
-            width: 40px;
-            height: 5px;
-            background-color: #e2e8f0;
-            border-radius: 3px;
-            align-self: center;
-            margin-bottom: 4px;
-        }
-
-        .sheet-header {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 14px;
-        }
-
-        .sheet-title-desc {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .sheet-event-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: var(--text-main);
-            margin: 0;
-            line-height: 1.4;
-        }
-
+        /* 💎 五大功能網格佈局：改成 3 欄或彈性佈局 */
         .sheet-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
+        }
+        /* 讓最後一個刪除按鈕滿版，形成完美的視覺平衡 */
+        .sheet-btn.danger-btn {
+            grid-column: span 2;
         }
 
         .sheet-btn {
-            font-family: inherit;
-            background-color: #f8fafc;
-            border: 1px solid #f1f5f9;
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: all 0.22s;
-            color: var(--text-main);
-            font-weight: 800;
-            font-size: 0.88rem;
-            position: relative;
+            font-family: inherit; background-color: #f8fafc; border: 1px solid #f1f5f9;
+            border-radius: var(--radius-lg); padding: 14px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            cursor: pointer; transition: all 0.22s; color: var(--text-main); font-weight: 800; font-size: 0.88rem;
         }
+        .sheet-btn:hover { background-color: #eef2ff; border-color: rgba(81, 81, 229, 0.25); transform: scale(1.02); }
+        .sheet-btn.danger-btn:hover { background-color: #fef2f2; border-color: rgba(239, 68, 68, 0.25); color: #ef4444; }
+        .sheet-btn svg { width: 22px; height: 22px; transition: transform 0.2s; }
+        .sheet-btn:hover svg { transform: scale(1.1); }
 
-        .sheet-btn:hover {
-            background-color: #eef2ff;
-            border-color: rgba(81, 81, 229, 0.25);
-            transform: scale(1.02);
+        /* 💎 編輯文本專屬隱藏面板 */
+        .sheet-edit-panel {
+            display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px;
+            flex-direction: column; gap: 10px; animation: fadeIn 0.25s ease-out;
         }
+        .sheet-edit-panel.show { display: flex; }
+        .sheet-edit-panel input[type="text"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; }
+        
+        /* 跨日期移動與類別隱藏面板 */
+        .sheet-move-date-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px; flex-direction: column; gap: 10px; animation: fadeIn 0.25s ease-out; }
+        .sheet-move-date-panel.show { display: flex; }
+        .sheet-move-date-panel input[type="date"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; font-weight: bold; }
 
-        .sheet-btn.danger-btn:hover {
-            background-color: #fef2f2;
-            border-color: rgba(239, 68, 68, 0.25);
-            color: #ef4444;
-        }
+        .sheet-category-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 14px; flex-direction: column; gap: 8px; animation: fadeIn 0.25s ease-out; }
+        .sheet-category-panel.show { display: flex; }
+        .sheet-category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .sheet-category-item { padding: 10px 14px; border-radius: var(--radius-md); background: #ffffff; border: 1px solid #f1f5f9; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .sheet-category-item:hover { border-color: var(--primary); background: var(--primary-light); }
+        .sheet-category-item .dot { width: 10px; height: 10px; border-radius: 50%; }
 
-        .sheet-btn svg {
-            width: 24px;
-            height: 24px;
-            transition: transform 0.2s;
-        }
+        .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
+        .sheet-panel-submit:hover { background: var(--primary-hover); }
 
-        .sheet-btn:hover svg {
-            transform: scale(1.12);
-        }
-
-        /* 跨日期移動專屬隱藏面板 */
-        .sheet-move-date-panel {
-            display: none;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            flex-direction: column;
-            gap: 10px;
-            animation: fadeIn 0.25s ease-out;
-        }
-
-        .sheet-move-date-panel.show {
-            display: flex;
-        }
-
-        .sheet-move-date-panel label {
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: var(--text-muted);
-        }
-
-        .sheet-move-date-panel input[type="date"] {
-            font-family: inherit;
-            padding: 10px;
-            border: 1px solid var(--border-hover);
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            outline: none;
-            font-weight: bold;
-        }
-
-        .sheet-move-submit {
-            font-family: inherit;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius-md);
-            padding: 11px;
-            font-size: 0.88rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .sheet-move-submit:hover {
-            background: var(--primary-hover);
-        }
-
-        /* 類別切換專屬隱藏面板 */
-        .sheet-category-panel {
-            display: none;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: var(--radius-lg);
-            padding: 14px;
-            flex-direction: column;
-            gap: 8px;
-            animation: fadeIn 0.25s ease-out;
-        }
-
-        .sheet-category-panel.show {
-            display: flex;
-        }
-
-        .sheet-category-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .sheet-category-item {
-            padding: 10px 14px;
-            border-radius: var(--radius-md);
-            background: #ffffff;
-            border: 1px solid #f1f5f9;
-            font-size: 0.82rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
-        .sheet-category-item:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .sheet-category-item .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        /* 頂部關閉按鈕 */
-        .sheet-close-btn {
-            font-family: inherit;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 0.82rem;
-            font-weight: 700;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: var(--radius-md);
-            background-color: #f1f5f9;
-            text-align: center;
-            transition: background 0.2s;
-        }
-
-        .sheet-close-btn:hover {
-            background-color: #e2e8f0;
-            color: var(--text-main);
-        }
+        .sheet-close-btn { font-family: inherit; background: none; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); background-color: #f1f5f9; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -751,13 +324,11 @@
     <div class="calendar-container">
         <div class="calendar-header">
             <h1 id="current-day">日程管理</h1>
-            
             <div class="quick-nav">
                 <button class="nav-btn" id="btn-prev">◀ 前一天</button>
                 <button class="nav-btn" id="btn-today">今天</button>
                 <button class="nav-btn" id="btn-next">後一天 ▶</button>
             </div>
-
             <div class="date-picker-row">
                 <label for="date-select">跳轉日期：</label>
                 <input type="date" id="date-select">
@@ -768,31 +339,24 @@
             <div class="form-row">
                 <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
             </div>
-
             <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
                 <div class="font-color-picker-container">
                     <label for="evt-font-color">🎨 字體顏色：</label>
                     <input type="color" id="evt-font-color" value="">
                 </div>
             </div>
-            
             <div class="category-selector-container">
-                <div id="category-buttons-list" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-grow: 1;">
-                    </div>
+                <div id="category-buttons-list" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-grow: 1;"></div>
                 <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
             </div>
-
             <div class="category-manage-panel" id="color-panel">
-                <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 6px;">
-                    </div>
-
+                <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
                 <div class="add-new-cat-row">
                     <input type="text" id="new-cat-name" placeholder="新名稱...">
                     <input type="color" id="new-cat-color" value="#5151e5">
                     <button class="add-cat-submit-btn" id="add-new-cat-btn">➕ 新增</button>
                 </div>
             </div>
-
             <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
         </div>
 
@@ -802,13 +366,17 @@
     <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
-            
             <div class="sheet-header">
                 <span class="sheet-title-desc">📋 行程設定</span>
                 <p class="sheet-event-title" id="modal-event-title">事件標題載入中...</p>
             </div>
 
             <div class="sheet-grid">
+                <button class="sheet-btn" id="modal-btn-edit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <span>編輯內文</span>
+                </button>
+
                 <button class="sheet-btn" id="modal-btn-move">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L14.5 21a.55.55 0 0 1-1 0L10 14l-7-3.5a.55.55 0 0 1 0-1L21 3z"/><path d="M21 3L10 14"/></svg>
                     <span>跨日期移動</span>
@@ -830,10 +398,20 @@
                 </button>
             </div>
 
+            <div class="sheet-edit-panel" id="modal-edit-panel">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">✏️ 修改事項名稱與顏色：</label>
+                <input type="text" id="modal-edit-title-input">
+                <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">🎨 字體顏色：</label>
+                    <input type="color" id="modal-edit-color-input">
+                </div>
+                <button class="sheet-panel-submit" id="modal-edit-submit-btn">儲存修改</button>
+            </div>
+
             <div class="sheet-move-date-panel" id="modal-move-panel">
                 <label>✈️ 請選擇要移動的目的地日期：</label>
                 <input type="date" id="modal-move-date-input">
-                <button class="sheet-move-submit" id="modal-move-submit-btn">確認發送</button>
+                <button class="sheet-panel-submit" id="modal-move-submit-btn">確認發送</button>
             </div>
 
             <div class="sheet-category-panel" id="modal-category-panel">
@@ -852,7 +430,6 @@
         const currentDayText = document.getElementById('current-day');
         const evtFontColorInput = document.getElementById('evt-font-color');
 
-        // 類別管理相關 DOM 元素
         const colorPanel = document.getElementById('color-panel');
         const colorToggleBtn = document.getElementById('color-toggle-btn');
         const categoryButtonsList = document.getElementById('category-buttons-list');
@@ -861,19 +438,24 @@
         const newCatNameInput = document.getElementById('new-cat-name');
         const newCatColorInput = document.getElementById('new-cat-color');
 
-        // 快速切換日期按鈕
         const btnPrev = document.getElementById('btn-prev');
         const btnToday = document.getElementById('btn-today');
         const btnNext = document.getElementById('btn-next');
 
-        // 彈出式視窗 DOM 元素
+        // 彈出式視窗 DOM
         const actionModal = document.getElementById('action-modal');
         const modalEventTitle = document.getElementById('modal-event-title');
+        const modalBtnEdit = document.getElementById('modal-btn-edit');
         const modalBtnMove = document.getElementById('modal-btn-move');
         const modalBtnCopy = document.getElementById('modal-btn-copy');
         const modalBtnCategory = document.getElementById('modal-btn-category');
         const modalBtnDelete = document.getElementById('modal-btn-delete');
         
+        const modalEditPanel = document.getElementById('modal-edit-panel');
+        const modalEditTitleInput = document.getElementById('modal-edit-title-input');
+        const modalEditColorInput = document.getElementById('modal-edit-color-input');
+        const modalEditSubmitBtn = document.getElementById('modal-edit-submit-btn');
+
         const modalMovePanel = document.getElementById('modal-move-panel');
         const modalMoveDateInput = document.getElementById('modal-move-date-input');
         const modalMoveSubmitBtn = document.getElementById('modal-move-submit-btn');
@@ -883,7 +465,7 @@
 
         let activeEventIndex = null;
 
-        // 1. 動態類別資料結構
+        // 1. 類別資料
         let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories')) || [
             { id: "personal", name: "個人", color: "#47b881" },
             { id: "family", name: "家庭", color: "#4c90e2" },
@@ -891,45 +473,30 @@
             { id: "idea", name: "想法", color: "#f5a623" }
         ];
 
-        // 2. 追蹤當前選取的類別 ID
         let selectedCategoryId = localStorage.getItem('pro_calendar_selected_cat') || customCategories[0]?.id || "";
 
-        // 預設字體顏色為當前選取類別的主色 (初始化)
         function updateDefaultFontColorPicker() {
             const currentCat = customCategories.find(c => c.id === selectedCategoryId);
-            if (currentCat) {
-                evtFontColorInput.value = currentCat.color;
-            }
+            if (currentCat) evtFontColorInput.value = currentCat.color;
         }
 
-        // 16進位顏色轉RGBA輔助函數
         function hexToRgba(hex, alpha) {
             hex = hex.replace('#', '');
-            if (hex.length === 3) {
-                hex = hex.split('').map(char => char + char).join('');
-            }
-            const r = parseInt(hex.substring(0, 2), 16);
-            const g = parseInt(hex.substring(2, 4), 16);
-            const b = parseInt(hex.substring(4, 6), 16);
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            if (hex.length === 3) hex = hex.split('').map(char => char + char).join('');
+            return `rgba(${parseInt(hex.substring(0, 2), 16)}, ${parseInt(hex.substring(2, 4), 16)}, ${parseInt(hex.substring(4, 6), 16)}, ${alpha})`;
         }
 
-        // 3. 渲染新增表單下方的類別切換按鈕
         function renderCategorySelectionButtons() {
             categoryButtonsList.innerHTML = '';
-            
             if (!customCategories.some(c => c.id === selectedCategoryId) && customCategories.length > 0) {
                 selectedCategoryId = customCategories[0].id;
                 localStorage.setItem('pro_calendar_selected_cat', selectedCategoryId);
             }
-
             customCategories.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = `cat-tag-btn ${cat.id === selectedCategoryId ? 'active' : ''}`;
                 btn.style.backgroundColor = cat.color;
                 btn.textContent = cat.name;
-                btn.dataset.id = cat.id;
-
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.cat-tag-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
@@ -937,130 +504,69 @@
                     localStorage.setItem('pro_calendar_selected_cat', selectedCategoryId);
                     updateDefaultFontColorPicker();
                 });
-
                 categoryButtonsList.appendChild(btn);
             });
             updateDefaultFontColorPicker();
         }
 
-        // 4. 渲染管理面板中的類別清單
         function renderManageCategoriesList() {
             manageCategoriesList.innerHTML = '';
-
             customCategories.forEach(cat => {
                 const row = document.createElement('div');
                 row.className = 'manage-list-item';
-                row.innerHTML = `
-                    <div class="left">
-                        <input type="color" value="${cat.color}" data-id="${cat.id}">
-                        <span>${cat.name}</span>
-                    </div>
-                    <button class="cat-del-btn" data-id="${cat.id}">🗑️ 刪除</button>
-                `;
-
+                row.innerHTML = `<div class="left"><input type="color" value="${cat.color}"><span>${cat.name}</span></div><button class="cat-del-btn">🗑️</button>`;
                 row.querySelector('input[type="color"]').addEventListener('input', (e) => {
                     cat.color = e.target.value;
-                    saveCategories();
-                    renderCategorySelectionButtons();
-                    renderTimeline();
+                    saveCategories(); renderCategorySelectionButtons(); renderTimeline();
                 });
-
                 row.querySelector('.cat-del-btn').addEventListener('click', () => {
-                    if (customCategories.length <= 1) {
-                        alert('最少必須保留一個事件類別！');
-                        return;
-                    }
-                    if (confirm(`確定要刪除「${cat.name}」類別嗎？`)) {
+                    if (customCategories.length <= 1) { alert('最少保留一個類別！'); return; }
+                    if (confirm(`確定刪除「${cat.name}」嗎？`)) {
                         customCategories = customCategories.filter(c => c.id !== cat.id);
-                        saveCategories();
-                        renderCategorySelectionButtons();
-                        renderManageCategoriesList();
-                        renderTimeline();
+                        saveCategories(); renderCategorySelectionButtons(); renderManageCategoriesList(); renderTimeline();
                     }
                 });
-
                 manageCategoriesList.appendChild(row);
             });
         }
 
-        // 5. 新增自訂類別
         addNewCatBtn.addEventListener('click', () => {
             const name = newCatNameInput.value.trim();
-            const color = newCatColorInput.value;
-
-            if (!name) { alert('請輸入類別名稱！'); return; }
-            if (customCategories.some(c => c.name === name)) { alert('已有同名的類別囉！'); return; }
-
-            const newId = 'cat_' + Date.now();
-            customCategories.push({ id: newId, name: name, color: color });
-            
-            newCatNameInput.value = '';
-            saveCategories();
-            renderCategorySelectionButtons();
-            renderManageCategoriesList();
+            if (!name) return;
+            customCategories.push({ id: 'cat_' + Date.now(), name: name, color: newCatColorInput.value });
+            newCatNameInput.value = ''; saveCategories(); renderCategorySelectionButtons(); renderManageCategoriesList();
         });
 
-        function saveCategories() {
-            localStorage.setItem('pro_calendar_custom_categories', JSON.stringify(customCategories));
-        }
-
+        function saveCategories() { localStorage.setItem('pro_calendar_custom_categories', JSON.stringify(customCategories)); }
         colorToggleBtn.addEventListener('click', () => {
             colorPanel.classList.toggle('active');
-            colorToggleBtn.textContent = colorPanel.classList.contains('active') ? "❌ 關閉" : "⚙️ 管理";
-            if (colorPanel.classList.contains('active')) {
-                renderManageCategoriesList();
-            }
+            colorToggleBtn.textContent = colorPanel.classList.contains('active') ? "❌" : "⚙️ 管理";
+            if (colorPanel.classList.contains('active')) renderManageCategoriesList();
         });
 
-        // ------------------ 日期控制部分 ------------------
-
+        // 日期控制
         function getLocalDateString(date) {
-            const offset = date.getTimezoneOffset();
-            const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-            return localDate.toISOString().split('T')[0];
+            return new Date(date.getTime() - (date.getTimezoneOffset() * 60 * 1000)).toISOString().split('T')[0];
         }
 
         let selectedDateStr = getLocalDateString(new Date());
         dateSelect.value = selectedDateStr;
-
         let allEvents = JSON.parse(localStorage.getItem('pro_multi_date_calendar_v3')) || {};
 
-        const todayStr = getLocalDateString(new Date());
         if (Object.keys(allEvents).length === 0) {
-            allEvents[todayStr] = [
-                { title: "晨會與今日工作對接", cat: "work", color: "#9c27b0" },
-                { title: "核心程式碼重構與優化", cat: "personal", color: "#47b881" },
-                { title: "跨日期移動/複製全新上線！", cat: "idea", color: "#f5a623" }
+            allEvents[selectedDateStr] = [
+                { title: "長按或直接拖曳本卡片調整順序", cat: "work", color: "#9c27b0" },
+                { title: "點擊本卡片即可修改文字內容", cat: "personal", color: "#47b881" }
             ];
             localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
         }
 
         function updateHeaderTitle() {
-            const selectedDate = new Date(selectedDateStr);
             const options = { weekday: 'long', month: 'long', day: 'numeric' };
-            const formatted = selectedDate.toLocaleDateString('zh-TW', options);
-            
-            const todayStr = getLocalDateString(new Date());
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = getLocalDateString(yesterday);
-
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowStr = getLocalDateString(tomorrow);
-
-            if (selectedDateStr === todayStr) {
-                currentDayText.textContent = `今日日程 (${formatted})`;
-            } else if (selectedDateStr === yesterdayStr) {
-                currentDayText.textContent = `昨日日程 (${formatted})`;
-            } else if (selectedDateStr === tomorrowStr) {
-                currentDayText.textContent = `明日日程 (${formatted})`;
-            } else {
-                currentDayText.textContent = `${selectedDateStr} (${formatted})`;
-            }
+            currentDayText.textContent = `${selectedDateStr} (${new Date(selectedDateStr).toLocaleDateString('zh-TW', options)})`;
         }
 
-        // 渲染事件列表
+        // ------------------ 💎 核心渲染與手動拖曳邏輯 ------------------
         function renderTimeline() {
             timeline.innerHTML = '';
             const events = allEvents[selectedDateStr] || [];
@@ -1074,204 +580,205 @@
                 const card = document.createElement('div');
                 card.className = `event-card`;
                 card.dataset.index = idx;
+                card.draggable = true; // 啟動 HTML5 原生拖曳功能
 
                 const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8" };
                 const bgLight = hexToRgba(catInfo.color, 0.12);
-                const textDark = evt.color || catInfo.color;
-                
                 card.style.backgroundColor = bgLight;
 
-                // 點擊整張卡片，直接彈出底層操作面板
-                card.addEventListener('click', (e) => {
-                    openActionModal(idx, evt);
+                // 點擊事件 (防拖曳誤觸)
+                let isDraggingDetected = false;
+                card.addEventListener('dragstart', () => {
+                    isDraggingDetected = true;
+                    card.classList.add('dragging');
+                });
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    // 移除所有暫存的占位符
+                    document.querySelectorAll('.drag-placeholder').forEach(el => el.remove());
+                    saveOrder();
                 });
 
-                // 當滑鼠懸停時加深背景
-                card.addEventListener('mouseenter', () => {
-                    card.style.backgroundColor = hexToRgba(catInfo.color, 0.16);
-                });
-
-                // 當滑鼠移開時回復背景
-                card.addEventListener('mouseleave', () => {
-                    card.style.backgroundColor = bgLight;
+                card.addEventListener('click', () => {
+                    if (!isDraggingDetected) openActionModal(idx, evt);
                 });
 
                 card.innerHTML = `
                     <div class="event-info">
-                        <span class="category-badge" style="background-color: ${catInfo.color};">
-                            ${catInfo.name}
-                        </span>
-                        <p class="event-title" style="color: ${textDark}">${evt.title}</p>
+                        <span class="category-badge" style="background-color: ${catInfo.color};">${catInfo.name}</span>
+                        <p class="event-title" style="color: ${evt.color || catInfo.color}">${evt.title}</p>
                     </div>
                 `;
                 timeline.appendChild(card);
             });
         }
 
-        // ------------------ 彈出選單核心邏輯 ------------------
+        // 💎 拖曳排序處理
+        timeline.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggingCard = document.querySelector('.event-card.dragging');
+            if (!draggingCard) return;
 
+            const afterElement = getDragAfterElement(timeline, e.clientY);
+            const placeholder = document.querySelector('.drag-placeholder') || document.createElement('div');
+            placeholder.className = 'drag-placeholder';
+
+            if (afterElement == null) {
+                timeline.appendChild(placeholder);
+            } else {
+                timeline.insertBefore(placeholder, afterElement);
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.event-card:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // 💎 儲存拖曳後的全新順序
+        function saveOrder() {
+            const currentCards = [...timeline.querySelectorAll('.event-card')];
+            const newEventsList = [];
+            const oldEvents = allEvents[selectedDateStr] || [];
+
+            currentCards.forEach(card => {
+                const oldIndex = parseInt(card.dataset.index);
+                if (oldEvents[oldIndex]) {
+                    newEventsList.push(oldEvents[oldIndex]);
+                }
+            });
+
+            if (newEventsList.length > 0) {
+                allEvents[selectedDateStr] = newEventsList;
+                saveAndRender();
+            }
+        }
+
+        // ------------------ 💎 彈出選單五大功能 ------------------
         function openActionModal(idx, evt) {
             activeEventIndex = idx;
             modalEventTitle.textContent = evt.title;
             
-            // 重設次級面板的開關狀態
+            // 收合所有次級面板
+            modalEditPanel.classList.remove('show');
             modalMovePanel.classList.remove('show');
             modalCategoryPanel.classList.remove('show');
 
-            // 預設移動面板的日期
-            modalMoveDateInput.value = selectedDateStr;
-
-            // 渲染快速切換類別格線
-            renderModalCategoryGrid(evt.cat);
-
-            // 秀出彈出視窗
             actionModal.classList.add('show');
         }
 
-        function closeActionModal() {
-            actionModal.classList.remove('show');
-            activeEventIndex = null;
-        }
+        function closeActionModal() { actionModal.classList.remove('show'); activeEventIndex = null; }
 
-        // 渲染彈出選單中的類別網格
-        function renderModalCategoryGrid(currentCatId) {
+        // 點擊「編輯內文」按鈕
+        modalBtnEdit.addEventListener('click', () => {
+            modalMovePanel.classList.remove('show');
+            modalCategoryPanel.classList.remove('show');
+            
+            const evt = allEvents[selectedDateStr][activeEventIndex];
+            modalEditTitleInput.value = evt.title;
+            
+            const catInfo = customCategories.find(c => c.id === evt.cat);
+            modalEditColorInput.value = evt.color || (catInfo ? catInfo.color : "#5151e5");
+            
+            modalEditPanel.classList.toggle('show');
+        });
+
+        // 儲存文字編輯
+        modalEditSubmitBtn.addEventListener('click', () => {
+            const newTitle = modalEditTitleInput.value.trim();
+            if (!newTitle) { alert('行程名稱不能留空！'); return; }
+
+            allEvents[selectedDateStr][activeEventIndex].title = newTitle;
+            allEvents[selectedDateStr][activeEventIndex].color = modalEditColorInput.value;
+
+            saveAndRender();
+            closeActionModal();
+        });
+
+        // 跨日期移動
+        modalBtnMove.addEventListener('click', () => {
+            modalEditPanel.classList.remove('show');
+            modalCategoryPanel.classList.remove('show');
+            modalMoveDateInput.value = selectedDateStr;
+            modalMovePanel.classList.toggle('show');
+        });
+
+        modalMoveSubmitBtn.addEventListener('click', () => {
+            const target = modalMoveDateInput.value;
+            if (!target || target === selectedDateStr) return;
+
+            const targetEvt = allEvents[selectedDateStr].splice(activeEventIndex, 1)[0];
+            if (allEvents[selectedDateStr].length === 0) delete allEvents[selectedDateStr];
+
+            if (!allEvents[target]) allEvents[target] = [];
+            allEvents[target].push(targetEvt);
+
+            localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
+            closeActionModal();
+            changeSelectedDate(target);
+        });
+
+        // 複製事件
+        modalBtnCopy.addEventListener('click', () => {
+            const original = allEvents[selectedDateStr][activeEventIndex];
+            allEvents[selectedDateStr].splice(activeEventIndex + 1, 0, { ...original });
+            saveAndRender(); closeActionModal();
+        });
+
+        // 快速類別面板
+        modalBtnCategory.addEventListener('click', () => {
+            modalEditPanel.classList.remove('show');
+            modalMovePanel.classList.remove('show');
+            
             modalCategoryGrid.innerHTML = '';
+            const currentCatId = allEvents[selectedDateStr][activeEventIndex].cat;
+            
             customCategories.forEach(cat => {
                 const isCurrent = cat.id === currentCatId;
                 const item = document.createElement('div');
                 item.className = 'sheet-category-item';
-                if (isCurrent) {
-                    item.style.borderColor = cat.color;
-                    item.style.backgroundColor = hexToRgba(cat.color, 0.12);
-                }
-                item.innerHTML = `
-                    <span class="dot" style="background-color: ${cat.color}"></span>
-                    <span>${cat.name} ${isCurrent ? '✓' : ''}</span>
-                `;
+                if (isCurrent) item.style.backgroundColor = hexToRgba(cat.color, 0.12);
+                item.innerHTML = `<span class="dot" style="background-color: ${cat.color}"></span><span>${cat.name} ${isCurrent?'✓':''}</span>`;
                 item.addEventListener('click', () => {
-                    changeEventCategory(activeEventIndex, cat.id);
-                    closeActionModal();
+                    allEvents[selectedDateStr][activeEventIndex].cat = cat.id;
+                    saveAndRender(); closeActionModal();
                 });
                 modalCategoryGrid.appendChild(item);
             });
-        }
-
-        // 彈出視窗按鈕點擊綁定
-        modalBtnMove.addEventListener('click', () => {
-            modalCategoryPanel.classList.remove('show');
-            modalMovePanel.classList.toggle('show');
-        });
-
-        modalBtnCategory.addEventListener('click', () => {
-            modalMovePanel.classList.remove('show');
             modalCategoryPanel.classList.toggle('show');
         });
 
-        // 執行跨日期移動
-        modalMoveSubmitBtn.addEventListener('click', () => {
-            const targetDateStr = modalMoveDateInput.value;
-            if (!targetDateStr) { alert('請選擇有效的日期！'); return; }
-            if (targetDateStr === selectedDateStr) { alert('已經在該日期囉！'); return; }
-
-            const eventToMove = allEvents[selectedDateStr].splice(activeEventIndex, 1)[0];
-            if (allEvents[selectedDateStr].length === 0) {
-                delete allEvents[selectedDateStr];
-            }
-
-            if (!allEvents[targetDateStr]) {
-                allEvents[targetDateStr] = [];
-            }
-            allEvents[targetDateStr].push(eventToMove);
-
-            localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
-            closeActionModal();
-            changeSelectedDate(targetDateStr);
-        });
-
-        // 執行複製
-        modalBtnCopy.addEventListener('click', () => {
-            if (allEvents[selectedDateStr] && allEvents[selectedDateStr][activeEventIndex]) {
-                const originalEvent = allEvents[selectedDateStr][activeEventIndex];
-                const clonedEvent = { ...originalEvent };
-                allEvents[selectedDateStr].splice(activeEventIndex + 1, 0, clonedEvent);
-                saveAndRender();
-                closeActionModal();
-            }
-        });
-
-        // 執行刪除
+        // 刪除事件
         modalBtnDelete.addEventListener('click', () => {
             if (confirm('確定要刪除此行程嗎？')) {
                 allEvents[selectedDateStr].splice(activeEventIndex, 1);
-                if (allEvents[selectedDateStr].length === 0) {
-                    delete allEvents[selectedDateStr];
-                }
-                saveAndRender();
-                closeActionModal();
+                if (allEvents[selectedDateStr].length === 0) delete allEvents[selectedDateStr];
+                saveAndRender(); closeActionModal();
             }
         });
 
-        // 切換事件的類別
-        function changeEventCategory(idx, newCatId) {
-            if (allEvents[selectedDateStr] && allEvents[selectedDateStr][idx]) {
-                allEvents[selectedDateStr][idx].cat = newCatId;
-                saveAndRender();
-            }
-        }
+        function saveAndRender() { localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents)); renderTimeline(); }
+        function changeSelectedDate(dateStr) { selectedDateStr = dateStr; dateSelect.value = dateStr; updateHeaderTitle(); renderTimeline(); }
 
-        function saveAndRender() {
-            localStorage.setItem('pro_multi_date_calendar_v3', JSON.stringify(allEvents));
-            renderTimeline();
-        }
+        dateSelect.addEventListener('change', (e) => changeSelectedDate(e.target.value));
+        btnToday.addEventListener('click', () => changeSelectedDate(getLocalDateString(new Date())));
+        btnPrev.addEventListener('click', () => { const d = new Date(selectedDateStr); d.setDate(d.getDate() - 1); changeSelectedDate(getLocalDateString(d)); });
+        btnNext.addEventListener('click', () => { const d = new Date(selectedDateStr); d.setDate(d.getDate() + 1); changeSelectedDate(getLocalDateString(d)); });
 
-        // ------------------ 日期跳轉控制 ------------------
-
-        function changeSelectedDate(dateStr) {
-            selectedDateStr = dateStr;
-            dateSelect.value = dateStr;
-            updateHeaderTitle();
-            renderTimeline();
-        }
-
-        dateSelect.addEventListener('change', (e) => {
-            changeSelectedDate(e.target.value);
-        });
-
-        btnToday.addEventListener('click', () => {
-            changeSelectedDate(getLocalDateString(new Date()));
-        });
-
-        btnPrev.addEventListener('click', () => {
-            const current = new Date(selectedDateStr);
-            current.setDate(current.getDate() - 1);
-            changeSelectedDate(getLocalDateString(current));
-        });
-
-        btnNext.addEventListener('click', () => {
-            const current = new Date(selectedDateStr);
-            current.setDate(current.getDate() + 1);
-            changeSelectedDate(getLocalDateString(current));
-        });
-
-        // 新增事件
         addBtn.addEventListener('click', () => {
             const title = document.getElementById('evt-title').value.trim();
-            const fontColor = evtFontColorInput.value;
-
-            if(!title) { alert('請填寫事項名稱'); return; }
-
-            if (!allEvents[selectedDateStr]) {
-                allEvents[selectedDateStr] = [];
-            }
-
-            allEvents[selectedDateStr].push({ 
-                title: title, 
-                cat: selectedCategoryId,
-                color: fontColor
-            });
-            
-            document.getElementById('evt-title').value = ''; 
-            saveAndRender();
+            if(!title) return;
+            if (!allEvents[selectedDateStr]) allEvents[selectedDateStr] = [];
+            allEvents[selectedDateStr].push({ title: title, cat: selectedCategoryId, color: evtFontColorInput.value });
+            document.getElementById('evt-title').value = ''; saveAndRender();
         });
 
         renderCategorySelectionButtons();
