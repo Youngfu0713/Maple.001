@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 雙層總覽旗艦版</title>
+    <title>極簡美學個人日程管理系統 - 多選子類與快速記時版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -147,6 +147,25 @@
             outline: none;
         }
 
+        /* ⚡ 快速記時按鈕樣式 */
+        .quick-time-btn {
+            font-family: inherit;
+            padding: 10px 14px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .quick-time-btn:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
         /* 顏色控制列：包含顏色選擇器與總覽按鈕 */
         .color-control-row {
             display: flex;
@@ -168,7 +187,7 @@
         .font-color-picker-container label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
         .font-color-picker-container input[type="color"] { border: none; width: 24px; height: 24px; cursor: pointer; background: none; padding: 0; }
 
-        /* 移至字體顏色旁邊的總覽按鈕樣式 */
+        /* 總覽按鈕樣式 */
         .inline-overview-btn {
             font-family: inherit;
             padding: 8px 14px;
@@ -212,6 +231,7 @@
             font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
             border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; transition: all 0.15s;
         }
+        /* 子類別多選啟用時的樣式 */
         .sub-cat-tag-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 800; }
 
         .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
@@ -254,14 +274,18 @@
         .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
 
-        /* 行程進階卡片 */
+        /* 行程卡片 */
         .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); position: relative; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
         .event-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); }
 
         .event-info { flex-grow: 1; display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
         .category-badge { font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; color: white; white-space: nowrap; }
-        .subcategory-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #ffffff; white-space: nowrap; }
-        .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; width: 100%; margin-top: 2px; }
+        .subcategory-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #ffffff; white-space: nowrap; margin-right: 2px; }
+        
+        /* ⏰ 新增：「時間, 事件」的獨立高質感樣式 */
+        .event-title-container { width: 100%; margin-top: 4px; display: flex; align-items: flex-start; gap: 8px; }
+        .event-time-prefix { font-size: 0.85rem; font-weight: 900; background: #f1f5f9; color: #475569; padding: 1px 6px; border-radius: 4px; white-space: nowrap; border: 1px solid #e2e8f0; }
+        .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex: 1; }
 
         .manual-move-actions { display: flex; gap: 2px; flex-shrink: 0; margin-left: 8px; }
         .move-step-btn { border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -322,7 +346,6 @@
 <body>
 
     <div class="calendar-container">
-        <!-- 頂部列 -->
         <div class="calendar-header">
             <h1 id="current-day">日程管理</h1>
             <div class="quick-nav">
@@ -336,23 +359,20 @@
             </div>
         </div>
 
-        <!-- 表單 -->
         <div class="event-form">
             <div class="form-row">
                 <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
+                <button class="quick-time-btn" id="btn-quick-time" title="快速填入目前時間">⚡ 快速記時</button>
             </div>
             
-            <!-- 顏色與類別總覽控制列 -->
             <div class="color-control-row">
                 <div class="font-color-picker-container">
                     <label for="evt-font-color">🎨 字體顏色：</label>
                     <input type="color" id="evt-font-color" value="#000000">
                 </div>
-                <!-- 💎 類別總覽選項成功安插於此 -->
                 <button class="inline-overview-btn" id="btn-cat-overview">🏷️ 類別總覽</button>
             </div>
             
-            <!-- 專業級雙階層類別選擇器 -->
             <div class="category-selector-container">
                 <div class="cat-row-wrapper">
                     <span class="cat-label-title">主類別：</span>
@@ -360,7 +380,6 @@
                     <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
                 </div>
                 
-                <!-- 動態子類別容器 -->
                 <div class="sub-cat-container-box" id="sub-category-container">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="cat-label-title" style="color: var(--text-muted)">子類別：</span>
@@ -369,7 +388,6 @@
                 </div>
             </div>
 
-            <!--進階管理面板-->
             <div class="category-manage-panel" id="color-panel">
                 <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="add-new-cat-row">
@@ -381,7 +399,6 @@
             <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
         </div>
 
-        <!-- 排序面板 -->
         <div class="sort-control-bar">
             <span class="sort-label">排列順序：</span>
             <div class="sort-select-wrapper">
@@ -391,11 +408,9 @@
             </div>
         </div>
 
-        <!-- 時間軸列表 -->
         <div class="timeline" id="timeline-list"></div>
     </div>
 
-    <!-- 彈出式底層選單視窗 (單一事件設定) -->
     <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -419,7 +434,7 @@
                 </button>
                 <button class="sheet-btn" id="modal-btn-category">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    <span>切換類別階層</span>
+                    <span>切換類別/子類(多選)</span>
                 </button>
                 <button class="sheet-btn danger-btn" id="modal-btn-delete">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -443,9 +458,8 @@
                 <button class="sheet-panel-submit" id="modal-move-submit-btn">確認發送</button>
             </div>
 
-            <!-- 彈出視窗切換雙階層類別面板 -->
             <div class="sheet-category-panel" id="modal-category-panel">
-                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 6px;">🏷️ 快速變更主/子類別：</label>
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 6px;">🏷️ 快速變更主/子類別（支援子類複選）：</label>
                 <div class="sheet-category-grid" id="modal-category-grid"></div>
             </div>
 
@@ -453,7 +467,6 @@
         </div>
     </div>
 
-    <!-- 彈出式底層選單視窗 (類別總覽專屬) -->
     <div class="modal-overlay" id="cat-modal" onclick="closeCatModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -462,10 +475,8 @@
                 <p class="sheet-event-title" id="cat-modal-title">特定類別事件總覽</p>
             </div>
 
-            <!-- 總覽視窗內嵌子類別篩選過濾列 -->
             <div class="modal-overview-sub-filter-row" id="overview-sub-filter-container"></div>
 
-            <!-- 總覽內容承載區 -->
             <div id="cat-overview-content" style="display: flex; flex-direction: column; gap: 6px; padding: 4px 0;"></div>
 
             <button class="sheet-close-btn" onclick="closeCatModal()">關閉總覽</button>
@@ -493,6 +504,7 @@
         const btnToday = document.getElementById('btn-today');
         const btnNext = document.getElementById('btn-next');
         const btnCatOverview = document.getElementById('btn-cat-overview');
+        const btnQuickTime = document.getElementById('btn-quick-time');
 
         const sortBtnManual = document.getElementById('sort-btn-manual');
         const sortBtnAz = document.getElementById('sort-btn-az');
@@ -526,6 +538,7 @@
         let activeEventIndex = null;
         let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
 
+        // 預設主類別與子類別
         let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories_v4')) || [
             { id: "personal", name: "個人", color: "#47b881", subCategories: [] },
             { id: "family", name: "家庭", color: "#4c90e2", subCategories: [{id: "sub_1", name: "軒"}, {id: "sub_2", name: "恩恩"}] },
@@ -534,9 +547,22 @@
         ];
 
         let selectedCategoryId = localStorage.getItem('pro_calendar_selected_cat') || customCategories[0]?.id || "";
-        let selectedSubCategoryId = localStorage.getItem('pro_calendar_selected_sub_cat') || "";
+        
+        // 💎 升級：主畫面選取的子類別改為「陣列」支援複選
+        let selectedSubCategoryIds = JSON.parse(localStorage.getItem('pro_calendar_selected_sub_cats')) || [];
 
         let currentOverviewSubFilterId = "";
+
+        // ⚙️ 輔助函式：解析標題中的時間與主要內容
+        function parseTimeAndTitle(titleStr) {
+            // 支持各式常見分隔，如 "12:30 買牛奶", "12:30,買牛奶", "08:00 - 早餐"
+            const timeRegex = /^(\d{1,2}:\d{2})\s*[,，\-]?\s*(.*)$/;
+            const match = titleStr.match(timeRegex);
+            if (match) {
+                return { hasTime: true, time: match[1], title: match[2].trim() };
+            }
+            return { hasTime: false, time: "", title: titleStr };
+        }
 
         function hexToRgba(hex, alpha) {
             hex = hex.replace('#', '');
@@ -560,9 +586,10 @@
                     document.querySelectorAll('.cat-tag-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     selectedCategoryId = cat.id;
-                    selectedSubCategoryId = "";
+                    // 切換主分類時，清空當前子分類多選
+                    selectedSubCategoryIds = [];
                     localStorage.setItem('pro_calendar_selected_cat', selectedCategoryId);
-                    localStorage.setItem('pro_calendar_selected_sub_cat', selectedSubCategoryId);
+                    localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
                     renderSubCategoryButtons();
                 });
                 categoryButtonsList.appendChild(btn);
@@ -578,35 +605,69 @@
             if (currentCat && currentCat.subCategories && currentCat.subCategories.length > 0) {
                 subCategoryContainer.classList.add('active');
                 
+                // 全部 (代表不指定特定子類別)
                 const allBtn = document.createElement('button');
-                allBtn.className = `sub-cat-tag-btn ${selectedSubCategoryId === "" ? 'active' : ''}`;
-                allBtn.textContent = "全部";
+                allBtn.className = `sub-cat-tag-btn ${selectedSubCategoryIds.length === 0 ? 'active' : ''}`;
+                allBtn.textContent = "無細分";
                 allBtn.addEventListener('click', () => {
-                    document.querySelectorAll('.sub-cat-tag-btn').forEach(b => b.classList.remove('active'));
+                    selectedSubCategoryIds = [];
+                    localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
+                    document.querySelectorAll('#sub-category-buttons-list .sub-cat-tag-btn').forEach(b => b.classList.remove('active'));
                     allBtn.classList.add('active');
-                    selectedSubCategoryId = "";
-                    localStorage.setItem('pro_calendar_selected_sub_cat', selectedSubCategoryId);
                 });
                 subCategoryButtonsList.appendChild(allBtn);
 
                 currentCat.subCategories.forEach(sub => {
+                    const isSelected = selectedSubCategoryIds.includes(sub.id);
                     const btn = document.createElement('button');
-                    btn.className = `sub-cat-tag-btn ${sub.id === selectedSubCategoryId ? 'active' : ''}`;
+                    btn.className = `sub-cat-tag-btn ${isSelected ? 'active' : ''}`;
                     btn.textContent = sub.name;
                     btn.addEventListener('click', () => {
-                        document.querySelectorAll('.sub-cat-tag-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        selectedSubCategoryId = sub.id;
-                        localStorage.setItem('pro_calendar_selected_sub_cat', selectedSubCategoryId);
+                        allBtn.classList.remove('active');
+                        
+                        if (selectedSubCategoryIds.includes(sub.id)) {
+                            // 已選中 -> 取消選取
+                            selectedSubCategoryIds = selectedSubCategoryIds.filter(id => id !== sub.id);
+                            btn.classList.remove('active');
+                        } else {
+                            // 未選中 -> 加入選取
+                            selectedSubCategoryIds.push(sub.id);
+                            btn.classList.add('active');
+                        }
+
+                        if(selectedSubCategoryIds.length === 0) {
+                            allBtn.classList.add('active');
+                        }
+                        localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
                     });
                     subCategoryButtonsList.appendChild(btn);
                 });
             } else {
                 subCategoryContainer.classList.remove('active');
-                selectedSubCategoryId = "";
-                localStorage.setItem('pro_calendar_selected_sub_cat', selectedSubCategoryId);
+                selectedSubCategoryIds = [];
+                localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
             }
         }
+
+        // ⚡ 快速記時按鈕監聽
+        btnQuickTime.addEventListener('click', () => {
+            const now = new Date();
+            const hrs = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${hrs}:${mins}`;
+            
+            const titleInput = document.getElementById('evt-title');
+            let currentVal = titleInput.value.trim();
+            
+            // 如果輸入框內已有時間格式開頭，則將其替換，否則直接在最前方插入
+            const timeRegex = /^(\d{1,2}:\d{2})\s*[,，\-]?\s*(.*)$/;
+            if (timeRegex.test(currentVal)) {
+                titleInput.value = currentVal.replace(timeRegex, `${timeStr}, $2`);
+            } else {
+                titleInput.value = currentVal ? `${timeStr}, ${currentVal}` : `${timeStr}, `;
+            }
+            titleInput.focus();
+        });
 
         function renderManageCategoriesList() {
             manageCategoriesList.innerHTML = '';
@@ -701,12 +762,35 @@
 
         let selectedDateStr = getLocalDateString(new Date());
         dateSelect.value = selectedDateStr;
+        
+        // 讀取所有行程，並確保支援多子類別欄位 (如果是舊資料，則將舊的 subCat 自動轉換為 subCats 陣列)
         let allEvents = JSON.parse(localStorage.getItem('pro_multi_date_calendar_v4')) || {};
+
+        function normalizeEvents() {
+            let migrated = false;
+            Object.keys(allEvents).forEach(dateKey => {
+                allEvents[dateKey] = allEvents[dateKey].map(evt => {
+                    if (evt.subCat && !evt.subCats) {
+                        evt.subCats = [evt.subCat];
+                        delete evt.subCat;
+                        migrated = true;
+                    }
+                    if (!evt.subCats) {
+                        evt.subCats = [];
+                    }
+                    return evt;
+                });
+            });
+            if (migrated) {
+                localStorage.setItem('pro_multi_date_calendar_v4', JSON.stringify(allEvents));
+            }
+        }
+        normalizeEvents();
 
         if (Object.keys(allEvents).length === 0) {
             allEvents[selectedDateStr] = [
-                { title: "上方主類別切換為「家庭」，即可動態查看右側關聯子類別細項", cat: "family", subCat: "sub_1", color: "#000000" },
-                { title: "點擊上方「🏷️ 類別總覽」按鈕，可以一鍵追蹤此類別的全部大局計畫", cat: "personal", subCat: "", color: "#000000" }
+                { title: "08:00, 點選主類別「家庭」，即可複選下方的多個子類別細項（如：軒、恩恩）", cat: "family", subCats: ["sub_1"], color: "#000000" },
+                { title: "10:30, 點選輸入框旁的「⚡ 快速記時」，能一鍵帶入現在的時間唷！", cat: "personal", subCats: [], color: "#000000" }
             ];
             localStorage.setItem('pro_multi_date_calendar_v4', JSON.stringify(allEvents));
         }
@@ -734,6 +818,7 @@
 
             let displayEvents = events.map((e, index) => ({ ...e, originalIndex: index }));
             
+            // 排序功能
             if (currentSortMode === 'az') {
                 displayEvents.sort((a, b) => a.title.localeCompare(b.title, 'zh-Hant'));
             } else if (currentSortMode === 'za') {
@@ -747,12 +832,33 @@
                 const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8", subCategories:[] };
                 card.style.backgroundColor = hexToRgba(catInfo.color, 0.12);
 
-                let subBadgeHtml = '';
-                if(evt.subCat && catInfo.subCategories) {
-                    const subObj = catInfo.subCategories.find(s => s.id === evt.subCat);
-                    if(subObj) {
-                        subBadgeHtml = `<span class="subcategory-badge">${subObj.name}</span>`;
-                    }
+                // 渲染多個子類別標籤
+                let subBadgesHtml = '';
+                if(evt.subCats && evt.subCats.length > 0 && catInfo.subCategories) {
+                    evt.subCats.forEach(sId => {
+                        const subObj = catInfo.subCategories.find(s => s.id === sId);
+                        if(subObj) {
+                            subBadgesHtml += `<span class="subcategory-badge">${subObj.name}</span>`;
+                        }
+                    });
+                }
+
+                // ⏰ 時間, 事件 格式渲染
+                const parsed = parseTimeAndTitle(evt.title);
+                let titleContentHtml = '';
+                if (parsed.hasTime) {
+                    titleContentHtml = `
+                        <div class="event-title-container">
+                            <span class="event-time-prefix">⏰ ${parsed.time}</span>
+                            <span class="event-title" style="color: ${evt.color || '#000000'}">${parsed.title}</span>
+                        </div>
+                    `;
+                } else {
+                    titleContentHtml = `
+                        <div class="event-title-container">
+                            <span class="event-title" style="color: ${evt.color || '#000000'}">${evt.title}</span>
+                        </div>
+                    `;
                 }
 
                 let actionAddon = '';
@@ -768,8 +874,8 @@
                 card.innerHTML = `
                     <div class="event-info">
                         <span class="category-badge" style="background-color: ${catInfo.color}">${catInfo.name}</span>
-                        ${subBadgeHtml}
-                        <p class="event-title" style="color: ${evt.color || '#000000'}">${evt.title}</p>
+                        ${subBadgesHtml}
+                        ${titleContentHtml}
                     </div>
                     ${actionAddon}
                 `;
@@ -817,7 +923,8 @@
                 const dayEvts = allEvents[dateKey] || [];
                 const matchedEvts = dayEvts.filter(e => {
                     const matchMain = e.cat === selectedCategoryId;
-                    const matchSub = (currentOverviewSubFilterId === "") || (e.subCat === currentOverviewSubFilterId);
+                    // 只要當前事件的多選子類別中包含篩選的子類別，即符合
+                    const matchSub = (currentOverviewSubFilterId === "") || (e.subCats && e.subCats.includes(currentOverviewSubFilterId));
                     return matchMain && matchSub;
                 });
                 if (matchedEvts.length > 0) {
@@ -838,15 +945,33 @@
                         miniCard.className = 'cat-group-mini-card';
                         miniCard.style.borderLeft = `4px solid ${targetCat.color}`;
                         
-                        let subLabelText = '';
-                        if(evt.subCat && targetCat.subCategories) {
-                            const subObj = targetCat.subCategories.find(s => s.id === evt.subCat);
-                            if(subObj) subLabelText = `<span class="subcategory-badge" style="align-self: flex-start; margin-bottom: 2px;">${subObj.name}</span>`;
+                        let subBadgesHtml = '';
+                        if(evt.subCats && evt.subCats.length > 0 && targetCat.subCategories) {
+                            evt.subCats.forEach(sId => {
+                                const subObj = targetCat.subCategories.find(s => s.id === sId);
+                                if(subObj) subBadgesHtml += `<span class="subcategory-badge" style="align-self: flex-start; margin-bottom: 2px; margin-right: 2px;">${subObj.name}</span>`;
+                            });
+                        }
+
+                        // 總覽視窗中的時間呈現
+                        const parsed = parseTimeAndTitle(evt.title);
+                        let titleHtml = '';
+                        if (parsed.hasTime) {
+                            titleHtml = `
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span class="event-time-prefix" style="font-size:0.75rem; padding: 1px 4px;">⏰ ${parsed.time}</span>
+                                    <span class="cat-group-mini-title" style="color: ${evt.color || '#000000'}">${parsed.title}</span>
+                                </div>
+                            `;
+                        } else {
+                            titleHtml = `<p class="cat-group-mini-title" style="color: ${evt.color || '#000000'}">${evt.title}</p>`;
                         }
 
                         miniCard.innerHTML = `
-                            ${subLabelText}
-                            <p class="cat-group-mini-title" style="color: ${evt.color || '#000000'}">${evt.title}</p>
+                            <div style="display:flex; flex-direction:column; gap:2px;">
+                                <div style="display:flex; gap:2px; flex-wrap:wrap;">${subBadgesHtml}</div>
+                                ${titleHtml}
+                            </div>
                         `;
                         section.appendChild(miniCard);
                     });
@@ -931,10 +1056,15 @@
 
         modalBtnCopy.addEventListener('click', () => {
             const original = allEvents[selectedDateStr][activeEventIndex];
-            allEvents[selectedDateStr].splice(activeEventIndex + 1, 0, { ...original });
+            // 複製時使用深拷貝，避免子類別陣列共用參照
+            allEvents[selectedDateStr].splice(activeEventIndex + 1, 0, { 
+                ...original, 
+                subCats: original.subCats ? [...original.subCats] : [] 
+            });
             saveAndRender(); closeActionModal();
         });
 
+        // 彈出視窗切換與多選子類別
         modalBtnCategory.addEventListener('click', () => {
             modalEditPanel.classList.remove('show'); modalMovePanel.classList.remove('show');
             modalCategoryGrid.innerHTML = '';
@@ -949,12 +1079,14 @@
                 
                 const mainRow = document.createElement('div');
                 mainRow.className = 'sheet-cat-main-row';
-                if(isMainActive && !currentEvt.subCat) mainRow.style.backgroundColor = "#cbd5e1";
-                mainRow.innerHTML = `<span class="dot" style="background-color: ${cat.color}"></span><span>${cat.name} ${isMainActive && !currentEvt.subCat ? '✓':''}</span>`;
+                if(isMainActive && (!currentEvt.subCats || currentEvt.subCats.length === 0)) {
+                    mainRow.style.backgroundColor = "#cbd5e1";
+                }
+                mainRow.innerHTML = `<span class="dot" style="background-color: ${cat.color}"></span><span>${cat.name} ${isMainActive && (!currentEvt.subCats || currentEvt.subCats.length === 0) ? '✓':''}</span>`;
                 
                 mainRow.addEventListener('click', () => {
                     currentEvt.cat = cat.id;
-                    currentEvt.subCat = "";
+                    currentEvt.subCats = []; // 清空子分類多選
                     saveAndRender(); closeActionModal();
                 });
                 wrapper.appendChild(mainRow);
@@ -964,14 +1096,27 @@
                     subRow.className = 'sheet-sub-grid-row';
                     
                     cat.subCategories.forEach(sub => {
-                        const isSubActive = currentEvt.cat === cat.id && currentEvt.subCat === sub.id;
+                        const isSubActive = currentEvt.cat === cat.id && currentEvt.subCats && currentEvt.subCats.includes(sub.id);
                         const subBtn = document.createElement('button');
-                        subBtn.className = `sheet-sub-pill-btn ${isSubActive?'active':''}`;
+                        subBtn.className = `sheet-sub-pill-btn ${isSubActive ? 'active' : ''}`;
                         subBtn.textContent = sub.name;
                         subBtn.addEventListener('click', () => {
-                            currentEvt.cat = cat.id;
-                            currentEvt.subCat = sub.id;
-                            saveAndRender(); closeActionModal();
+                            // 若尚未歸屬此主分類，則強制轉移至此主分類並清空原本的子分類
+                            if(currentEvt.cat !== cat.id) {
+                                currentEvt.cat = cat.id;
+                                currentEvt.subCats = [];
+                            }
+
+                            if(!currentEvt.subCats) currentEvt.subCats = [];
+
+                            if (currentEvt.subCats.includes(sub.id)) {
+                                currentEvt.subCats = currentEvt.subCats.filter(id => id !== sub.id);
+                            } else {
+                                currentEvt.subCats.push(sub.id);
+                            }
+                            saveAndRender();
+                            // 更新彈出面板狀態
+                            modalBtnCategory.click();
                         });
                         subRow.appendChild(subBtn);
                     });
@@ -979,7 +1124,7 @@
                 }
                 modalCategoryGrid.appendChild(wrapper);
             });
-            modalCategoryPanel.classList.toggle('show');
+            modalCategoryPanel.classList.add('show');
         });
 
         modalBtnDelete.addEventListener('click', () => {
@@ -1005,7 +1150,7 @@
             allEvents[selectedDateStr].push({ 
                 title: title, 
                 cat: selectedCategoryId, 
-                subCat: selectedSubCategoryId, 
+                subCats: [...selectedSubCategoryIds], // 保存當前複選的子類別
                 color: evtFontColorInput.value 
             });
             document.getElementById('evt-title').value = ''; saveAndRender();
@@ -1017,4 +1162,3 @@
     </script>
 </body>
 </html>
-
