@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 子類別分組版</title>
+    <title>極簡美學個人日程管理系統 - 終極防失 + PDF 匯出版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -286,12 +286,37 @@
 
         .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
 
-        /* 排序與主畫面板塊 */
-        .sort-control-bar { padding: 10px 20px 0 20px; background: var(--bg-main); display: flex; align-items: center; justify-content: space-between; }
+        /* 輸出與排序面板 */
+        .utility-control-bar { padding: 12px 20px 0 20px; background: var(--bg-main); display: flex; flex-direction: column; gap: 8px; }
+        .utility-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .sort-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
         .sort-select-wrapper { display: flex; gap: 4px; }
         .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
         .sort-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+
+        /* 📄 PDF 匯出按鈕 */
+        .pdf-export-btn {
+            font-family: inherit;
+            width: 100%;
+            padding: 8px 12px;
+            background: #ffffff;
+            color: #ef4444;
+            border: 1px solid #fca5a5;
+            border-radius: var(--radius-md);
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+        .pdf-export-btn:hover {
+            background: #fef2f2;
+            transform: translateY(-1px);
+        }
 
         /* 列表與時間軸 */
         .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
@@ -366,12 +391,66 @@
         .cat-group-mini-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 10px 12px; margin-bottom: 5px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 4px; }
         .cat-group-mini-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .cat-group-mini-title { font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.4; width: 100%; }
+
+        /* 🖨️ PDF 列印排版專用 CSS */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-family: "MiaoFont", sans-serif;
+            }
+            .calendar-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                min-height: auto !important;
+            }
+            .calendar-header, .event-form, .utility-control-bar, .manual-move-actions, .modal-overlay {
+                display: none !important;
+            }
+            .timeline {
+                padding: 0 !important;
+                background: #ffffff !important;
+            }
+            .event-card {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+                background: #ffffff !important;
+                margin-bottom: 8px !important;
+                page-break-inside: avoid;
+            }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 24px;
+                border-bottom: 2px solid #000000;
+                padding-bottom: 12px;
+            }
+            .print-header h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                font-weight: 900;
+            }
+            .print-header p {
+                margin: 4px 0 0 0;
+                font-size: 0.9rem;
+                color: #64748b;
+            }
+        }
+        .print-header {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
     <div class="calendar-container">
-        <!-- 頂部列 -->
+        <div class="print-header" id="print-header-area">
+            <h1 id="print-date-title">日程管理日程表</h1>
+            <p>列印時間：<span id="print-timestamp"></span></p>
+        </div>
+
         <div class="calendar-header">
             <h1 id="current-day">日程管理</h1>
             <div class="quick-nav">
@@ -385,7 +464,6 @@
             </div>
         </div>
 
-        <!-- 表單 -->
         <div class="event-form">
             <div class="form-row">
                 <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
@@ -400,7 +478,6 @@
                 <button class="inline-overview-btn" id="btn-cat-overview">🏷️ 類別總覽</button>
             </div>
             
-            <!-- 雙階層類別選擇器 -->
             <div class="category-selector-container">
                 <div class="cat-row-wrapper">
                     <span class="cat-label-title">主類別：</span>
@@ -408,13 +485,10 @@
                     <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
                 </div>
                 
-                <!-- 動態分組多選子類別容器 -->
                 <div class="sub-cat-container-box" id="sub-category-container">
-                    <!-- 將由 JS 根據子類別分組動態渲染 -->
-                </div>
+                    </div>
             </div>
 
-            <!--進階管理面板-->
             <div class="category-manage-panel" id="color-panel">
                 <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="add-new-cat-row">
@@ -426,21 +500,24 @@
             <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
         </div>
 
-        <!-- 排序面板 -->
-        <div class="sort-control-bar">
-            <span class="sort-label">排列順序：</span>
-            <div class="sort-select-wrapper">
-                <button class="sort-btn" id="sort-btn-manual">✍️ 手動</button>
-                <button class="sort-btn" id="sort-btn-az">🔤 A-Z</button>
-                <button class="sort-btn" id="sort-btn-za">🔤 Z-A</button>
+        <div class="utility-control-bar">
+            <button class="pdf-export-btn" id="btn-export-pdf">
+                <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <span>📄 輸出本日 PDF / 行程列印</span>
+            </button>
+            <div class="utility-row">
+                <span class="sort-label">排列順序：</span>
+                <div class="sort-select-wrapper">
+                    <button class="sort-btn" id="sort-btn-manual">✍️ 手動</button>
+                    <button class="sort-btn" id="sort-btn-az">🔤 A-Z</button>
+                    <button class="sort-btn" id="sort-btn-za">🔤 Z-A</button>
+                </div>
             </div>
         </div>
 
-        <!-- 時間軸列表 -->
         <div class="timeline" id="timeline-list"></div>
     </div>
 
-    <!-- 彈出式底層選單視窗 (單一事件設定) -->
     <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -497,7 +574,6 @@
         </div>
     </div>
 
-    <!-- 彈出式底層選單視窗 (類別總覽專屬) -->
     <div class="modal-overlay" id="cat-modal" onclick="closeCatModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -533,6 +609,7 @@
         const btnNext = document.getElementById('btn-next');
         const btnCatOverview = document.getElementById('btn-cat-overview');
         const btnQuickTime = document.getElementById('btn-quick-time');
+        const btnExportPdf = document.getElementById('btn-export-pdf');
 
         const sortBtnManual = document.getElementById('sort-btn-manual');
         const sortBtnAz = document.getElementById('sort-btn-az');
@@ -590,10 +667,13 @@
         let selectedSubCategoryIds = JSON.parse(localStorage.getItem('pro_calendar_selected_sub_cats')) || [];
         let currentOverviewSubFilterId = "";
 
-        // 相容性檢查：如果載入了舊版本無 subGroups 的資料，進行即時轉移
+        // 🛡️ 強大相容性與修復機制：防止因為欄位變動導致使用者先前輸入的自訂類別與細項消失
         function checkAndMigrateSchema() {
             let changed = false;
+            
+            // 1. 修復與升級自訂主子分類欄位結構
             customCategories.forEach(cat => {
+                // 如果存在舊版的 subCategories 欄位且沒有 subGroups，則自動進行包裝升級
                 if (cat.subCategories && !cat.subGroups) {
                     cat.subGroups = [];
                     if (cat.subCategories.length > 0) {
@@ -611,6 +691,7 @@
                     changed = true;
                 }
             });
+            
             if (changed) {
                 saveCategories();
             }
@@ -670,7 +751,7 @@
             renderSubCategoryButtons();
         }
 
-        // 💎 重構：渲染帶有「分組」的子類別細項多選介面
+        // 💎 渲染帶有「分組」的子類別細項多選介面
         function renderSubCategoryButtons() {
             subCategoryContainer.innerHTML = '';
             const currentCat = customCategories.find(c => c.id === selectedCategoryId);
@@ -908,10 +989,18 @@
         
         let allEvents = JSON.parse(localStorage.getItem('pro_multi_date_calendar_v5')) || {};
 
+        // 🛡️ 強大相容性與修復機制：防止因為欄位變動導致使用者先前輸入的行程數據重置或毀損
         function normalizeEvents() {
             let migrated = false;
             Object.keys(allEvents).forEach(dateKey => {
+                // 如果格式不是陣列，直接初始化避免崩潰
+                if (!Array.isArray(allEvents[dateKey])) {
+                    allEvents[dateKey] = [];
+                    migrated = true;
+                }
+                
                 allEvents[dateKey] = allEvents[dateKey].map(evt => {
+                    // 1. 舊版單一子細項轉換為新版陣列複選格式
                     if (evt.subCat && !evt.subCats) {
                         evt.subCats = [evt.subCat];
                         delete evt.subCat;
@@ -919,6 +1008,12 @@
                     }
                     if (!evt.subCats) {
                         evt.subCats = [];
+                        migrated = true;
+                    }
+                    // 2. 舊版無字體顏色時，預設填入黑色避免遺失
+                    if (!evt.color) {
+                        evt.color = "#000000";
+                        migrated = true;
                     }
                     return evt;
                 });
@@ -1291,6 +1386,16 @@
                 if (allEvents[selectedDateStr].length === 0) delete allEvents[selectedDateStr];
                 saveAndRender(); closeActionModal();
             }
+        });
+
+        // 📄 觸發 PDF 匯出列印功能
+        btnExportPdf.addEventListener('click', () => {
+            // 填寫列印隱藏檔頭資訊
+            document.getElementById('print-date-title').textContent = `${selectedDateStr} 日程安排表`;
+            document.getElementById('print-timestamp').textContent = new Date().toLocaleString('zh-TW');
+            
+            // 觸發列印（可在列印面板中選擇「儲存為 PDF」）
+            window.print();
         });
 
         function saveAndRender() { localStorage.setItem('pro_multi_date_calendar_v5', JSON.stringify(allEvents)); renderTimeline(); }
