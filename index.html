@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 終極防失 + PDF 匯出版</title>
+    <title>極簡美學個人日程管理系統 - 終極防失 + 雙匯出版</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -218,7 +221,7 @@
         }
         .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
 
-        /* 子類別主頁容器（支援細項分類顯示） */
+        /* 子類別主頁容器 */
         .sub-cat-container-box {
             display: none; background: #f8fafc; padding: 12px; border-radius: var(--radius-md);
             border: 1px dashed var(--border-hover); animation: fadeIn 0.25s ease-out forwards;
@@ -294,10 +297,17 @@
         .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
         .sort-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
+        /* 雙輸出按鈕容器 */
+        .export-btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+        }
+
         /* 📄 PDF 匯出按鈕 */
         .pdf-export-btn {
             font-family: inherit;
-            width: 100%;
             padding: 8px 12px;
             background: #ffffff;
             color: #ef4444;
@@ -315,6 +325,29 @@
         }
         .pdf-export-btn:hover {
             background: #fef2f2;
+            transform: translateY(-1px);
+        }
+
+        /* 📸 圖檔匯出按鈕 */
+        .img-export-btn {
+            font-family: inherit;
+            padding: 8px 12px;
+            background: #ffffff;
+            color: #10b981;
+            border: 1px solid #a7f3d0;
+            border-radius: var(--radius-md);
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+        .img-export-btn:hover {
+            background: #ecfdf5;
             transform: translateY(-1px);
         }
 
@@ -392,7 +425,27 @@
         .cat-group-mini-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .cat-group-mini-title { font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.4; width: 100%; }
 
-        /* 🖨️ PDF 列印排版專用 CSS */
+        /* 🖨️ PDF 列印與圖檔排版專用 CSS */
+        .print-header {
+            display: none;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 12px;
+        }
+        .print-header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #1e293b;
+        }
+        .print-header p {
+            margin: 4px 0 0 0;
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: bold;
+        }
+
         @media print {
             body {
                 background: #ffffff !important;
@@ -422,24 +475,7 @@
             }
             .print-header {
                 display: block !important;
-                text-align: center;
-                margin-bottom: 24px;
-                border-bottom: 2px solid #000000;
-                padding-bottom: 12px;
             }
-            .print-header h1 {
-                margin: 0;
-                font-size: 1.6rem;
-                font-weight: 900;
-            }
-            .print-header p {
-                margin: 4px 0 0 0;
-                font-size: 0.9rem;
-                color: #64748b;
-            }
-        }
-        .print-header {
-            display: none;
         }
     </style>
 </head>
@@ -447,8 +483,8 @@
 
     <div class="calendar-container">
         <div class="print-header" id="print-header-area">
-            <h1 id="print-date-title">日程管理日程表</h1>
-            <p>列印時間：<span id="print-timestamp"></span></p>
+            <h1 id="print-date-title">日程安排表</h1>
+            <p>輸出時間：<span id="print-timestamp"></span></p>
         </div>
 
         <div class="calendar-header">
@@ -501,10 +537,16 @@
         </div>
 
         <div class="utility-control-bar">
-            <button class="pdf-export-btn" id="btn-export-pdf">
-                <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                <span>📄 輸出本日 PDF / 行程列印</span>
-            </button>
+            <div class="export-btn-group">
+                <button class="pdf-export-btn" id="btn-export-pdf">
+                    <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <span>📄 輸出 PDF</span>
+                </button>
+                <button class="img-export-btn" id="btn-export-img">
+                    <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>📸 輸出圖檔</span>
+                </button>
+            </div>
             <div class="utility-row">
                 <span class="sort-label">排列順序：</span>
                 <div class="sort-select-wrapper">
@@ -610,6 +652,7 @@
         const btnCatOverview = document.getElementById('btn-cat-overview');
         const btnQuickTime = document.getElementById('btn-quick-time');
         const btnExportPdf = document.getElementById('btn-export-pdf');
+        const btnExportImg = document.getElementById('btn-export-img');
 
         const sortBtnManual = document.getElementById('sort-btn-manual');
         const sortBtnAz = document.getElementById('sort-btn-az');
@@ -644,7 +687,6 @@
         let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
 
         // 💎 新資料結構：支援 subGroups (子類別細項分組)
-        // 為了相容舊版結構，如果讀取到舊的 subCategories 格式，會自動包裝至預設的 "未分類" 分組
         let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories_v5')) || [
             { id: "personal", name: "個人", color: "#47b881", subGroups: [] },
             { 
@@ -667,13 +709,10 @@
         let selectedSubCategoryIds = JSON.parse(localStorage.getItem('pro_calendar_selected_sub_cats')) || [];
         let currentOverviewSubFilterId = "";
 
-        // 🛡️ 強大相容性與修復機制：防止因為欄位變動導致使用者先前輸入的自訂類別與細項消失
+        // 🛡️ 強大相容性與修復機制
         function checkAndMigrateSchema() {
             let changed = false;
-            
-            // 1. 修復與升級自訂主子分類欄位結構
             customCategories.forEach(cat => {
-                // 如果存在舊版的 subCategories 欄位且沒有 subGroups，則自動進行包裝升級
                 if (cat.subCategories && !cat.subGroups) {
                     cat.subGroups = [];
                     if (cat.subCategories.length > 0) {
@@ -691,10 +730,7 @@
                     changed = true;
                 }
             });
-            
-            if (changed) {
-                saveCategories();
-            }
+            if (changed) { saveCategories(); }
         }
         checkAndMigrateSchema();
 
@@ -713,7 +749,6 @@
             return `rgba(${parseInt(hex.substring(0, 2), 16)}, ${parseInt(hex.substring(2, 4), 16)}, ${parseInt(hex.substring(4, 6), 16)}, ${alpha})`;
         }
 
-        // 扁平化獲取某主分類下的所有子項目（用於相容查閱）
         function getAllSubItemsOfCat(cat) {
             let arr = [];
             if (cat && cat.subGroups) {
@@ -751,7 +786,6 @@
             renderSubCategoryButtons();
         }
 
-        // 💎 渲染帶有「分組」的子類別細項多選介面
         function renderSubCategoryButtons() {
             subCategoryContainer.innerHTML = '';
             const currentCat = customCategories.find(c => c.id === selectedCategoryId);
@@ -759,7 +793,6 @@
             if (currentCat && currentCat.subGroups && currentCat.subGroups.length > 0) {
                 subCategoryContainer.classList.add('active');
                 
-                // 「無細分」重置按鈕
                 const resetRow = document.createElement('div');
                 resetRow.style.marginBottom = '8px';
                 const allBtn = document.createElement('button');
@@ -774,7 +807,6 @@
                 resetRow.appendChild(allBtn);
                 subCategoryContainer.appendChild(resetRow);
 
-                // 依據分組進行渲染
                 currentCat.subGroups.forEach(group => {
                     if (group.items && group.items.length > 0) {
                         const groupRow = document.createElement('div');
@@ -821,7 +853,6 @@
             }
         }
 
-        // ⚡ 快速記時按鈕監聽
         btnQuickTime.addEventListener('click', () => {
             const now = new Date();
             const hrs = String(now.getHours()).padStart(2, '0');
@@ -835,12 +866,11 @@
             if (timeRegex.test(currentVal)) {
                 titleInput.value = currentVal.replace(timeRegex, `${timeStr}, $2`);
             } else {
-                titleInput.value = currentVal ? `${timeStr}, ${currentVal}` : `${timeStr}, `;
+                titleInput.value = currentVal ? `${timeStr}, ${currentVal}` : `${timeStr}, ${timeStr}`;
             }
             titleInput.focus();
         });
 
-        // 💎 管理面板：支援子類別「分組」的新增、刪除與管理
         function renderManageCategoriesList() {
             manageCategoriesList.innerHTML = '';
             customCategories.forEach(cat => {
@@ -870,7 +900,6 @@
                 });
                 item.appendChild(mainRow);
 
-                // 子類別細項分組區塊
                 const subBox = document.createElement('div');
                 subBox.className = 'manage-sub-box';
                 
@@ -905,7 +934,6 @@
                             </div>
                         `;
 
-                        // 刪除子項目
                         groupBlock.querySelectorAll('.sub-del').forEach(delBtn => {
                             delBtn.addEventListener('click', (e) => {
                                 const sId = e.target.getAttribute('data-sub-id');
@@ -914,7 +942,6 @@
                             });
                         });
 
-                        // 新增子項目
                         groupBlock.querySelector('.inline-sub-add-btn').addEventListener('click', () => {
                             const input = groupBlock.querySelector('.inline-sub-input');
                             const val = input.value.trim();
@@ -924,7 +951,6 @@
                             saveCategories(); renderManageCategoriesList(); renderCategorySelectionButtons(); renderTimeline();
                         });
 
-                        // 刪除整個分組
                         groupBlock.querySelector('.group-del-btn').addEventListener('click', () => {
                             if (confirm(`確定要刪除「${group.name}」分組及其中的所有項目嗎？`)) {
                                 cat.subGroups = cat.subGroups.filter(g => g.id !== group.id);
@@ -944,11 +970,10 @@
 
                 subBox.appendChild(groupsHtmlContainer);
 
-                // 新增子類別分組的表單
                 const addGroupForm = document.createElement('div');
                 addGroupForm.className = 'group-add-form';
                 addGroupForm.innerHTML = `
-                    <input type="text" placeholder="新增子分類分組（例：班表）..." class="inline-group-input">
+                    <input type="text" placeholder="新增子分類分組..." class="inline-group-input">
                     <button class="inline-group-add-btn">➕ 建組</button>
                 `;
                 addGroupForm.querySelector('.inline-group-add-btn').addEventListener('click', () => {
@@ -989,18 +1014,14 @@
         
         let allEvents = JSON.parse(localStorage.getItem('pro_multi_date_calendar_v5')) || {};
 
-        // 🛡️ 強大相容性與修復機制：防止因為欄位變動導致使用者先前輸入的行程數據重置或毀損
         function normalizeEvents() {
             let migrated = false;
             Object.keys(allEvents).forEach(dateKey => {
-                // 如果格式不是陣列，直接初始化避免崩潰
                 if (!Array.isArray(allEvents[dateKey])) {
                     allEvents[dateKey] = [];
                     migrated = true;
                 }
-                
                 allEvents[dateKey] = allEvents[dateKey].map(evt => {
-                    // 1. 舊版單一子細項轉換為新版陣列複選格式
                     if (evt.subCat && !evt.subCats) {
                         evt.subCats = [evt.subCat];
                         delete evt.subCat;
@@ -1010,7 +1031,6 @@
                         evt.subCats = [];
                         migrated = true;
                     }
-                    // 2. 舊版無字體顏色時，預設填入黑色避免遺失
                     if (!evt.color) {
                         evt.color = "#000000";
                         migrated = true;
@@ -1068,7 +1088,6 @@
                 const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8", subGroups:[] };
                 card.style.backgroundColor = hexToRgba(catInfo.color, 0.12);
 
-                // 扁平化搜尋該事件的多選子項目並呈現標籤
                 let subBadgesHtml = '';
                 const allSubs = getAllSubItemsOfCat(catInfo);
                 if(evt.subCats && evt.subCats.length > 0) {
@@ -1238,7 +1257,6 @@
                 });
                 overviewSubFilterContainer.appendChild(allBtn);
 
-                // 總覽過濾器會把此主類別下的所有分組細項攤平展示
                 targetCat.subGroups.forEach(g => {
                     if(g.items) {
                         g.items.forEach(sub => {
@@ -1305,7 +1323,6 @@
             saveAndRender(); closeActionModal();
         });
 
-        // 行程卡片設定中的類別與多選子類別分組切換
         modalBtnCategory.addEventListener('click', () => {
             modalEditPanel.classList.remove('show'); modalMovePanel.classList.remove('show');
             modalCategoryGrid.innerHTML = '';
@@ -1332,7 +1349,6 @@
                 });
                 wrapper.appendChild(mainRow);
 
-                // 支援多分類顯示
                 if(cat.subGroups && cat.subGroups.length > 0) {
                     cat.subGroups.forEach(group => {
                         if (group.items && group.items.length > 0) {
@@ -1366,7 +1382,7 @@
                                         currentEvt.subCats.push(sub.id);
                                     }
                                     saveAndRender();
-                                    modalBtnCategory.click(); // 重新整理
+                                    modalBtnCategory.click();
                                 });
                                 subRow.appendChild(subBtn);
                             });
@@ -1388,14 +1404,56 @@
             }
         });
 
-        // 📄 觸發 PDF 匯出列印功能
+        // 📄 PDF 匯出列印功能
         btnExportPdf.addEventListener('click', () => {
-            // 填寫列印隱藏檔頭資訊
             document.getElementById('print-date-title').textContent = `${selectedDateStr} 日程安排表`;
             document.getElementById('print-timestamp').textContent = new Date().toLocaleString('zh-TW');
-            
-            // 觸發列印（可在列印面板中選擇「儲存為 PDF」）
             window.print();
+        });
+
+        // 📸 圖檔匯出功能 (自動隱藏操作面板，並截圖下載)
+        btnExportImg.addEventListener('click', () => {
+            const header = document.querySelector('.calendar-header');
+            const form = document.querySelector('.event-form');
+            const utility = document.querySelector('.utility-control-bar');
+            const printHeader = document.getElementById('print-header-area');
+
+            // 設定精美臨時標題資訊
+            document.getElementById('print-date-title').textContent = `${selectedDateStr} 日程安排圖`;
+            document.getElementById('print-timestamp').textContent = new Date().toLocaleString('zh-TW');
+
+            // 1. 隱藏不必要呈現在圖片中的控制元件
+            header.style.display = 'none';
+            form.style.display = 'none';
+            utility.style.display = 'none';
+            printHeader.style.display = 'block'; // 顯示臨時標題
+            
+            // 2. 呼叫 html2canvas 執行高解析度繪製
+            html2canvas(document.querySelector('.calendar-container'), {
+                scale: 2, // 2倍解析度，確保文字清晰不模糊
+                backgroundColor: '#fcfbfa', // 套用背景主底色
+                useCORS: true
+            }).then(canvas => {
+                // 3. 還原操作控制項
+                header.style.display = '';
+                form.style.display = '';
+                utility.style.display = '';
+                printHeader.style.display = 'none';
+
+                // 4. 觸發圖片檔案下載
+                const imgLink = document.createElement('a');
+                imgLink.download = `日程表_${selectedDateStr}.png`;
+                imgLink.href = canvas.toDataURL('image/png');
+                imgLink.click();
+            }).catch(err => {
+                console.error("圖檔轉換失敗:", err);
+                // 發生錯誤也要還原介面
+                header.style.display = '';
+                form.style.display = '';
+                utility.style.display = '';
+                printHeader.style.display = 'none';
+                alert("轉換圖檔時發生問題，請重試！");
+            });
         });
 
         function saveAndRender() { localStorage.setItem('pro_multi_date_calendar_v5', JSON.stringify(allEvents)); renderTimeline(); }
