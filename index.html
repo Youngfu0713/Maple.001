@@ -853,6 +853,7 @@
             }
         }
 
+        // ⚡ 修正後的快速記時邏輯
         btnQuickTime.addEventListener('click', () => {
             const now = new Date();
             const hrs = String(now.getHours()).padStart(2, '0');
@@ -864,9 +865,11 @@
             
             const timeRegex = /^(\d{1,2}:\d{2})\s*[,，\-]?\s*(.*)$/;
             if (timeRegex.test(currentVal)) {
+                // 如果已經有舊時間，直接把舊時間替換成新時間，並保留後面的文字
                 titleInput.value = currentVal.replace(timeRegex, `${timeStr}, $2`);
             } else {
-                titleInput.value = currentVal ? `${timeStr}, ${currentVal}` : `${timeStr}, ${timeStr}`;
+                // 如果是空的，點擊後只顯示「00:49」；若原本有純文字，則顯示「00:49, 文字」
+                titleInput.value = currentVal ? `${timeStr}, ${currentVal}` : `${timeStr}`;
             }
             titleInput.focus();
         });
