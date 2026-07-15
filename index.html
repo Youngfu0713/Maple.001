@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡美學個人日程管理系統 - 多選子類與快速記時版</title>
+    <title>極簡美學個人日程管理系統 - 子類別分組版</title>
     <style>
         /* 💎 導入自訂字體 Miao.ttf */
         @font-face {
@@ -147,7 +147,7 @@
             outline: none;
         }
 
-        /* ⚡ 快速記時按鈕樣式 */
+        /* ⚡ 快速記時按鈕 */
         .quick-time-btn {
             font-family: inherit;
             padding: 10px 14px;
@@ -166,7 +166,7 @@
             color: var(--text-main);
         }
 
-        /* 顏色控制列：包含顏色選擇器與總覽按鈕 */
+        /* 顏色控制列 */
         .color-control-row {
             display: flex;
             align-items: center;
@@ -187,7 +187,6 @@
         .font-color-picker-container label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
         .font-color-picker-container input[type="color"] { border: none; width: 24px; height: 24px; cursor: pointer; background: none; padding: 0; }
 
-        /* 總覽按鈕樣式 */
         .inline-overview-btn {
             font-family: inherit;
             padding: 8px 14px;
@@ -208,7 +207,7 @@
             transform: translateY(-1px);
         }
 
-        /* 雙層標籤選擇區域樣式 */
+        /* 雙層標籤選擇區域 */
         .category-selector-container { display: flex; flex-direction: column; gap: 8px; }
         .cat-row-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .cat-label-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); min-width: 45px; }
@@ -219,19 +218,34 @@
         }
         .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
 
-        /* 子類別主頁容器 */
+        /* 子類別主頁容器（支援細項分類顯示） */
         .sub-cat-container-box {
-            display: none; background: #f8fafc; padding: 10px 12px; border-radius: var(--radius-md);
+            display: none; background: #f8fafc; padding: 12px; border-radius: var(--radius-md);
             border: 1px dashed var(--border-hover); animation: fadeIn 0.25s ease-out forwards;
         }
         .sub-cat-container-box.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
 
+        .sub-cat-group-row {
+            display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px;
+        }
+        .sub-cat-group-row:last-child {
+            margin-bottom: 0; border-bottom: none; padding-bottom: 0;
+        }
+        .sub-cat-group-title {
+            font-size: 0.72rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 4px;
+        }
+        .sub-cat-group-title::before {
+            content: ''; display: inline-block; width: 4px; height: 10px; background: var(--text-muted); border-radius: 2px;
+        }
+        .sub-cat-pills-list {
+            display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+        }
+
         .sub-cat-tag-btn {
             font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
             border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; transition: all 0.15s;
         }
-        /* 子類別多選啟用時的樣式 */
         .sub-cat-tag-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 800; }
 
         .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
@@ -245,16 +259,25 @@
         .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; }
         .cat-del-btn { font-family: inherit; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78rem; font-weight: bold; }
 
-        /* 子類別管理內嵌小板 */
-        .manage-sub-box { background: #f8fafc; border-radius: var(--radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        /* 子類別細項「分類」管理內嵌板 */
+        .manage-sub-box { background: #f8fafc; border-radius: var(--radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 8px; }
         .manage-sub-title-row { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .manage-sub-group-block { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .manage-sub-group-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-weight: 800; color: var(--text-main); border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
+        .group-del-btn { cursor: pointer; color: #94a3b8; font-size: 0.68rem; }
+        .group-del-btn:hover { color: #ef4444; }
         .manage-sub-list { display: flex; flex-wrap: wrap; gap: 5px; }
         .manage-sub-pill { font-size: 0.7rem; font-weight: 700; background: #e2e8f0; padding: 3px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
         .manage-sub-pill .sub-del { cursor: pointer; color: #94a3b8; font-weight: 800; }
         .manage-sub-pill .sub-del:hover { color: #ef4444; }
+        
         .sub-add-inline-form { display: flex; gap: 4px; margin-top: 4px; }
         .sub-add-inline-form input[type="text"] { font-family: inherit; flex: 1; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.72rem; }
         .sub-add-inline-form button { font-family: inherit; background: #64748b; color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+
+        .group-add-form { display: flex; gap: 6px; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 6px; }
+        .group-add-form input[type="text"] { font-family: inherit; flex: 1; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.72rem; }
+        .group-add-form button { font-family: inherit; background: #475569; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
 
         .add-new-cat-row { display: flex; gap: 6px; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 10px; align-items: center; }
         .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; }
@@ -282,7 +305,6 @@
         .category-badge { font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; color: white; white-space: nowrap; }
         .subcategory-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #ffffff; white-space: nowrap; margin-right: 2px; }
         
-        /* ⏰ 新增：「時間, 事件」的獨立高質感樣式 */
         .event-title-container { width: 100%; margin-top: 4px; display: flex; align-items: flex-start; gap: 8px; }
         .event-time-prefix { font-size: 0.85rem; font-weight: 900; background: #f1f5f9; color: #475569; padding: 1px 6px; border-radius: 4px; white-space: nowrap; border: 1px solid #e2e8f0; }
         .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex: 1; }
@@ -317,14 +339,17 @@
         .sheet-category-item-wrapper { background: white; border: 1px solid #f1f5f9; border-radius: var(--radius-md); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
         .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 4px; }
         .sheet-cat-main-row .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .sheet-sub-grid-row { display: flex; flex-wrap: wrap; gap: 4px; padding-left: 18px; }
+        
+        .sheet-sub-group-block { display: flex; flex-direction: column; gap: 4px; padding-left: 14px; border-left: 2px solid #e2e8f0; margin-top: 4px; }
+        .sheet-sub-group-title { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); }
+        .sheet-sub-grid-row { display: flex; flex-wrap: wrap; gap: 4px; }
         .sheet-sub-pill-btn { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #f1f5f9; border: 1px solid #cbd5e1; cursor: pointer; }
         .sheet-sub-pill-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
 
         .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
         .sheet-close-btn { font-family: inherit; background: none; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); background-color: #f1f5f9; text-align: center; }
 
-        /* 類別總覽彈出內嵌：子類別切換列樣式 */
+        /* 類別總覽過濾列 */
         .modal-overview-sub-filter-row {
             display: flex; gap: 6px; flex-wrap: wrap; background: #f1f5f9; padding: 10px; border-radius: var(--radius-md); margin-bottom: 12px; align-items: center;
         }
@@ -346,6 +371,7 @@
 <body>
 
     <div class="calendar-container">
+        <!-- 頂部列 -->
         <div class="calendar-header">
             <h1 id="current-day">日程管理</h1>
             <div class="quick-nav">
@@ -359,6 +385,7 @@
             </div>
         </div>
 
+        <!-- 表單 -->
         <div class="event-form">
             <div class="form-row">
                 <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
@@ -373,6 +400,7 @@
                 <button class="inline-overview-btn" id="btn-cat-overview">🏷️ 類別總覽</button>
             </div>
             
+            <!-- 雙階層類別選擇器 -->
             <div class="category-selector-container">
                 <div class="cat-row-wrapper">
                     <span class="cat-label-title">主類別：</span>
@@ -380,14 +408,13 @@
                     <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
                 </div>
                 
+                <!-- 動態分組多選子類別容器 -->
                 <div class="sub-cat-container-box" id="sub-category-container">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="cat-label-title" style="color: var(--text-muted)">子類別：</span>
-                        <div id="sub-category-buttons-list" style="display: flex; gap: 5px; flex-wrap: wrap; align-items: center; flex-grow: 1;"></div>
-                    </div>
+                    <!-- 將由 JS 根據子類別分組動態渲染 -->
                 </div>
             </div>
 
+            <!--進階管理面板-->
             <div class="category-manage-panel" id="color-panel">
                 <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="add-new-cat-row">
@@ -399,6 +426,7 @@
             <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
         </div>
 
+        <!-- 排序面板 -->
         <div class="sort-control-bar">
             <span class="sort-label">排列順序：</span>
             <div class="sort-select-wrapper">
@@ -408,9 +436,11 @@
             </div>
         </div>
 
+        <!-- 時間軸列表 -->
         <div class="timeline" id="timeline-list"></div>
     </div>
 
+    <!-- 彈出式底層選單視窗 (單一事件設定) -->
     <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -434,7 +464,7 @@
                 </button>
                 <button class="sheet-btn" id="modal-btn-category">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    <span>切換類別/子類(多選)</span>
+                    <span>切換類別/子類(分組多選)</span>
                 </button>
                 <button class="sheet-btn danger-btn" id="modal-btn-delete">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -459,7 +489,7 @@
             </div>
 
             <div class="sheet-category-panel" id="modal-category-panel">
-                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 6px;">🏷️ 快速變更主/子類別（支援子類複選）：</label>
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); margin-bottom: 6px;">🏷️ 快速變更主/子類別（支援跨組複選）：</label>
                 <div class="sheet-category-grid" id="modal-category-grid"></div>
             </div>
 
@@ -467,6 +497,7 @@
         </div>
     </div>
 
+    <!-- 彈出式底層選單視窗 (類別總覽專屬) -->
     <div class="modal-overlay" id="cat-modal" onclick="closeCatModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -476,9 +507,7 @@
             </div>
 
             <div class="modal-overview-sub-filter-row" id="overview-sub-filter-container"></div>
-
             <div id="cat-overview-content" style="display: flex; flex-direction: column; gap: 6px; padding: 4px 0;"></div>
-
             <button class="sheet-close-btn" onclick="closeCatModal()">關閉總覽</button>
         </div>
     </div>
@@ -493,7 +522,6 @@
         const colorPanel = document.getElementById('color-panel');
         const colorToggleBtn = document.getElementById('color-toggle-btn');
         const categoryButtonsList = document.getElementById('category-buttons-list');
-        const subCategoryButtonsList = document.getElementById('sub-category-buttons-list');
         const subCategoryContainer = document.getElementById('sub-category-container');
         const manageCategoriesList = document.getElementById('manage-categories-list');
         const addNewCatBtn = document.getElementById('add-new-cat-btn');
@@ -538,24 +566,58 @@
         let activeEventIndex = null;
         let currentSortMode = localStorage.getItem('pro_calendar_sort_mode') || 'manual';
 
-        // 預設主類別與子類別
-        let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories_v4')) || [
-            { id: "personal", name: "個人", color: "#47b881", subCategories: [] },
-            { id: "family", name: "家庭", color: "#4c90e2", subCategories: [{id: "sub_1", name: "軒"}, {id: "sub_2", name: "恩恩"}] },
-            { id: "work", name: "職場", color: "#9c27b0", subCategories: [] },
-            { id: "idea", name: "想法", color: "#f5a623", subCategories: [] }
+        // 💎 新資料結構：支援 subGroups (子類別細項分組)
+        // 為了相容舊版結構，如果讀取到舊的 subCategories 格式，會自動包裝至預設的 "未分類" 分組
+        let customCategories = JSON.parse(localStorage.getItem('pro_calendar_custom_categories_v5')) || [
+            { id: "personal", name: "個人", color: "#47b881", subGroups: [] },
+            { 
+                id: "family", 
+                name: "家庭", 
+                color: "#4c90e2", 
+                subGroups: [
+                    {
+                        id: "group_1",
+                        name: "班表",
+                        items: [{id: "sub_1", name: "軒"}, {id: "sub_2", name: "恩恩"}]
+                    }
+                ] 
+            },
+            { id: "work", name: "職場", color: "#9c27b0", subGroups: [] },
+            { id: "idea", name: "想法", color: "#f5a623", subGroups: [] }
         ];
 
         let selectedCategoryId = localStorage.getItem('pro_calendar_selected_cat') || customCategories[0]?.id || "";
-        
-        // 💎 升級：主畫面選取的子類別改為「陣列」支援複選
         let selectedSubCategoryIds = JSON.parse(localStorage.getItem('pro_calendar_selected_sub_cats')) || [];
-
         let currentOverviewSubFilterId = "";
 
-        // ⚙️ 輔助函式：解析標題中的時間與主要內容
+        // 相容性檢查：如果載入了舊版本無 subGroups 的資料，進行即時轉移
+        function checkAndMigrateSchema() {
+            let changed = false;
+            customCategories.forEach(cat => {
+                if (cat.subCategories && !cat.subGroups) {
+                    cat.subGroups = [];
+                    if (cat.subCategories.length > 0) {
+                        cat.subGroups.push({
+                            id: 'group_default_' + Date.now(),
+                            name: '未分類細項',
+                            items: cat.subCategories
+                        });
+                    }
+                    delete cat.subCategories;
+                    changed = true;
+                }
+                if (!cat.subGroups) {
+                    cat.subGroups = [];
+                    changed = true;
+                }
+            });
+            if (changed) {
+                saveCategories();
+            }
+        }
+        checkAndMigrateSchema();
+
         function parseTimeAndTitle(titleStr) {
-            // 支持各式常見分隔，如 "12:30 買牛奶", "12:30,買牛奶", "08:00 - 早餐"
             const timeRegex = /^(\d{1,2}:\d{2})\s*[,，\-]?\s*(.*)$/;
             const match = titleStr.match(timeRegex);
             if (match) {
@@ -568,6 +630,17 @@
             hex = hex.replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(char => char + char).join('');
             return `rgba(${parseInt(hex.substring(0, 2), 16)}, ${parseInt(hex.substring(2, 4), 16)}, ${parseInt(hex.substring(4, 6), 16)}, ${alpha})`;
+        }
+
+        // 扁平化獲取某主分類下的所有子項目（用於相容查閱）
+        function getAllSubItemsOfCat(cat) {
+            let arr = [];
+            if (cat && cat.subGroups) {
+                cat.subGroups.forEach(g => {
+                    if(g.items) arr.push(...g.items);
+                });
+            }
+            return arr;
         }
 
         function renderCategorySelectionButtons() {
@@ -586,7 +659,6 @@
                     document.querySelectorAll('.cat-tag-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     selectedCategoryId = cat.id;
-                    // 切換主分類時，清空當前子分類多選
                     selectedSubCategoryIds = [];
                     localStorage.setItem('pro_calendar_selected_cat', selectedCategoryId);
                     localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
@@ -598,49 +670,68 @@
             renderSubCategoryButtons();
         }
 
+        // 💎 重構：渲染帶有「分組」的子類別細項多選介面
         function renderSubCategoryButtons() {
-            subCategoryButtonsList.innerHTML = '';
+            subCategoryContainer.innerHTML = '';
             const currentCat = customCategories.find(c => c.id === selectedCategoryId);
             
-            if (currentCat && currentCat.subCategories && currentCat.subCategories.length > 0) {
+            if (currentCat && currentCat.subGroups && currentCat.subGroups.length > 0) {
                 subCategoryContainer.classList.add('active');
                 
-                // 全部 (代表不指定特定子類別)
+                // 「無細分」重置按鈕
+                const resetRow = document.createElement('div');
+                resetRow.style.marginBottom = '8px';
                 const allBtn = document.createElement('button');
                 allBtn.className = `sub-cat-tag-btn ${selectedSubCategoryIds.length === 0 ? 'active' : ''}`;
-                allBtn.textContent = "無細分";
+                allBtn.textContent = "清除所有細項選取";
                 allBtn.addEventListener('click', () => {
                     selectedSubCategoryIds = [];
                     localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
-                    document.querySelectorAll('#sub-category-buttons-list .sub-cat-tag-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('#sub-category-container .sub-cat-tag-btn').forEach(b => b.classList.remove('active'));
                     allBtn.classList.add('active');
                 });
-                subCategoryButtonsList.appendChild(allBtn);
+                resetRow.appendChild(allBtn);
+                subCategoryContainer.appendChild(resetRow);
 
-                currentCat.subCategories.forEach(sub => {
-                    const isSelected = selectedSubCategoryIds.includes(sub.id);
-                    const btn = document.createElement('button');
-                    btn.className = `sub-cat-tag-btn ${isSelected ? 'active' : ''}`;
-                    btn.textContent = sub.name;
-                    btn.addEventListener('click', () => {
-                        allBtn.classList.remove('active');
+                // 依據分組進行渲染
+                currentCat.subGroups.forEach(group => {
+                    if (group.items && group.items.length > 0) {
+                        const groupRow = document.createElement('div');
+                        groupRow.className = 'sub-cat-group-row';
                         
-                        if (selectedSubCategoryIds.includes(sub.id)) {
-                            // 已選中 -> 取消選取
-                            selectedSubCategoryIds = selectedSubCategoryIds.filter(id => id !== sub.id);
-                            btn.classList.remove('active');
-                        } else {
-                            // 未選中 -> 加入選取
-                            selectedSubCategoryIds.push(sub.id);
-                            btn.classList.add('active');
-                        }
+                        const title = document.createElement('div');
+                        title.className = 'sub-cat-group-title';
+                        title.textContent = group.name;
+                        groupRow.appendChild(title);
 
-                        if(selectedSubCategoryIds.length === 0) {
-                            allBtn.classList.add('active');
-                        }
-                        localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
-                    });
-                    subCategoryButtonsList.appendChild(btn);
+                        const pillsList = document.createElement('div');
+                        pillsList.className = 'sub-cat-pills-list';
+
+                        group.items.forEach(sub => {
+                            const isSelected = selectedSubCategoryIds.includes(sub.id);
+                            const btn = document.createElement('button');
+                            btn.className = `sub-cat-tag-btn ${isSelected ? 'active' : ''}`;
+                            btn.textContent = sub.name;
+                            btn.addEventListener('click', () => {
+                                allBtn.classList.remove('active');
+                                if (selectedSubCategoryIds.includes(sub.id)) {
+                                    selectedSubCategoryIds = selectedSubCategoryIds.filter(id => id !== sub.id);
+                                    btn.classList.remove('active');
+                                } else {
+                                    selectedSubCategoryIds.push(sub.id);
+                                    btn.classList.add('active');
+                                }
+                                if(selectedSubCategoryIds.length === 0) {
+                                    allBtn.classList.add('active');
+                                }
+                                localStorage.setItem('pro_calendar_selected_sub_cats', JSON.stringify(selectedSubCategoryIds));
+                            });
+                            pillsList.appendChild(btn);
+                        });
+
+                        groupRow.appendChild(pillsList);
+                        subCategoryContainer.appendChild(groupRow);
+                    }
                 });
             } else {
                 subCategoryContainer.classList.remove('active');
@@ -659,7 +750,6 @@
             const titleInput = document.getElementById('evt-title');
             let currentVal = titleInput.value.trim();
             
-            // 如果輸入框內已有時間格式開頭，則將其替換，否則直接在最前方插入
             const timeRegex = /^(\d{1,2}:\d{2})\s*[,，\-]?\s*(.*)$/;
             if (timeRegex.test(currentVal)) {
                 titleInput.value = currentVal.replace(timeRegex, `${timeStr}, $2`);
@@ -669,6 +759,7 @@
             titleInput.focus();
         });
 
+        // 💎 管理面板：支援子類別「分組」的新增、刪除與管理
         function renderManageCategoriesList() {
             manageCategoriesList.innerHTML = '';
             customCategories.forEach(cat => {
@@ -691,52 +782,104 @@
                 });
                 mainRow.querySelector('.cat-del-btn').addEventListener('click', () => {
                     if (customCategories.length <= 1) { alert('最少保留一個類別！'); return; }
-                    if (confirm(`確定刪除「${cat.name}」與其底下的所有子項目嗎？`)) {
+                    if (confirm(`確定刪除「${cat.name}」及其所有子分組嗎？`)) {
                         customCategories = customCategories.filter(c => c.id !== cat.id);
                         saveCategories(); renderCategorySelectionButtons(); renderManageCategoriesList(); renderTimeline();
                     }
                 });
                 item.appendChild(mainRow);
 
+                // 子類別細項分組區塊
                 const subBox = document.createElement('div');
                 subBox.className = 'manage-sub-box';
                 
-                let pillsHtml = '';
-                if(cat.subCategories && cat.subCategories.length > 0) {
-                    cat.subCategories.forEach(sub => {
-                        pillsHtml += `<span class="manage-sub-pill">${sub.name} <b class="sub-del" data-sub-id="${sub.id}">×</b></span>`;
+                let groupsHtmlContainer = document.createElement('div');
+                groupsHtmlContainer.style.display = 'flex';
+                groupsHtmlContainer.style.flexDirection = 'column';
+                groupsHtmlContainer.style.gap = '8px';
+
+                if (cat.subGroups && cat.subGroups.length > 0) {
+                    cat.subGroups.forEach(group => {
+                        const groupBlock = document.createElement('div');
+                        groupBlock.className = 'manage-sub-group-block';
+
+                        let pillsHtml = '';
+                        if (group.items && group.items.length > 0) {
+                            group.items.forEach(sub => {
+                                pillsHtml += `<span class="manage-sub-pill">${sub.name} <b class="sub-del" data-sub-id="${sub.id}">×</b></span>`;
+                            });
+                        } else {
+                            pillsHtml = `<span style="font-size:0.68rem; color:#94a3b8">無細細項</span>`;
+                        }
+
+                        groupBlock.innerHTML = `
+                            <div class="manage-sub-group-header">
+                                <span>📂 分組：${group.name}</span>
+                                <span class="group-del-btn" data-group-id="${group.id}">🗑️ 刪組</span>
+                            </div>
+                            <div class="manage-sub-list">${pillsHtml}</div>
+                            <div class="sub-add-inline-form">
+                                <input type="text" placeholder="新增細項..." class="inline-sub-input">
+                                <button class="inline-sub-add-btn">添加</button>
+                            </div>
+                        `;
+
+                        // 刪除子項目
+                        groupBlock.querySelectorAll('.sub-del').forEach(delBtn => {
+                            delBtn.addEventListener('click', (e) => {
+                                const sId = e.target.getAttribute('data-sub-id');
+                                group.items = group.items.filter(s => s.id !== sId);
+                                saveCategories(); renderManageCategoriesList(); renderCategorySelectionButtons(); renderTimeline();
+                            });
+                        });
+
+                        // 新增子項目
+                        groupBlock.querySelector('.inline-sub-add-btn').addEventListener('click', () => {
+                            const input = groupBlock.querySelector('.inline-sub-input');
+                            const val = input.value.trim();
+                            if(!val) return;
+                            if(!group.items) group.items = [];
+                            group.items.push({ id: 'sub_' + Date.now(), name: val });
+                            saveCategories(); renderManageCategoriesList(); renderCategorySelectionButtons(); renderTimeline();
+                        });
+
+                        // 刪除整個分組
+                        groupBlock.querySelector('.group-del-btn').addEventListener('click', () => {
+                            if (confirm(`確定要刪除「${group.name}」分組及其中的所有項目嗎？`)) {
+                                cat.subGroups = cat.subGroups.filter(g => g.id !== group.id);
+                                saveCategories(); renderManageCategoriesList(); renderCategorySelectionButtons(); renderTimeline();
+                            }
+                        });
+
+                        groupsHtmlContainer.appendChild(groupBlock);
                     });
                 } else {
-                    pillsHtml = `<span style="font-size:0.68rem; color:#94a3b8">尚無子類別</span>`;
+                    const noGroupTip = document.createElement('div');
+                    noGroupTip.style.fontSize = '0.68rem';
+                    noGroupTip.style.color = '#94a3b8';
+                    noGroupTip.textContent = '尚未建立任何子類分組';
+                    groupsHtmlContainer.appendChild(noGroupTip);
                 }
 
-                subBox.innerHTML = `
-                    <div class="manage-sub-title-row"><span>🌿 子類別細項管理</span></div>
-                    <div class="manage-sub-list">${pillsHtml}</div>
-                    <div class="sub-add-inline-form">
-                        <input type="text" placeholder="新增子項目..." class="inline-sub-input">
-                        <button class="inline-sub-add-btn">添加</button>
-                    </div>
+                subBox.appendChild(groupsHtmlContainer);
+
+                // 新增子類別分組的表單
+                const addGroupForm = document.createElement('div');
+                addGroupForm.className = 'group-add-form';
+                addGroupForm.innerHTML = `
+                    <input type="text" placeholder="新增子分類分組（例：班表）..." class="inline-group-input">
+                    <button class="inline-group-add-btn">➕ 建組</button>
                 `;
-
-                subBox.querySelectorAll('.sub-del').forEach(delBtn => {
-                    delBtn.addEventListener('click', (e) => {
-                        const sId = e.target.getAttribute('data-sub-id');
-                        cat.subCategories = cat.subCategories.filter(s => s.id !== sId);
-                        saveCategories(); renderManageCategoriesList(); renderCategorySelectionButtons(); renderTimeline();
-                    });
-                });
-
-                subBox.querySelector('.inline-sub-add-btn').addEventListener('click', () => {
-                    const input = subBox.querySelector('.inline-sub-input');
+                addGroupForm.querySelector('.inline-group-add-btn').addEventListener('click', () => {
+                    const input = addGroupForm.querySelector('.inline-group-input');
                     const val = input.value.trim();
                     if(!val) return;
-                    if(!cat.subCategories) cat.subCategories = [];
-                    cat.subCategories.push({ id: 'sub_' + Date.now(), name: val });
-                    input.value = '';
-                    saveCategories(); renderManageCategoriesList(); renderCategorySelectionButtons(); renderTimeline();
+                    if(!cat.subGroups) cat.subGroups = [];
+                    cat.subGroups.push({ id: 'group_' + Date.now(), name: val, items: [] });
+                    saveCategories(); renderManageCategoriesList(); renderCategorySelectionButtons();
                 });
 
+                subBox.appendChild(addGroupForm);
                 item.appendChild(subBox);
                 manageCategoriesList.appendChild(item);
             });
@@ -745,11 +888,11 @@
         addNewCatBtn.addEventListener('click', () => {
             const name = newCatNameInput.value.trim();
             if (!name) return;
-            customCategories.push({ id: 'cat_' + Date.now(), name: name, color: newCatColorInput.value, subCategories: [] });
+            customCategories.push({ id: 'cat_' + Date.now(), name: name, color: newCatColorInput.value, subGroups: [] });
             newCatNameInput.value = ''; saveCategories(); renderCategorySelectionButtons(); renderManageCategoriesList();
         });
 
-        function saveCategories() { localStorage.setItem('pro_calendar_custom_categories_v4', JSON.stringify(customCategories)); }
+        function saveCategories() { localStorage.setItem('pro_calendar_custom_categories_v5', JSON.stringify(customCategories)); }
         colorToggleBtn.addEventListener('click', () => {
             colorPanel.classList.toggle('active');
             colorToggleBtn.textContent = colorPanel.classList.contains('active') ? "❌" : "⚙️ 管理";
@@ -763,8 +906,7 @@
         let selectedDateStr = getLocalDateString(new Date());
         dateSelect.value = selectedDateStr;
         
-        // 讀取所有行程，並確保支援多子類別欄位 (如果是舊資料，則將舊的 subCat 自動轉換為 subCats 陣列)
-        let allEvents = JSON.parse(localStorage.getItem('pro_multi_date_calendar_v4')) || {};
+        let allEvents = JSON.parse(localStorage.getItem('pro_multi_date_calendar_v5')) || {};
 
         function normalizeEvents() {
             let migrated = false;
@@ -782,17 +924,17 @@
                 });
             });
             if (migrated) {
-                localStorage.setItem('pro_multi_date_calendar_v4', JSON.stringify(allEvents));
+                localStorage.setItem('pro_multi_date_calendar_v5', JSON.stringify(allEvents));
             }
         }
         normalizeEvents();
 
         if (Object.keys(allEvents).length === 0) {
             allEvents[selectedDateStr] = [
-                { title: "08:00, 點選主類別「家庭」，即可複選下方的多個子類別細項（如：軒、恩恩）", cat: "family", subCats: ["sub_1"], color: "#000000" },
-                { title: "10:30, 點選輸入框旁的「⚡ 快速記時」，能一鍵帶入現在的時間唷！", cat: "personal", subCats: [], color: "#000000" }
+                { title: "08:00, 點擊管理按鈕，現在可以為主類別新增「不同的子類別分類分組」囉！", cat: "family", subCats: ["sub_1"], color: "#000000" },
+                { title: "10:30, 點擊快速記時，可以自動記錄此時此刻的時間。", cat: "personal", subCats: [], color: "#000000" }
             ];
-            localStorage.setItem('pro_multi_date_calendar_v4', JSON.stringify(allEvents));
+            localStorage.setItem('pro_multi_date_calendar_v5', JSON.stringify(allEvents));
         }
 
         function updateHeaderTitle() {
@@ -818,7 +960,6 @@
 
             let displayEvents = events.map((e, index) => ({ ...e, originalIndex: index }));
             
-            // 排序功能
             if (currentSortMode === 'az') {
                 displayEvents.sort((a, b) => a.title.localeCompare(b.title, 'zh-Hant'));
             } else if (currentSortMode === 'za') {
@@ -829,21 +970,21 @@
                 const card = document.createElement('div');
                 card.className = `event-card`;
 
-                const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8", subCategories:[] };
+                const catInfo = customCategories.find(c => c.id === evt.cat) || { name: "未分類", color: "#94a3b8", subGroups:[] };
                 card.style.backgroundColor = hexToRgba(catInfo.color, 0.12);
 
-                // 渲染多個子類別標籤
+                // 扁平化搜尋該事件的多選子項目並呈現標籤
                 let subBadgesHtml = '';
-                if(evt.subCats && evt.subCats.length > 0 && catInfo.subCategories) {
+                const allSubs = getAllSubItemsOfCat(catInfo);
+                if(evt.subCats && evt.subCats.length > 0) {
                     evt.subCats.forEach(sId => {
-                        const subObj = catInfo.subCategories.find(s => s.id === sId);
+                        const subObj = allSubs.find(s => s.id === sId);
                         if(subObj) {
                             subBadgesHtml += `<span class="subcategory-badge">${subObj.name}</span>`;
                         }
                     });
                 }
 
-                // ⏰ 時間, 事件 格式渲染
                 const parsed = parseTimeAndTitle(evt.title);
                 let titleContentHtml = '';
                 if (parsed.hasTime) {
@@ -918,12 +1059,12 @@
             catOverviewContent.innerHTML = '';
             let matchedData = [];
             const sortedDates = Object.keys(allEvents).sort((a, b) => b.localeCompare(a));
+            const allSubs = getAllSubItemsOfCat(targetCat);
 
             sortedDates.forEach(dateKey => {
                 const dayEvts = allEvents[dateKey] || [];
                 const matchedEvts = dayEvts.filter(e => {
                     const matchMain = e.cat === selectedCategoryId;
-                    // 只要當前事件的多選子類別中包含篩選的子類別，即符合
                     const matchSub = (currentOverviewSubFilterId === "") || (e.subCats && e.subCats.includes(currentOverviewSubFilterId));
                     return matchMain && matchSub;
                 });
@@ -946,14 +1087,13 @@
                         miniCard.style.borderLeft = `4px solid ${targetCat.color}`;
                         
                         let subBadgesHtml = '';
-                        if(evt.subCats && evt.subCats.length > 0 && targetCat.subCategories) {
+                        if(evt.subCats && evt.subCats.length > 0) {
                             evt.subCats.forEach(sId => {
-                                const subObj = targetCat.subCategories.find(s => s.id === sId);
+                                const subObj = allSubs.find(s => s.id === sId);
                                 if(subObj) subBadgesHtml += `<span class="subcategory-badge" style="align-self: flex-start; margin-bottom: 2px; margin-right: 2px;">${subObj.name}</span>`;
                             });
                         }
 
-                        // 總覽視窗中的時間呈現
                         const parsed = parseTimeAndTitle(evt.title);
                         let titleHtml = '';
                         if (parsed.hasTime) {
@@ -975,6 +1115,7 @@
                         `;
                         section.appendChild(miniCard);
                     });
+                    section.appendChild(document.createElement('br'));
                     catOverviewContent.appendChild(section);
                 });
             }
@@ -984,10 +1125,11 @@
             overviewSubFilterContainer.innerHTML = '';
             currentOverviewSubFilterId = "";
             
-            const targetCat = customCategories.find(c => c.id === selectedCategoryId) || { name: "未知分類", color: "#5151e5", subCategories:[] };
+            const targetCat = customCategories.find(c => c.id === selectedCategoryId) || { name: "未知分類", color: "#5151e5", subGroups:[] };
             catModalTitle.textContent = `「${targetCat.name}」全部行程大局觀`;
 
-            if (targetCat.subCategories && targetCat.subCategories.length > 0) {
+            const allSubs = getAllSubItemsOfCat(targetCat);
+            if (allSubs.length > 0) {
                 overviewSubFilterContainer.style.display = 'flex';
                 
                 const allBtn = document.createElement('button');
@@ -1001,17 +1143,22 @@
                 });
                 overviewSubFilterContainer.appendChild(allBtn);
 
-                targetCat.subCategories.forEach(sub => {
-                    const subBtn = document.createElement('button');
-                    subBtn.className = 'overview-sub-filter-btn';
-                    subBtn.textContent = sub.name;
-                    subBtn.addEventListener('click', () => {
-                        document.querySelectorAll('.overview-sub-filter-btn').forEach(b => b.classList.remove('active'));
-                        subBtn.classList.add('active');
-                        currentOverviewSubFilterId = sub.id;
-                        renderOverviewContent(targetCat);
-                    });
-                    overviewSubFilterContainer.appendChild(subBtn);
+                // 總覽過濾器會把此主類別下的所有分組細項攤平展示
+                targetCat.subGroups.forEach(g => {
+                    if(g.items) {
+                        g.items.forEach(sub => {
+                            const subBtn = document.createElement('button');
+                            subBtn.className = 'overview-sub-filter-btn';
+                            subBtn.textContent = `${g.name} ➔ ${sub.name}`;
+                            subBtn.addEventListener('click', () => {
+                                document.querySelectorAll('.overview-sub-filter-btn').forEach(b => b.classList.remove('active'));
+                                subBtn.classList.add('active');
+                                currentOverviewSubFilterId = sub.id;
+                                renderOverviewContent(targetCat);
+                            });
+                            overviewSubFilterContainer.appendChild(subBtn);
+                        });
+                    }
                 });
             } else {
                 overviewSubFilterContainer.style.display = 'none';
@@ -1050,13 +1197,12 @@
             if (allEvents[selectedDateStr].length === 0) delete allEvents[selectedDateStr];
             if (!allEvents[target]) allEvents[target] = [];
             allEvents[target].push(targetEvt);
-            localStorage.setItem('pro_multi_date_calendar_v4', JSON.stringify(allEvents));
+            localStorage.setItem('pro_multi_date_calendar_v5', JSON.stringify(allEvents));
             closeActionModal(); changeSelectedDate(target);
         });
 
         modalBtnCopy.addEventListener('click', () => {
             const original = allEvents[selectedDateStr][activeEventIndex];
-            // 複製時使用深拷貝，避免子類別陣列共用參照
             allEvents[selectedDateStr].splice(activeEventIndex + 1, 0, { 
                 ...original, 
                 subCats: original.subCats ? [...original.subCats] : [] 
@@ -1064,7 +1210,7 @@
             saveAndRender(); closeActionModal();
         });
 
-        // 彈出視窗切換與多選子類別
+        // 行程卡片設定中的類別與多選子類別分組切換
         modalBtnCategory.addEventListener('click', () => {
             modalEditPanel.classList.remove('show'); modalMovePanel.classList.remove('show');
             modalCategoryGrid.innerHTML = '';
@@ -1086,41 +1232,53 @@
                 
                 mainRow.addEventListener('click', () => {
                     currentEvt.cat = cat.id;
-                    currentEvt.subCats = []; // 清空子分類多選
+                    currentEvt.subCats = [];
                     saveAndRender(); closeActionModal();
                 });
                 wrapper.appendChild(mainRow);
 
-                if(cat.subCategories && cat.subCategories.length > 0) {
-                    const subRow = document.createElement('div');
-                    subRow.className = 'sheet-sub-grid-row';
-                    
-                    cat.subCategories.forEach(sub => {
-                        const isSubActive = currentEvt.cat === cat.id && currentEvt.subCats && currentEvt.subCats.includes(sub.id);
-                        const subBtn = document.createElement('button');
-                        subBtn.className = `sheet-sub-pill-btn ${isSubActive ? 'active' : ''}`;
-                        subBtn.textContent = sub.name;
-                        subBtn.addEventListener('click', () => {
-                            // 若尚未歸屬此主分類，則強制轉移至此主分類並清空原本的子分類
-                            if(currentEvt.cat !== cat.id) {
-                                currentEvt.cat = cat.id;
-                                currentEvt.subCats = [];
-                            }
+                // 支援多分類顯示
+                if(cat.subGroups && cat.subGroups.length > 0) {
+                    cat.subGroups.forEach(group => {
+                        if (group.items && group.items.length > 0) {
+                            const groupBlock = document.createElement('div');
+                            groupBlock.className = 'sheet-sub-group-block';
+                            
+                            const groupTitle = document.createElement('span');
+                            groupTitle.className = 'sheet-sub-group-title';
+                            groupTitle.textContent = group.name;
+                            groupBlock.appendChild(groupTitle);
 
-                            if(!currentEvt.subCats) currentEvt.subCats = [];
+                            const subRow = document.createElement('div');
+                            subRow.className = 'sheet-sub-grid-row';
+                            
+                            group.items.forEach(sub => {
+                                const isSubActive = currentEvt.cat === cat.id && currentEvt.subCats && currentEvt.subCats.includes(sub.id);
+                                const subBtn = document.createElement('button');
+                                subBtn.className = `sheet-sub-pill-btn ${isSubActive ? 'active' : ''}`;
+                                subBtn.textContent = sub.name;
+                                subBtn.addEventListener('click', () => {
+                                    if(currentEvt.cat !== cat.id) {
+                                        currentEvt.cat = cat.id;
+                                        currentEvt.subCats = [];
+                                    }
 
-                            if (currentEvt.subCats.includes(sub.id)) {
-                                currentEvt.subCats = currentEvt.subCats.filter(id => id !== sub.id);
-                            } else {
-                                currentEvt.subCats.push(sub.id);
-                            }
-                            saveAndRender();
-                            // 更新彈出面板狀態
-                            modalBtnCategory.click();
-                        });
-                        subRow.appendChild(subBtn);
+                                    if(!currentEvt.subCats) currentEvt.subCats = [];
+
+                                    if (currentEvt.subCats.includes(sub.id)) {
+                                        currentEvt.subCats = currentEvt.subCats.filter(id => id !== sub.id);
+                                    } else {
+                                        currentEvt.subCats.push(sub.id);
+                                    }
+                                    saveAndRender();
+                                    modalBtnCategory.click(); // 重新整理
+                                });
+                                subRow.appendChild(subBtn);
+                            });
+                            groupBlock.appendChild(subRow);
+                            wrapper.appendChild(groupBlock);
+                        }
                     });
-                    wrapper.appendChild(subRow);
                 }
                 modalCategoryGrid.appendChild(wrapper);
             });
@@ -1135,7 +1293,7 @@
             }
         });
 
-        function saveAndRender() { localStorage.setItem('pro_multi_date_calendar_v4', JSON.stringify(allEvents)); renderTimeline(); }
+        function saveAndRender() { localStorage.setItem('pro_multi_date_calendar_v5', JSON.stringify(allEvents)); renderTimeline(); }
         function changeSelectedDate(dateStr) { selectedDateStr = dateStr; dateSelect.value = dateStr; updateHeaderTitle(); renderTimeline(); }
 
         dateSelect.addEventListener('change', (e) => changeSelectedDate(e.target.value));
@@ -1150,7 +1308,7 @@
             allEvents[selectedDateStr].push({ 
                 title: title, 
                 cat: selectedCategoryId, 
-                subCats: [...selectedSubCategoryIds], // 保存當前複選的子類別
+                subCats: [...selectedSubCategoryIds],
                 color: evtFontColorInput.value 
             });
             document.getElementById('evt-title').value = ''; saveAndRender();
@@ -1162,3 +1320,4 @@
     </script>
 </body>
 </html>
+
