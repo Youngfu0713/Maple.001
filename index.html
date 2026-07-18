@@ -80,7 +80,6 @@
         .cat-row-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .cat-label-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); min-width: 45px; }
         
-        /* 🎨 主類別按鈕字體顏色修正 */
         .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; transition: all 0.2s; }
         .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
         .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
@@ -104,7 +103,6 @@
         .manage-list-item .left { display: flex; align-items: center; gap: 8px; }
         .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; }
         
-        /* 🔧 通用排序按鈕樣式 */
         .sort-action-group { display: flex; gap: 2px; align-items: center; }
         .mini-sort-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 20px; height: 20px; border-radius: 3px; font-size: 0.6rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .mini-sort-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -238,6 +236,7 @@
 
         <div class="event-form">
             <div class="form-row">
+                <!-- ⌨️ 輸入框已綁定 Enter 事件 -->
                 <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
                 <button class="quick-time-btn" id="btn-quick-time">⚡ 快速記時</button>
             </div>
@@ -388,14 +387,14 @@
             localStorage.setItem('calendar_sort_mode', sortMode);
         }
 
-        // --- 🎨 亮度偵測演算法（用來決定背景色搭配深色或淺色字） ---
+        // --- 🎨 亮度偵測演算法 ---
         function getContrastColor(hexColor) {
             const hex = hexColor.replace('#', '');
             const r = parseInt(hex.substr(0, 2), 16);
             const g = parseInt(hex.substr(2, 2), 16);
             const b = parseInt(hex.substr(4, 2), 16);
             const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-            return (yiq >= 145) ? '#1e293b' : '#f8fafc'; // 亮背景配深色字，暗背景配淺色字
+            return (yiq >= 145) ? '#1e293b' : '#f8fafc';
         }
 
         // --- 💾 備份與還原邏輯 ---
@@ -452,13 +451,12 @@
                 btn.className = `cat-tag-btn ${cat.id === selectedMainCatId ? 'active' : ''}`;
                 btn.style.backgroundColor = cat.color;
                 
-                // 修正選中與未選中時的字體顏色
                 const txtColor = getContrastColor(cat.color);
                 if (cat.id === selectedMainCatId) {
                     btn.style.color = txtColor;
                 } else {
-                    btn.style.color = '#475569'; // 未選中時使用通用深灰字
-                    btn.style.backgroundColor = '#f1f5f9'; // 未選中時底色變淡灰色，避免視覺干擾
+                    btn.style.color = '#475569';
+                    btn.style.backgroundColor = '#f1f5f9';
                 }
                 
                 btn.innerText = cat.name;
@@ -491,8 +489,8 @@
             } else { subContainer.classList.remove('active'); }
         }
 
-        // --- 新增行程 ---
-        document.getElementById('add-evt-btn').addEventListener('click', () => {
+        // --- 📥 行程提交執行邏輯 (抽離為獨立函式以供重複呼叫) ---
+        function submitEventForm() {
             const titleInput = document.getElementById('evt-title'); if (!titleInput.value.trim()) return alert('請先輸入事項內容！');
             const matchedCat = categories.find(c => c.id === selectedMainCatId);
             const fontColor = document.getElementById('evt-font-color').value;
@@ -504,7 +502,7 @@
                 subCategories: [...selectedSubItems], orderIndex: dayEventsCount
             });
             saveToStorage(); titleInput.value = ''; selectedSubItems = []; renderTimeline(); renderCategorySelectors();
-        });
+        }
 
         // --- 主列表日程時間軸渲染 ---
         function renderTimeline() {
@@ -521,7 +519,7 @@
                 if (evt.mainCategoryName) {
                     const mb = document.createElement('span'); mb.className = 'category-badge'; 
                     mb.style.backgroundColor = evt.mainCategoryColor; 
-                    mb.style.color = getContrastColor(evt.mainCategoryColor); // 修正卡片內主分類字體顏色
+                    mb.style.color = getContrastColor(evt.mainCategoryColor);
                     mb.innerText = evt.mainCategoryName; info.appendChild(mb);
                 }
                 if (evt.subCategories) {
@@ -685,7 +683,6 @@
                 const wrap = document.createElement('div'); wrap.className = 'sheet-category-item-wrapper';
                 const mr = document.createElement('div'); mr.className = 'sheet-cat-main-row';
                 
-                // 行程設定內的類別切換也同步修正字體對比色
                 const isSelected = evt.mainCategoryName === cat.name;
                 if (isSelected) {
                     mr.style.backgroundColor = cat.color;
@@ -777,6 +774,17 @@
             document.getElementById('sort-btn-za').addEventListener('click', () => changeSortMode('za'));
             document.getElementById('btn-export-pdf').addEventListener('click', () => { document.getElementById('print-timestamp').innerText = new Date().toLocaleString(); window.print(); });
             document.getElementById('btn-export-img').addEventListener('click', doExportImage);
+
+            // 🎯 新增：點擊按鈕送出
+            document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
+
+            // 🎯 新增：電腦按下 Enter 鍵送出
+            document.getElementById('evt-title').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // 防止表單預設行為
+                    submitEventForm();
+                }
+            });
         }
         function changeDateOffset(o) { const d = new Date(currentDate); d.setDate(d.getDate() + o); currentDate = d.toISOString().split('T')[0]; initDateConfig(); renderTimeline(); }
         
@@ -793,4 +801,3 @@
     </script>
 </body>
 </html>
-
