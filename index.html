@@ -236,7 +236,6 @@
 
         <div class="event-form">
             <div class="form-row">
-                <!-- ⌨️ 輸入框已綁定 Enter 事件 -->
                 <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
                 <button class="quick-time-btn" id="btn-quick-time">⚡ 快速記時</button>
             </div>
@@ -261,6 +260,7 @@
             <div class="category-manage-panel" id="color-panel">
                 <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="add-new-cat-row">
+                    <!-- ⌨️ 輸入完按 Enter 即可新增主類別 -->
                     <input type="text" id="new-cat-name" placeholder="新主類別名稱...">
                     <input type="color" id="new-cat-color" value="#5151e5">
                     <button class="add-cat-submit-btn" id="add-new-cat-btn">➕ 新增</button>
@@ -489,7 +489,7 @@
             } else { subContainer.classList.remove('active'); }
         }
 
-        // --- 📥 行程提交執行邏輯 (抽離為獨立函式以供重複呼叫) ---
+        // --- 📥 獨立抽離的新增函式群 ---
         function submitEventForm() {
             const titleInput = document.getElementById('evt-title'); if (!titleInput.value.trim()) return alert('請先輸入事項內容！');
             const matchedCat = categories.find(c => c.id === selectedMainCatId);
@@ -502,6 +502,20 @@
                 subCategories: [...selectedSubItems], orderIndex: dayEventsCount
             });
             saveToStorage(); titleInput.value = ''; selectedSubItems = []; renderTimeline(); renderCategorySelectors();
+        }
+
+        function submitNewMainCategory() {
+            const n = document.getElementById('new-cat-name'); const c = document.getElementById('new-cat-color'); if(!n.value.trim()) return;
+            categories.push({ id: 'cat-'+Date.now(), name: n.value.trim(), color: c.value, subGroups: [] });
+            saveToStorage(); n.value = ''; renderCategorySelectors(); renderManagePanel();
+        }
+
+        function submitNewSubGroup(cat, inputEl) {
+            const n = inputEl.value.trim(); if(n) { if(!cat.subGroups) cat.subGroups=[]; cat.subGroups.push({id:'sg-'+Date.now(), title:n, items:[]}); saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+        }
+
+        function submitNewSubItem(g, inputEl) {
+            const v = inputEl.value.trim(); if(v) { g.items.push(v); saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
         }
 
         // --- 主列表日程時間軸渲染 ---
@@ -617,22 +631,24 @@
                         });
                         gb.appendChild(pl);
 
+                        // 🎯 綁定 Enter 快速新增子標籤
                         const aForm = document.createElement('div'); aForm.className = 'sub-add-inline-form'; aForm.innerHTML = `<input type="text" placeholder="新標籤名稱..."><button>＋ 新增標籤</button>`;
-                        aForm.querySelector('button').onclick = () => { const v = aForm.querySelector('input').value.trim(); if(v) { g.items.push(v); saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                        const subInput = aForm.querySelector('input');
+                        aForm.querySelector('button').onclick = () => submitNewSubItem(g, subInput);
+                        subInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); submitNewSubItem(g, subInput); } });
+
                         gb.appendChild(aForm); subBox.appendChild(gb);
                     });
                 }
+                // 🎯 綁定 Enter 快速加新群組
                 const gForm = document.createElement('div'); gForm.className = 'group-add-form'; gForm.innerHTML = `<input type="text" placeholder="新子群組名稱..."><button>➕ 加新群組</button>`;
-                gForm.querySelector('button').onclick = () => { const n = gForm.querySelector('input').value.trim(); if(n) { if(!cat.subGroups) cat.subGroups=[]; cat.subGroups.push({id:'sg-'+Date.now(), title:n, items:[]}); saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                const groupInput = gForm.querySelector('input');
+                gForm.querySelector('button').onclick = () => submitNewSubGroup(cat, groupInput);
+                groupInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); submitNewSubGroup(cat, groupInput); } });
+
                 subBox.appendChild(gForm); item.appendChild(subBox); container.appendChild(item);
             });
         }
-
-        document.getElementById('add-new-cat-btn').addEventListener('click', () => {
-            const n = document.getElementById('new-cat-name'); const c = document.getElementById('new-cat-color'); if(!n.value.trim()) return;
-            categories.push({ id: 'cat-'+Date.now(), name: n.value.trim(), color: c.value, subGroups: [] });
-            saveToStorage(); n.value = ''; renderCategorySelectors(); renderManagePanel();
-        });
 
         // --- Action Sheet 控制區 ---
         function openActionModal(evtId) {
@@ -775,16 +791,13 @@
             document.getElementById('btn-export-pdf').addEventListener('click', () => { document.getElementById('print-timestamp').innerText = new Date().toLocaleString(); window.print(); });
             document.getElementById('btn-export-img').addEventListener('click', doExportImage);
 
-            // 🎯 新增：點擊按鈕送出
+            // 行程主要輸入框 Enter 送出
             document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
+            document.getElementById('evt-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEventForm(); } });
 
-            // 🎯 新增：電腦按下 Enter 鍵送出
-            document.getElementById('evt-title').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault(); // 防止表單預設行為
-                    submitEventForm();
-                }
-            });
+            // 🎯 新增主類別 Enter 送出
+            document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
+            document.getElementById('new-cat-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewMainCategory(); } });
         }
         function changeDateOffset(o) { const d = new Date(currentDate); d.setDate(d.getDate() + o); currentDate = d.toISOString().split('T')[0]; initDateConfig(); renderTimeline(); }
         
