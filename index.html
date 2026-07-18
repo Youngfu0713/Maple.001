@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>個人日程管理系統 - 分類連動優化版</title>
+    <title>個人日程管理系統 - 手機端完美修正版</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -48,6 +48,7 @@
         .backup-btn-group { display: flex; gap: 6px; }
         .backup-btn {
             font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-export-data { background: #10b981; color: white; }
         .btn-export-data:hover { background: #059669; }
@@ -58,7 +59,7 @@
         .calendar-header { padding: 16px 20px 10px 20px; background: #ffffff; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(241, 245, 249, 0.8); }
         .calendar-header h1 { margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 800; text-align: center; }
         .quick-nav { display: flex; gap: 6px; margin-bottom: 8px; }
-        .nav-btn { font-family: inherit; padding: 8px 10px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; text-align: center; }
+        .nav-btn { font-family: inherit; padding: 8px 10px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; text-align: center; -webkit-tap-highlight-color: transparent; }
         #btn-today { flex: 1.2; background: var(--primary); color: white; border: none; font-weight: 800; }
 
         .date-picker-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
@@ -68,21 +69,21 @@
         .event-form { padding: 14px 20px; background: #ffffff; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
         .form-row { display: flex; gap: 8px; }
         .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: #f8fafc; outline: none; }
-        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: #f1f5f9; color: #475569; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: #f1f5f9; color: #475569; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 
         .color-control-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .font-color-picker-container { display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
         .font-color-picker-container input[type="color"] { border: none; width: 24px; height: 24px; background: none; padding: 0; cursor: pointer; }
-        .inline-overview-btn { font-family: inherit; padding: 8px 14px; background: #eef2ff; color: var(--primary); border: 1px solid rgba(81, 81, 229, 0.15); border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 800; cursor: pointer; }
+        .inline-overview-btn { font-family: inherit; padding: 8px 14px; background: #eef2ff; color: var(--primary); border: 1px solid rgba(81, 81, 229, 0.15); border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
         /* 雙層標籤選擇區域 */
         .category-selector-container { display: flex; flex-direction: column; gap: 8px; }
         .cat-row-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .cat-label-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); min-width: 45px; }
         
-        .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; transition: all 0.2s; }
+        .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
         .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
-        .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
+        .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
         /* 子類別主頁容器 */
         .sub-cat-container-box { display: none; background: #f8fafc; padding: 12px; border-radius: var(--radius-md); border: 1px dashed var(--border-hover); }
@@ -92,7 +93,7 @@
         .sub-cat-group-title { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
         .sub-cat-group-title::before { content: ''; display: inline-block; width: 4px; height: 10px; background: var(--text-muted); border-radius: 2px; }
         .sub-cat-pills-list { display: flex; gap: 5px; flex-wrap: wrap; }
-        .sub-cat-tag-btn { font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; }
+        .sub-cat-tag-btn { font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .sub-cat-tag-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 800; }
 
         /* 分類管理面板 */
@@ -104,46 +105,47 @@
         .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; cursor: pointer; }
         
         .sort-action-group { display: flex; gap: 2px; align-items: center; }
-        .mini-sort-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 20px; height: 20px; border-radius: 3px; font-size: 0.6rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* 增加手機端可點擊度，並確保 iOS 觸發 */
+        .mini-sort-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 24px; height: 24px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
         .mini-sort-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .cat-del-btn { font-family: inherit; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78rem; font-weight: bold; margin-left: auto; margin-right: 6px; }
+        .cat-del-btn { font-family: inherit; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78rem; font-weight: bold; margin-left: auto; margin-right: 6px; -webkit-tap-highlight-color: transparent; }
         .manage-sub-box { background: #f8fafc; border-radius: var(--radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 8px; }
         .manage-sub-group-block { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
         .manage-sub-group-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-weight: 800; color: var(--text-main); border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
-        .group-del-btn { cursor: pointer; color: #94a3b8; font-size: 0.68rem; margin-left: auto; margin-right: 6px; }
+        .group-del-btn { cursor: pointer; color: #94a3b8; font-size: 0.68rem; margin-left: auto; margin-right: 6px; -webkit-tap-highlight-color: transparent; }
         .manage-sub-list { display: flex; flex-wrap: wrap; gap: 5px; }
         .manage-sub-pill { font-size: 0.7rem; font-weight: 700; background: #e2e8f0; padding: 3px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
-        .manage-sub-pill .sub-del { cursor: pointer; color: #94a3b8; font-weight: 800; margin-left: 2px; }
+        .manage-sub-pill .sub-del { cursor: pointer; color: #94a3b8; font-weight: 800; margin-left: 2px; padding: 2px; -webkit-tap-highlight-color: transparent; }
         
         .sub-add-inline-form { display: flex; gap: 4px; margin-top: 4px; }
-        .sub-add-inline-form input[type="text"] { font-family: inherit; flex: 1; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.72rem; }
-        .sub-add-inline-form button { font-family: inherit; background: #64748b; color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; }
+        .sub-add-inline-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
+        .sub-add-inline-form button { font-family: inherit; background: #64748b; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .group-add-form { display: flex; gap: 6px; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 6px; }
-        .group-add-form input[type="text"] { font-family: inherit; flex: 1; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.72rem; }
-        .group-add-form button { font-family: inherit; background: #475569; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; }
+        .group-add-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
+        .group-add-form button { font-family: inherit; background: #475569; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .add-new-cat-row { display: flex; gap: 6px; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 10px; align-items: center; }
         .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; }
         .add-new-cat-row input[type="color"] { border: none; width: 30px; height: 30px; background: none; padding: 0; cursor: pointer; }
-        .add-cat-submit-btn { font-family: inherit; background: #1e293b; color: white; border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+        .add-cat-submit-btn { font-family: inherit; background: #1e293b; color: white; border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
         /* 工具與輸出 */
         .utility-control-bar { padding: 12px 20px 0 20px; background: var(--bg-main); display: flex; flex-direction: column; gap: 8px; }
         .utility-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .sort-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
         .sort-select-wrapper { display: flex; gap: 4px; }
-        .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; }
+        .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .sort-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
         .export-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
-        .pdf-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #ef4444; border: 1px solid #fca5a5; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); }
-        .img-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #10b981; border: 1px solid #a7f3d0; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); }
+        .pdf-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #ef4444; border: 1px solid #fca5a5; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
+        .img-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #10b981; border: 1px solid #a7f3d0; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
 
         /* 列表卡片 */
         .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
-        .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; }
+        .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; -webkit-tap-highlight-color: transparent; }
         .event-info { flex-grow: 1; display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
         .category-badge { font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; }
         .subcategory-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #ffffff; margin-right: 2px; }
@@ -151,7 +153,7 @@
         .event-time-prefix { font-size: 0.85rem; font-weight: 900; background: #f1f5f9; color: #475569; padding: 1px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
         .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex: 1; }
         .manual-move-actions { display: flex; gap: 2px; }
-        .move-step-btn { border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; }
+        .move-step-btn { border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
         /* 彈出層 Action Sheet */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
@@ -163,26 +165,26 @@
         .sheet-title-desc { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; }
         .sheet-event-title { font-size: 1.05rem; font-weight: 800; margin: 0; }
         .sheet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .sheet-btn { font-family: inherit; background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-main); font-weight: 800; font-size: 0.88rem; }
+        .sheet-btn { font-family: inherit; background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-main); font-weight: 800; font-size: 0.88rem; -webkit-tap-highlight-color: transparent; }
         .sheet-btn.danger-btn { grid-column: span 2; }
         .sheet-edit-panel, .sheet-move-date-panel, .sheet-category-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px; flex-direction: column; gap: 10px; }
         .sheet-edit-panel.show, .sheet-move-date-panel.show, .sheet-category-panel.show { display: flex; }
         .sheet-edit-panel input[type="text"], .sheet-move-date-panel input[type="date"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; }
         .sheet-category-grid { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
         .sheet-category-item-wrapper { background: white; border: 1px solid #f1f5f9; border-radius: var(--radius-md); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); }
+        .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); -webkit-tap-highlight-color: transparent; }
         .sheet-cat-main-row .dot { width: 10px; height: 10px; border-radius: 50%; }
         .sheet-sub-group-block { display: flex; flex-direction: column; gap: 4px; padding-left: 14px; border-left: 2px solid #e2e8f0; }
         .sheet-sub-group-title { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); }
         .sheet-sub-grid-row { display: flex; flex-wrap: wrap; gap: 4px; }
-        .sheet-sub-pill-btn { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #f1f5f9; border: 1px solid #cbd5e1; cursor: pointer; }
+        .sheet-sub-pill-btn { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #f1f5f9; border: 1px solid #cbd5e1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .sheet-sub-pill-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
-        .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; }
-        .sheet-close-btn { font-family: inherit; background: #f1f5f9; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); text-align: center; }
+        .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sheet-close-btn { font-family: inherit; background: #f1f5f9; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); text-align: center; -webkit-tap-highlight-color: transparent; }
 
         /* 總覽模組 */
         .modal-overview-sub-filter-row { display: flex; gap: 6px; flex-wrap: wrap; background: #f1f5f9; padding: 10px; border-radius: var(--radius-md); margin-bottom: 12px; align-items: center; }
-        .overview-sub-filter-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: var(--text-muted); cursor: pointer; }
+        .overview-sub-filter-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .overview-sub-filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .cat-group-section { margin-bottom: 14px; }
         .cat-group-date-label { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
@@ -257,6 +259,7 @@
                 <div class="sub-cat-container-box" id="sub-category-container"></div>
             </div>
 
+            <!-- ⚙️ 分類管理面板：已改採事件委派（Event Delegation）防手機端失效 -->
             <div class="category-manage-panel" id="color-panel">
                 <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="add-new-cat-row">
@@ -383,6 +386,7 @@
             setupEventListeners();
             updateSortBtnUI();
             setupBackupLogic();
+            setupGlobalDelegation(); // 啟用手機端專用全局監聽
         });
 
         function initDateConfig() {
@@ -530,23 +534,6 @@
             saveToStorage(); n.value = ''; renderCategorySelectors(); renderManagePanel();
         }
 
-        function submitNewSubGroup(cat, val) {
-            const n = val.trim(); 
-            if(n) { 
-                if(!cat.subGroups) cat.subGroups=[]; 
-                cat.subGroups.push({id:'sg-'+Date.now(), title:n, items:[]}); 
-                saveToStorage(); renderManagePanel(); renderCategorySelectors(); 
-            }
-        }
-
-        function submitNewSubItem(g, val) {
-            const v = val.trim(); 
-            if(v) { 
-                g.items.push(v); 
-                saveToStorage(); renderManagePanel(); renderCategorySelectors(); 
-            }
-        }
-
         // --- 主列表日程時間軸渲染 ---
         function renderTimeline() {
             const container = document.getElementById('timeline-list'); container.innerHTML = '';
@@ -597,7 +584,7 @@
             saveToStorage(); renderTimeline();
         }
 
-        // --- ⚙️ 後台連動類別管理面板（已全面修正為 DOM 節點型態防失效） ---
+        // --- ⚙️ 後台連動管理面板（改用 Data Attribute，確保手機端 100% 點擊有效） ---
         document.getElementById('color-toggle-btn').addEventListener('click', () => document.getElementById('color-panel').classList.toggle('active'));
         
         function renderManagePanel() {
@@ -608,145 +595,189 @@
                 const item = document.createElement('div'); 
                 item.className = 'manage-list-item';
                 
-                // 1. 主行 Row 建立
+                // 主行列
                 const mr = document.createElement('div'); 
                 mr.className = 'manage-main-row';
                 
-                const leftDiv = document.createElement('div');
-                leftDiv.className = 'left';
+                const leftDiv = document.createElement('div'); leftDiv.className = 'left';
+                const sag = document.createElement('div'); sag.className = 'sort-action-group';
                 
-                const sag = document.createElement('div');
-                sag.className = 'sort-action-group';
-                
-                const upBtn = document.createElement('button');
-                upBtn.className = 'mini-sort-btn'; upBtn.innerText = '▲';
+                // 向上按鈕
+                const upBtn = document.createElement('button'); upBtn.className = 'mini-sort-btn'; upBtn.innerText = '▲';
                 if(cIdx === 0) upBtn.disabled = true;
-                upBtn.onclick = () => { if(moveItemInArray(categories, cIdx, -1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                upBtn.setAttribute('data-action', 'cat-up'); upBtn.setAttribute('data-cidx', cIdx);
                 
-                const downBtn = document.createElement('button');
-                downBtn.className = 'mini-sort-btn'; downBtn.innerText = '▼';
+                // 向下按鈕
+                const downBtn = document.createElement('button'); downBtn.className = 'mini-sort-btn'; downBtn.innerText = '▼';
                 if(cIdx === categories.length - 1) downBtn.disabled = true;
-                downBtn.onclick = () => { if(moveItemInArray(categories, cIdx, 1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                downBtn.setAttribute('data-action', 'cat-down'); downBtn.setAttribute('data-cidx', cIdx);
                 
-                sag.appendChild(upBtn);
-                sag.appendChild(downBtn);
+                sag.appendChild(upBtn); sag.appendChild(downBtn);
                 
-                const cp = document.createElement('input');
-                cp.type = 'color'; cp.value = cat.color;
-                cp.onchange = (e) => { 
-                    cat.color = e.target.value; 
-                    events.forEach(ev => { if(ev.mainCategoryName === cat.name) ev.mainCategoryColor = cat.color; }); 
-                    saveToStorage(); renderCategorySelectors(); renderTimeline(); 
-                };
+                const cp = document.createElement('input'); cp.type = 'color'; cp.value = cat.color;
+                cp.addEventListener('change', (e) => {
+                    cat.color = e.target.value;
+                    events.forEach(ev => { if(ev.mainCategoryName === cat.name) ev.mainCategoryColor = cat.color; });
+                    saveToStorage(); renderCategorySelectors(); renderTimeline();
+                });
                 
-                const titleStr = document.createElement('strong');
-                titleStr.innerText = cat.name;
+                const titleStr = document.createElement('strong'); titleStr.innerText = cat.name;
+                leftDiv.appendChild(sag); leftDiv.appendChild(cp); leftDiv.appendChild(titleStr);
                 
-                leftDiv.appendChild(sag);
-                leftDiv.appendChild(cp);
-                leftDiv.appendChild(titleStr);
+                // 主刪除
+                const delBtn = document.createElement('button'); delBtn.className = 'cat-del-btn'; delBtn.innerText = '刪除';
+                delBtn.setAttribute('data-action', 'cat-del'); delBtn.setAttribute('data-cidx', cIdx);
                 
-                const delBtn = document.createElement('button');
-                delBtn.className = 'cat-del-btn'; delBtn.innerText = '刪除';
-                delBtn.onclick = () => { if(confirm(`確定要移除「${cat.name}」主分類嗎？`)) { categories.splice(cIdx, 1); saveToStorage(); renderCategorySelectors(); renderManagePanel(); } };
-                
-                mr.appendChild(leftDiv);
-                mr.appendChild(delBtn);
-                item.appendChild(mr);
+                mr.appendChild(leftDiv); mr.appendChild(delBtn); item.appendChild(mr);
 
-                // 2. 子群組盒區塊
-                const subBox = document.createElement('div'); 
-                subBox.className = 'manage-sub-box';
+                // 子群組盒區塊
+                const subBox = document.createElement('div'); subBox.className = 'manage-sub-box';
                 
                 if(cat.subGroups) {
                     cat.subGroups.forEach((g, gIdx) => {
-                        const gb = document.createElement('div'); 
-                        gb.className = 'manage-sub-group-block';
+                        const gb = document.createElement('div'); gb.className = 'manage-sub-group-block';
+                        const gh = document.createElement('div'); gh.className = 'manage-sub-group-header';
+                        const gsag = document.createElement('div'); gsag.className = 'sort-action-group';
                         
-                        const gh = document.createElement('div');
-                        gh.className = 'manage-sub-group-header';
+                        const gUp = document.createElement('button'); gUp.className = 'mini-sort-btn'; gUp.innerText = '▲'; if(gIdx === 0) gUp.disabled = true;
+                        gUp.setAttribute('data-action', 'group-up'); gUp.setAttribute('data-cidx', cIdx); gUp.setAttribute('data-gidx', gIdx);
                         
-                        const gsag = document.createElement('div');
-                        gsag.className = 'sort-action-group';
-                        
-                        const gUp = document.createElement('button'); gUp.className = 'mini-sort-btn'; gUp.innerText = '▲';
-                        if(gIdx === 0) gUp.disabled = true;
-                        gUp.onclick = () => { if(moveItemInArray(cat.subGroups, gIdx, -1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
-                        
-                        const gDown = document.createElement('button'); gDown.className = 'mini-sort-btn'; gDown.innerText = '▼';
-                        if(gIdx === cat.subGroups.length - 1) gDown.disabled = true;
-                        gDown.onclick = () => { if(moveItemInArray(cat.subGroups, gIdx, 1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                        const gDown = document.createElement('button'); gDown.className = 'mini-sort-btn'; gDown.innerText = '▼'; if(gIdx === cat.subGroups.length - 1) gDown.disabled = true;
+                        gDown.setAttribute('data-action', 'group-down'); gDown.setAttribute('data-cidx', cIdx); gDown.setAttribute('data-gidx', gIdx);
                         
                         gsag.appendChild(gUp); gsag.appendChild(gDown);
                         
                         const gt = document.createElement('span'); gt.innerHTML = `<strong>${g.title}</strong>`;
+                        
                         const gDel = document.createElement('span'); gDel.className = 'group-del-btn'; gDel.innerText = '✕ 刪除群組';
-                        gDel.onclick = () => { if(confirm(`確定刪除 ${g.title} 子群組？`)) { cat.subGroups.splice(gIdx, 1); saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                        gDel.setAttribute('data-action', 'group-del'); gDel.setAttribute('data-cidx', cIdx); gDel.setAttribute('data-gidx', gIdx);
                         
-                        gh.appendChild(gsag); gh.appendChild(gt); gh.appendChild(gDel);
-                        gb.appendChild(gh);
+                        gh.appendChild(gsag); gh.appendChild(gt); gh.appendChild(gDel); gb.appendChild(gh);
                         
-                        // 子標籤藥丸清單
-                        const pl = document.createElement('div'); 
-                        pl.className = 'manage-sub-list';
-                        
+                        // 子標籤藥丸
+                        const pl = document.createElement('div'); pl.className = 'manage-sub-list';
                         g.items.forEach((it, iIdx) => {
                             const p = document.createElement('div'); p.className = 'manage-sub-pill';
-                            
                             const isag = document.createElement('div'); isag.className = 'sort-action-group';
-                            const iUp = document.createElement('button'); iUp.className = 'mini-sort-btn'; iUp.innerText = '▲'; iUp.style.width='14px'; iUp.style.height='14px'; iUp.style.fontSize='0.5rem';
-                            if(iIdx === 0) iUp.disabled = true;
-                            iUp.onclick = () => { if(moveItemInArray(g.items, iIdx, -1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
                             
-                            const iDown = document.createElement('button'); iDown.className = 'mini-sort-btn'; iDown.innerText = '▼'; iDown.style.width='14px'; iDown.style.height='14px'; iDown.style.fontSize='0.5rem';
-                            if(iIdx === g.items.length - 1) iDown.disabled = true;
-                            iDown.onclick = () => { if(moveItemInArray(g.items, iIdx, 1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                            const iUp = document.createElement('button'); iUp.className = 'mini-sort-btn'; iUp.innerText = '▲'; iUp.style.width='14px'; iUp.style.height='14px'; iUp.style.fontSize='0.5rem'; if(iIdx === 0) iUp.disabled = true;
+                            iUp.setAttribute('data-action', 'item-up'); iUp.setAttribute('data-cidx', cIdx); iUp.setAttribute('data-gidx', gIdx); iUp.setAttribute('data-iidx', iIdx);
+                            
+                            const iDown = document.createElement('button'); iDown.className = 'mini-sort-btn'; iDown.innerText = '▼'; iDown.style.width='14px'; iDown.style.height='14px'; iDown.style.fontSize='0.5rem'; if(iIdx === g.items.length - 1) iDown.disabled = true;
+                            iDown.setAttribute('data-action', 'item-down'); iDown.setAttribute('data-cidx', cIdx); iDown.setAttribute('data-gidx', gIdx); iDown.setAttribute('data-iidx', iIdx);
                             
                             isag.appendChild(iUp); isag.appendChild(iDown);
                             
                             const pTxt = document.createElement('span'); pTxt.innerText = it;
-                            const pDel = document.createElement('span'); pDel.className = 'sub-del'; pDel.innerText = '✕';
-                            pDel.onclick = () => { g.items.splice(iIdx, 1); saveToStorage(); renderManagePanel(); renderCategorySelectors(); };
                             
-                            p.appendChild(isag); p.appendChild(pTxt); p.appendChild(pDel);
-                            pl.appendChild(p);
+                            const pDel = document.createElement('span'); pDel.className = 'sub-del'; pDel.innerText = '✕';
+                            pDel.setAttribute('data-action', 'item-del'); pDel.setAttribute('data-cidx', cIdx); pDel.setAttribute('data-gidx', gIdx); pDel.setAttribute('data-iidx', iIdx);
+                            
+                            p.appendChild(isag); p.appendChild(pTxt); p.appendChild(pDel); pl.appendChild(p);
                         });
                         gb.appendChild(pl);
 
-                        // 表單：新增子標籤
-                        const aForm = document.createElement('div'); 
-                        aForm.className = 'sub-add-inline-form';
-                        
-                        const subInput = document.createElement('input'); subInput.type = 'text'; subInput.placeholder = '新標籤名稱...';
+                        // 輸入表單：新增子標籤
+                        const aForm = document.createElement('div'); aForm.className = 'sub-add-inline-form';
+                        const subInput = document.createElement('input'); subInput.type = 'text'; subInput.placeholder = '新標籤名稱...'; subInput.id = `input-add-item-${cIdx}-${gIdx}`;
                         const subBtn = document.createElement('button'); subBtn.innerText = '＋ 新增標籤';
+                        subBtn.setAttribute('data-action', 'item-add-submit'); subBtn.setAttribute('data-cidx', cIdx); subBtn.setAttribute('data-gidx', gIdx);
                         
-                        const triggerSubAdd = () => { submitNewSubItem(g, subInput.value); };
-                        subBtn.onclick = triggerSubAdd;
-                        subInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); triggerSubAdd(); } });
+                        subInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); handleInlineAddSubItem(cIdx, gIdx); } });
                         
-                        aForm.appendChild(subInput); aForm.appendChild(subBtn);
-                        gb.appendChild(aForm); subBox.appendChild(gb);
+                        aForm.appendChild(subInput); aForm.appendChild(subBtn); gb.appendChild(aForm); subBox.appendChild(gb);
                     });
                 }
                 
-                // 表單：加新群組
-                const gForm = document.createElement('div'); 
-                gForm.className = 'group-add-form';
-                
-                const groupInput = document.createElement('input'); groupInput.type = 'text'; groupInput.placeholder = '新子群組名稱...';
+                // 輸入表單：加新群組
+                const gForm = document.createElement('div'); gForm.className = 'group-add-form';
+                const groupInput = document.createElement('input'); groupInput.type = 'text'; groupInput.placeholder = '新子群組名稱...'; groupInput.id = `input-add-group-${cIdx}`;
                 const groupBtn = document.createElement('button'); groupBtn.innerText = '➕ 加新群組';
+                groupBtn.setAttribute('data-action', 'group-add-submit'); groupBtn.setAttribute('data-cidx', cIdx);
                 
-                const triggerGroupAdd = () => { submitNewSubGroup(cat, groupInput.value); };
-                groupBtn.onclick = triggerGroupAdd;
-                groupInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); triggerGroupAdd(); } });
+                groupInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); handleInlineAddGroup(cIdx); } });
                 
-                gForm.appendChild(groupInput); gForm.appendChild(groupBtn);
-                subBox.appendChild(gForm); 
+                gForm.appendChild(groupInput); gForm.appendChild(groupBtn); subBox.appendChild(gForm);
                 
-                item.appendChild(subBox); 
-                container.appendChild(item);
+                item.appendChild(subBox); container.appendChild(item);
             });
         }
+
+        // --- 📱 手機端專用：全局點擊委派控制中心（Event Delegation） ---
+        function setupGlobalDelegation() {
+            const panel = document.getElementById('color-panel');
+            
+            // 監聽整個面板的 click 事件，無論是動態產生的還是之後生成的按鈕，都能 100% 抓到
+            panel.addEventListener('click', (e) => {
+                // 往上尋找帶有 data-action 的元素
+                let target = e.target;
+                while (target && target !== panel && !target.hasAttribute('data-action')) {
+                    target = target.parentElement;
+                }
+                if (!target || target === panel) return;
+
+                const action = target.getAttribute('data-action');
+                const cIdx = parseInt(target.getAttribute('data-cidx'), 10);
+                const gIdx = parseInt(target.getAttribute('data-gidx'), 10);
+                const iIdx = parseInt(target.getAttribute('data-iidx'), 10);
+
+                // 分流處理各個動作
+                if (action === 'cat-up') {
+                    if(moveItemInArray(categories, cIdx, -1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+                } 
+                else if (action === 'cat-down') {
+                    if(moveItemInArray(categories, cIdx, 1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+                } 
+                else if (action === 'cat-del') {
+                    if(confirm(`確定要移除「${categories[cIdx].name}」主分類嗎？`)) { categories.splice(cIdx, 1); saveToStorage(); renderCategorySelectors(); renderManagePanel(); }
+                } 
+                else if (action === 'group-up') {
+                    if(moveItemInArray(categories[cIdx].subGroups, gIdx, -1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+                } 
+                else if (action === 'group-down') {
+                    if(moveItemInArray(categories[cIdx].subGroups, gIdx, 1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+                } 
+                else if (action === 'group-del') {
+                    if(confirm(`確定刪除該子群組？`)) { categories[cIdx].subGroups.splice(gIdx, 1); saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+                } 
+                else if (action === 'item-up') {
+                    if(moveItemInArray(categories[cIdx].subGroups[gIdx].items, iIdx, -1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+                } 
+                else if (action === 'item-down') {
+                    if(moveItemInArray(categories[cIdx].subGroups[gIdx].items, iIdx, 1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
+                } 
+                else if (action === 'item-del') {
+                    categories[cIdx].subGroups[gIdx].items.splice(iIdx, 1); saveToStorage(); renderManagePanel(); renderCategorySelectors();
+                } 
+                else if (action === 'item-add-submit') {
+                    handleInlineAddSubItem(cIdx, gIdx);
+                } 
+                else if (action === 'group-add-submit') {
+                    handleInlineAddGroup(cIdx);
+                }
+            });
+        }
+
+        // --- 輔助執行動作（獨立出來供點擊與鍵盤 Enter 共用） ---
+        function handleInlineAddSubItem(cIdx, gIdx) {
+            const input = document.getElementById(`input-add-item-${cIdx}-${gIdx}`);
+            const val = input.value.trim();
+            if(val) {
+                categories[cIdx].subGroups[gIdx].items.push(val);
+                saveToStorage(); renderManagePanel(); renderCategorySelectors();
+            }
+        }
+
+        function handleInlineAddGroup(cIdx) {
+            const input = document.getElementById(`input-add-group-${cIdx}`);
+            const val = input.value.trim();
+            if(val) {
+                if(!categories[cIdx].subGroups) categories[cIdx].subGroups = [];
+                categories[cIdx].subGroups.push({ id: 'sg-'+Date.now(), title: val, items: [] });
+                saveToStorage(); renderManagePanel(); renderCategorySelectors();
+            }
+        }
+
 
         // --- Action Sheet 彈出控制層 ---
         function openActionModal(evtId) {
@@ -847,12 +878,12 @@
         document.getElementById('btn-cat-overview').addEventListener('click', () => { oMain = categories[0]?.name || ""; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); document.getElementById('overview-modal').classList.add('show'); });
         function closeOverviewModal() { document.getElementById('overview-modal').classList.remove('show'); }
         function renderOverviewFilters() {
-            const mr = document.getElementById('overview-main-cat-tabs'); mr.innerHTML = '<strong>主類：</strong>';
+            const mr = document.getElementById('overview-main-cat-tabs'); mr.innerHTML = '<strong>主：</strong>';
             categories.forEach(c => {
                 const b = document.createElement('button'); b.className = `overview-sub-filter-btn ${oMain===c.name?'active':''}`; b.innerText = c.name;
                 b.onclick = () => { oMain = c.name; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); }; mr.appendChild(b);
             });
-            const sr = document.getElementById('overview-sub-cat-tabs'); sr.innerHTML = '<strong>子類：</strong>';
+            const sr = document.getElementById('overview-sub-cat-tabs'); sr.innerHTML = '<strong>子：</strong>';
             const cc = categories.find(c => c.name === oMain);
             if(cc && cc.subGroups) {
                 const ba = document.createElement('button'); ba.className = `overview-sub-filter-btn ${oSub===""?'active':''}`; ba.innerText="全部";
