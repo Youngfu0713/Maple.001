@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>個人日程管理系統 - 手機端完美修正版</title>
+    <title>個人日程管理系統 - 標籤格式自訂版</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -105,7 +105,6 @@
         .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; cursor: pointer; }
         
         .sort-action-group { display: flex; gap: 2px; align-items: center; }
-        /* 增加手機端可點擊度，並確保 iOS 觸發 */
         .mini-sort-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 24px; height: 24px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
         .mini-sort-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
@@ -146,12 +145,14 @@
         .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
         .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; -webkit-tap-highlight-color: transparent; }
-        .event-info { flex-grow: 1; display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
-        .category-badge { font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; }
-        .subcategory-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #ffffff; margin-right: 2px; }
-        .event-title-container { width: 100%; margin-top: 4px; display: flex; align-items: flex-start; gap: 8px; }
-        .event-time-prefix { font-size: 0.85rem; font-weight: 900; background: #f1f5f9; color: #475569; padding: 1px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
-        .event-title { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; flex: 1; }
+        .event-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        
+        /* 🛠️ 新格式文字排版樣式 */
+        .event-text-line { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; }
+        .prefix-badge-main { font-weight: 900; margin-right: 2px; }
+        .prefix-badge-time { font-weight: 900; color: #475569; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0; margin-right: 4px; font-size: 0.85rem; }
+        .sub-pills-text-row { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-top: 2px; word-break: break-all; }
+
         .manual-move-actions { display: flex; gap: 2px; }
         .move-step-btn { border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
@@ -259,7 +260,7 @@
                 <div class="sub-cat-container-box" id="sub-category-container"></div>
             </div>
 
-            <!-- ⚙️ 分類管理面板：已改採事件委派（Event Delegation）防手機端失效 -->
+            <!-- ⚙️ 分類管理面板 -->
             <div class="category-manage-panel" id="color-panel">
                 <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
                 <div class="add-new-cat-row">
@@ -386,7 +387,7 @@
             setupEventListeners();
             updateSortBtnUI();
             setupBackupLogic();
-            setupGlobalDelegation(); // 啟用手機端專用全局監聽
+            setupGlobalDelegation();
         });
 
         function initDateConfig() {
@@ -534,7 +535,7 @@
             saveToStorage(); n.value = ''; renderCategorySelectors(); renderManagePanel();
         }
 
-        // --- 主列表日程時間軸渲染 ---
+        // --- 🛠️ 主列表日程時間軸渲染（更新為：[主類別][時間] 標題排版） ---
         function renderTimeline() {
             const container = document.getElementById('timeline-list'); container.innerHTML = '';
             let dayEvents = events.filter(e => e.date === currentDate);
@@ -546,25 +547,48 @@
             dayEvents.forEach((evt, index) => {
                 const card = document.createElement('div'); card.className = 'event-card'; card.onclick = () => openActionModal(evt.id);
                 const info = document.createElement('div'); info.className = 'event-info';
+
+                // 建立整行文字容器
+                const textLine = document.createElement('p');
+                textLine.className = 'event-text-line';
+                textLine.style.color = evt.fontColor || '#000000';
+
+                // 1. [主類別] 前綴
                 if (evt.mainCategoryName) {
-                    const mb = document.createElement('span'); mb.className = 'category-badge'; 
-                    mb.style.backgroundColor = evt.mainCategoryColor; 
-                    mb.style.color = getContrastColor(evt.mainCategoryColor);
-                    mb.innerText = evt.mainCategoryName; info.appendChild(mb);
+                    const mainSpan = document.createElement('span');
+                    mainSpan.className = 'prefix-badge-main';
+                    mainSpan.style.color = evt.mainCategoryColor || 'var(--primary)';
+                    mainSpan.innerText = `[${evt.mainCategoryName}]`;
+                    textLine.appendChild(mainSpan);
                 }
-                if (evt.subCategories) {
-                    evt.subCategories.forEach(sub => {
-                        const sb = document.createElement('span'); sb.className = 'subcategory-badge'; sb.innerText = sub; info.appendChild(sb);
-                    });
-                }
-                const tc = document.createElement('div'); tc.className = 'event-title-container';
-                const tm = evt.title.match(/^\[(\d{2}:\d{2})\]/); let dt = evt.title;
+
+                // 解析時間括號 [HH:MM]
+                const tm = evt.title.match(/^\[(\d{2}:\d{2})\]/); 
+                let cleanTitle = evt.title;
+
+                // 2. [時間] 前綴
                 if (tm) {
-                    const tp = document.createElement('span'); tp.className = 'event-time-prefix'; tp.innerText = tm[1]; tc.appendChild(tp);
-                    dt = evt.title.replace(/^\[\d{2}:\d{2}\]\s*/, '');
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'prefix-badge-time';
+                    timeSpan.innerText = `[${tm[1]}]`;
+                    textLine.appendChild(timeSpan);
+                    cleanTitle = evt.title.replace(/^\[\d{2}:\d{2}\]\s*/, '');
                 }
-                const te = document.createElement('p'); te.className = 'event-title'; te.style.color = evt.fontColor || '#000000'; te.innerText = dt;
-                tc.appendChild(te); info.appendChild(tc); card.appendChild(info);
+
+                // 3. 事項內文純文字
+                const titleText = document.createTextNode(cleanTitle);
+                textLine.appendChild(titleText);
+                info.appendChild(textLine);
+
+                // 4. 標籤/標籤/標籤 純文字串接呈現
+                if (evt.subCategories && evt.subCategories.length > 0) {
+                    const subRow = document.createElement('div');
+                    subRow.className = 'sub-pills-text-row';
+                    subRow.innerText = evt.subCategories.join('/');
+                    info.appendChild(subRow);
+                }
+
+                card.appendChild(info);
 
                 if (sortMode === 'manual') {
                     const act = document.createElement('div'); act.className = 'manual-move-actions'; act.onclick = (e) => e.stopPropagation();
@@ -584,7 +608,7 @@
             saveToStorage(); renderTimeline();
         }
 
-        // --- ⚙️ 後台連動管理面板（改用 Data Attribute，確保手機端 100% 點擊有效） ---
+        // --- ⚙️ 后台分类管理面板 ---
         document.getElementById('color-toggle-btn').addEventListener('click', () => document.getElementById('color-panel').classList.toggle('active'));
         
         function renderManagePanel() {
@@ -595,19 +619,16 @@
                 const item = document.createElement('div'); 
                 item.className = 'manage-list-item';
                 
-                // 主行列
                 const mr = document.createElement('div'); 
                 mr.className = 'manage-main-row';
                 
                 const leftDiv = document.createElement('div'); leftDiv.className = 'left';
                 const sag = document.createElement('div'); sag.className = 'sort-action-group';
                 
-                // 向上按鈕
                 const upBtn = document.createElement('button'); upBtn.className = 'mini-sort-btn'; upBtn.innerText = '▲';
                 if(cIdx === 0) upBtn.disabled = true;
                 upBtn.setAttribute('data-action', 'cat-up'); upBtn.setAttribute('data-cidx', cIdx);
                 
-                // 向下按鈕
                 const downBtn = document.createElement('button'); downBtn.className = 'mini-sort-btn'; downBtn.innerText = '▼';
                 if(cIdx === categories.length - 1) downBtn.disabled = true;
                 downBtn.setAttribute('data-action', 'cat-down'); downBtn.setAttribute('data-cidx', cIdx);
@@ -624,13 +645,11 @@
                 const titleStr = document.createElement('strong'); titleStr.innerText = cat.name;
                 leftDiv.appendChild(sag); leftDiv.appendChild(cp); leftDiv.appendChild(titleStr);
                 
-                // 主刪除
                 const delBtn = document.createElement('button'); delBtn.className = 'cat-del-btn'; delBtn.innerText = '刪除';
                 delBtn.setAttribute('data-action', 'cat-del'); delBtn.setAttribute('data-cidx', cIdx);
                 
                 mr.appendChild(leftDiv); mr.appendChild(delBtn); item.appendChild(mr);
 
-                // 子群組盒區塊
                 const subBox = document.createElement('div'); subBox.className = 'manage-sub-box';
                 
                 if(cat.subGroups) {
@@ -654,7 +673,6 @@
                         
                         gh.appendChild(gsag); gh.appendChild(gt); gh.appendChild(gDel); gb.appendChild(gh);
                         
-                        // 子標籤藥丸
                         const pl = document.createElement('div'); pl.className = 'manage-sub-list';
                         g.items.forEach((it, iIdx) => {
                             const p = document.createElement('div'); p.className = 'manage-sub-pill';
@@ -677,7 +695,6 @@
                         });
                         gb.appendChild(pl);
 
-                        // 輸入表單：新增子標籤
                         const aForm = document.createElement('div'); aForm.className = 'sub-add-inline-form';
                         const subInput = document.createElement('input'); subInput.type = 'text'; subInput.placeholder = '新標籤名稱...'; subInput.id = `input-add-item-${cIdx}-${gIdx}`;
                         const subBtn = document.createElement('button'); subBtn.innerText = '＋ 新增標籤';
@@ -689,7 +706,6 @@
                     });
                 }
                 
-                // 輸入表單：加新群組
                 const gForm = document.createElement('div'); gForm.className = 'group-add-form';
                 const groupInput = document.createElement('input'); groupInput.type = 'text'; groupInput.placeholder = '新子群組名稱...'; groupInput.id = `input-add-group-${cIdx}`;
                 const groupBtn = document.createElement('button'); groupBtn.innerText = '➕ 加新群組';
@@ -703,13 +719,10 @@
             });
         }
 
-        // --- 📱 手機端專用：全局點擊委派控制中心（Event Delegation） ---
+        // --- 📱 手機端全局點擊委派控制中心 ---
         function setupGlobalDelegation() {
             const panel = document.getElementById('color-panel');
-            
-            // 監聽整個面板的 click 事件，無論是動態產生的還是之後生成的按鈕，都能 100% 抓到
             panel.addEventListener('click', (e) => {
-                // 往上尋找帶有 data-action 的元素
                 let target = e.target;
                 while (target && target !== panel && !target.hasAttribute('data-action')) {
                     target = target.parentElement;
@@ -721,7 +734,6 @@
                 const gIdx = parseInt(target.getAttribute('data-gidx'), 10);
                 const iIdx = parseInt(target.getAttribute('data-iidx'), 10);
 
-                // 分流處理各個動作
                 if (action === 'cat-up') {
                     if(moveItemInArray(categories, cIdx, -1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
                 } 
@@ -758,7 +770,6 @@
             });
         }
 
-        // --- 輔助執行動作（獨立出來供點擊與鍵盤 Enter 共用） ---
         function handleInlineAddSubItem(cIdx, gIdx) {
             const input = document.getElementById(`input-add-item-${cIdx}-${gIdx}`);
             const val = input.value.trim();
@@ -777,7 +788,6 @@
                 saveToStorage(); renderManagePanel(); renderCategorySelectors();
             }
         }
-
 
         // --- Action Sheet 彈出控制層 ---
         function openActionModal(evtId) {
