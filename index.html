@@ -79,7 +79,9 @@
         .category-selector-container { display: flex; flex-direction: column; gap: 8px; }
         .cat-row-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .cat-label-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); min-width: 45px; }
-        .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; color: white; transition: all 0.2s; }
+        
+        /* 🎨 主類別按鈕字體顏色修正 */
+        .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; transition: all 0.2s; }
         .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
         .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
 
@@ -145,7 +147,7 @@
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
         .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; }
         .event-info { flex-grow: 1; display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
-        .category-badge { font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; color: white; }
+        .category-badge { font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; }
         .subcategory-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #ffffff; margin-right: 2px; }
         .event-title-container { width: 100%; margin-top: 4px; display: flex; align-items: flex-start; gap: 8px; }
         .event-time-prefix { font-size: 0.85rem; font-weight: 900; background: #f1f5f9; color: #475569; padding: 1px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
@@ -170,7 +172,7 @@
         .sheet-edit-panel input[type="text"], .sheet-move-date-panel input[type="date"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; }
         .sheet-category-grid { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
         .sheet-category-item-wrapper { background: white; border: 1px solid #f1f5f9; border-radius: var(--radius-md); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+        .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); }
         .sheet-cat-main-row .dot { width: 10px; height: 10px; border-radius: 50%; }
         .sheet-sub-group-block { display: flex; flex-direction: column; gap: 4px; padding-left: 14px; border-left: 2px solid #e2e8f0; }
         .sheet-sub-group-title { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); }
@@ -386,6 +388,16 @@
             localStorage.setItem('calendar_sort_mode', sortMode);
         }
 
+        // --- 🎨 亮度偵測演算法（用來決定背景色搭配深色或淺色字） ---
+        function getContrastColor(hexColor) {
+            const hex = hexColor.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 145) ? '#1e293b' : '#f8fafc'; // 亮背景配深色字，暗背景配淺色字
+        }
+
         // --- 💾 備份與還原邏輯 ---
         function setupBackupLogic() {
             document.getElementById('btn-backup-export').addEventListener('click', () => {
@@ -438,7 +450,18 @@
             categories.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = `cat-tag-btn ${cat.id === selectedMainCatId ? 'active' : ''}`;
-                btn.style.backgroundColor = cat.color; btn.innerText = cat.name;
+                btn.style.backgroundColor = cat.color;
+                
+                // 修正選中與未選中時的字體顏色
+                const txtColor = getContrastColor(cat.color);
+                if (cat.id === selectedMainCatId) {
+                    btn.style.color = txtColor;
+                } else {
+                    btn.style.color = '#475569'; // 未選中時使用通用深灰字
+                    btn.style.backgroundColor = '#f1f5f9'; // 未選中時底色變淡灰色，避免視覺干擾
+                }
+                
+                btn.innerText = cat.name;
                 btn.onclick = () => { selectedMainCatId = cat.id; selectedSubItems = []; renderCategorySelectors(); };
                 listContainer.appendChild(btn);
             });
@@ -496,7 +519,10 @@
                 const card = document.createElement('div'); card.className = 'event-card'; card.onclick = () => openActionModal(evt.id);
                 const info = document.createElement('div'); info.className = 'event-info';
                 if (evt.mainCategoryName) {
-                    const mb = document.createElement('span'); mb.className = 'category-badge'; mb.style.backgroundColor = evt.mainCategoryColor; mb.innerText = evt.mainCategoryName; info.appendChild(mb);
+                    const mb = document.createElement('span'); mb.className = 'category-badge'; 
+                    mb.style.backgroundColor = evt.mainCategoryColor; 
+                    mb.style.color = getContrastColor(evt.mainCategoryColor); // 修正卡片內主分類字體顏色
+                    mb.innerText = evt.mainCategoryName; info.appendChild(mb);
                 }
                 if (evt.subCategories) {
                     evt.subCategories.forEach(sub => {
@@ -530,7 +556,7 @@
             saveToStorage(); renderTimeline();
         }
 
-        // --- 后台類別管理介面（內建全功能上下手動排序按鈕） ---
+        // --- 後台類別管理介面 ---
         document.getElementById('color-toggle-btn').addEventListener('click', () => document.getElementById('color-panel').classList.toggle('active'));
         
         function renderManagePanel() {
@@ -539,7 +565,6 @@
                 const item = document.createElement('div'); item.className = 'manage-list-item';
                 const mr = document.createElement('div'); mr.className = 'manage-main-row';
                 
-                // 1. 主類別結構與手動排序
                 mr.innerHTML = `
                     <div class="left">
                         <div class="sort-action-group">
@@ -558,7 +583,6 @@
                 mr.querySelector('.cat-del-btn').onclick = () => { if(confirm(`移除 ${cat.name} 分類？`)) { categories.splice(cIdx, 1); saveToStorage(); renderCategorySelectors(); renderManagePanel(); } };
                 item.appendChild(mr);
 
-                // 2. 子群組結構與手動排序
                 const subBox = document.createElement('div'); subBox.className = 'manage-sub-box';
                 if(cat.subGroups) {
                     cat.subGroups.forEach((g, gIdx) => {
@@ -577,7 +601,6 @@
                         gb.querySelector('.down-g').onclick = () => { if(moveItemInArray(cat.subGroups, gIdx, 1)) { saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
                         gb.querySelector('.group-del-btn').onclick = () => { if(confirm(`確定刪除 ${g.title} 群組？`)) { cat.subGroups.splice(gIdx, 1); saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
                         
-                        // 3. 子標籤(Pills)結構與手動排序
                         const pl = document.createElement('div'); pl.className = 'manage-sub-list';
                         g.items.forEach((it, iIdx) => {
                             const p = document.createElement('div'); p.className = 'manage-sub-pill';
@@ -613,7 +636,7 @@
             saveToStorage(); n.value = ''; renderCategorySelectors(); renderManagePanel();
         });
 
-        // --- Action Sheet 及彈出視窗對話盒控制區 ---
+        // --- Action Sheet 控制區 ---
         function openActionModal(evtId) {
             activeTargetEventId = evtId; const evt = events.find(e => e.id === evtId); if (!evt) return;
             document.getElementById('modal-event-title').innerText = evt.title;
@@ -654,13 +677,25 @@
         });
 
         document.getElementById('modal-btn-category').addEventListener('click', () => { closeAllSheetPanels(); renderModalCategoryGrid(); document.getElementById('modal-category-panel').classList.add('show'); });
+        
         function renderModalCategoryGrid() {
             const container = document.getElementById('modal-category-selection-list'); container.innerHTML = '';
             const evt = events.find(e => e.id === activeTargetEventId); if (!evt) return;
             categories.forEach(cat => {
                 const wrap = document.createElement('div'); wrap.className = 'sheet-category-item-wrapper';
                 const mr = document.createElement('div'); mr.className = 'sheet-cat-main-row';
-                mr.innerHTML = `<div class="dot" style="background:${cat.color}"></div><span>${cat.name}${evt.mainCategoryName===cat.name?' (已選)':''}</span>`;
+                
+                // 行程設定內的類別切換也同步修正字體對比色
+                const isSelected = evt.mainCategoryName === cat.name;
+                if (isSelected) {
+                    mr.style.backgroundColor = cat.color;
+                    mr.style.color = getContrastColor(cat.color);
+                } else {
+                    mr.style.backgroundColor = 'transparent';
+                    mr.style.color = 'var(--text-main)';
+                }
+
+                mr.innerHTML = `<div class="dot" style="background:${cat.color}; border:1px solid #cbd5e1;"></div><span>${cat.name}${isSelected?' (已選)':''}</span>`;
                 mr.onclick = () => { evt.mainCategoryName = cat.name; evt.mainCategoryColor = cat.color; renderModalCategoryGrid(); };
                 wrap.appendChild(mr);
                 if (cat.subGroups) {
