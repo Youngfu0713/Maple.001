@@ -96,24 +96,25 @@
         .sub-cat-tag-btn { font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .sub-cat-tag-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 800; }
 
-        /* 🆕 彈出層內的「橫向分頁標籤列」 */
+        /* 彈出層內的「橫向分頁標籤列」 */
         .manage-tabs-scroller { display: flex; gap: 4px; overflow-x: auto; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; -webkit-overflow-scrolling: touch; }
         .manage-tab-item { font-family: inherit; font-size: 0.8rem; font-weight: 800; padding: 6px 14px; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; border-bottom: none; background: #f1f5f9; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
         .manage-tab-item.active { background: #ffffff; color: var(--text-main); font-weight: 900; box-shadow: 0 -2px 6px rgba(0,0,0,0.04); position: relative; }
         .manage-tab-item.active::after { content: ''; position: absolute; bottom: -6px; left: 0; right: 0; height: 6px; background: #ffffff; z-index: 2; }
         .btn-tab-quick-add { font-family: inherit; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border: 1px dashed var(--border-hover); border-radius: 6px; background: transparent; color: var(--primary); cursor: pointer; align-self: center; margin-left: auto; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 
-        /* 🆕 獨立主分類基礎設定面板 */
+        /* 獨立主分類基礎設定面板 */
         .main-cat-setting-bar { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
         .main-cat-setting-bar .left { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 800; color: var(--text-main); }
         .main-cat-setting-bar input[type="color"] { border: none; width: 26px; height: 22px; background: none; padding: 0; cursor: pointer; }
+        .cat-del-btn { font-family: inherit; background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
         /* 分類管理面板內容體 */
         .category-manage-panel { display: flex; flex-direction: column; gap: 10px; max-height: 45vh; overflow-y: auto; }
         .manage-sub-box { display: flex; flex-direction: column; gap: 8px; }
         .manage-sub-group-block { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow-sm); }
         .manage-sub-group-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-weight: 800; color: var(--text-main); border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
-        .group-del-btn { cursor: pointer; color: #94a3b8; font-size: 0.68rem; margin-left: auto; margin-right: 6px; -webkit-tap-highlight-color: transparent; }
+        .group-del-btn { cursor: pointer; color: #ef4444; font-size: 0.68rem; margin-left: auto; margin-right: 6px; -webkit-tap-highlight-color: transparent; font-weight: 800; }
         
         .sort-action-group { display: flex; gap: 2px; align-items: center; }
         .mini-sort-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 24px; height: 24px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
@@ -121,7 +122,7 @@
 
         .manage-sub-list { display: flex; flex-wrap: wrap; gap: 5px; }
         .manage-sub-pill { font-size: 0.7rem; font-weight: 700; background: #e2e8f0; padding: 3px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; }
-        .manage-sub-pill .sub-del { cursor: pointer; color: #94a3b8; font-weight: 800; margin-left: 2px; padding: 2px; -webkit-tap-highlight-color: transparent; }
+        .manage-sub-pill .sub-del { cursor: pointer; color: #ef4444; font-weight: 800; margin-left: 2px; padding: 2px; -webkit-tap-highlight-color: transparent; }
         
         .sub-add-inline-form { display: flex; gap: 4px; margin-top: 4px; }
         .sub-add-inline-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
@@ -130,7 +131,7 @@
         .group-add-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
         .group-add-form button { font-family: inherit; background: #475569; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         
-        /* 🆕 隱藏/顯示的新增主類別區塊 */
+        /* 隱藏/顯示的新增主類別區塊 */
         .add-new-cat-drawer { display: none; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: var(--radius-sm); padding: 10px; margin-bottom: 12px; gap: 6px; align-items: center; }
         .add-new-cat-drawer.show { display: flex; }
         .add-new-cat-drawer input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-sm); font-size: 0.78rem; }
@@ -289,7 +290,7 @@
         <div class="timeline" id="timeline-list"></div>
     </div>
 
-    <!-- 🆕 優化痛點方案：分頁式分類與標籤管理中心 -->
+    <!-- 標籤管理中心 -->
     <div class="modal-overlay" id="manage-modal" onclick="closeManageModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -398,7 +399,7 @@
         ];
 
         let selectedMainCatId = categories[0]?.id || "";
-        let managementActiveTabId = categories[0]?.id || ""; // 🆕 當前管理視窗點選的分頁ID
+        let managementActiveTabId = categories[0]?.id || ""; 
         let selectedSubItems = []; 
         let activeTargetEventId = null;
 
@@ -491,7 +492,7 @@
             if (!managementActiveTabId && categories.length > 0) {
                 managementActiveTabId = categories[0].id;
             }
-            document.getElementById('add-cat-drawer-panel').classList.remove('show'); // 重設 drawer
+            document.getElementById('add-cat-drawer-panel').classList.remove('show'); 
             renderManageTabsAndBody();
             document.getElementById('manage-modal').classList.add('show');
         }
@@ -572,7 +573,7 @@
             const n = document.getElementById('new-cat-name'); const c = document.getElementById('new-cat-color'); if(!n.value.trim()) return;
             const newId = 'cat-'+Date.now();
             categories.push({ id: newId, name: n.value.trim(), color: c.value, subGroups: [] });
-            managementActiveTabId = newId; // 切換到新建立的分頁
+            managementActiveTabId = newId; 
             saveToStorage(); n.value = ''; 
             document.getElementById('add-cat-drawer-panel').classList.remove('show');
             renderCategorySelectors(); renderManageTabsAndBody();
@@ -645,12 +646,11 @@
             saveToStorage(); renderTimeline();
         }
 
-        // --- 🆕 核心優化：渲染分頁式標籤管理面板 ---
+        // --- 渲染分頁式標籤管理面板 ---
         function renderManageTabsAndBody() {
             const tabsContainer = document.getElementById('manage-tabs-list'); tabsContainer.innerHTML = '';
             const contentBody = document.getElementById('manage-panel-content-body'); contentBody.innerHTML = '';
 
-            // 1. 渲染頂部橫向頁籤
             categories.forEach((cat) => {
                 const tab = document.createElement('button');
                 tab.className = `manage-tab-item ${cat.id === managementActiveTabId ? 'active' : ''}`;
@@ -662,7 +662,6 @@
                 tabsContainer.appendChild(tab);
             });
 
-            // 快捷按鈕：開啟/關閉新增主類別區塊
             const quickAddBtn = document.createElement('button');
             quickAddBtn.className = 'btn-tab-quick-add';
             quickAddBtn.innerText = '➕ 新增類別';
@@ -672,7 +671,6 @@
             };
             tabsContainer.appendChild(quickAddBtn);
 
-            // 2. 獲取當前分頁的對象
             const cIdx = categories.findIndex(c => c.id === managementActiveTabId);
             if (cIdx === -1) {
                 contentBody.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.85rem;">請點選或新增分類進行管理</div>';
@@ -680,7 +678,6 @@
             }
             const cat = categories[cIdx];
 
-            // 3. 在分頁內頂部渲染此大類的「基礎設定（顏色/刪除/排序）」
             const settingBar = document.createElement('div');
             settingBar.className = 'main-cat-setting-bar';
             
@@ -711,7 +708,6 @@
             settingBar.appendChild(leftDiv); settingBar.appendChild(delBtn);
             contentBody.appendChild(settingBar);
 
-            // 4. 渲染此分類專屬的子群組與子標籤 (無須滾動，一目了然)
             const subBox = document.createElement('div'); subBox.className = 'manage-sub-box';
             
             if(cat.subGroups && cat.subGroups.length > 0) {
@@ -773,7 +769,6 @@
                 subBox.appendChild(emptyTip);
             }
             
-            // 下方固定的新增子群組欄位
             const gForm = document.createElement('div'); gForm.className = 'group-add-form';
             const groupInput = document.createElement('input'); groupInput.type = 'text'; groupInput.placeholder = '新增子群組名稱... (例如: 專案小組)'; groupInput.id = `input-add-group-${cIdx}`;
             const groupBtn = document.createElement('button'); groupBtn.innerText = '➕ 加新群組';
@@ -791,6 +786,8 @@
             const panel = document.getElementById('manage-modal');
             panel.addEventListener('click', (e) => {
                 let target = e.target;
+                
+                // 精確尋找點擊目標或其具有 data-action 屬性的父層
                 while (target && target !== panel && !target.hasAttribute('data-action')) {
                     target = target.parentElement;
                 }
@@ -816,11 +813,12 @@
                     }
                 } 
                 else if (action === 'cat-del') {
-                    if(confirm(`確定要完全移除「${categories[cIdx].name}」主分類及其底下所有群組與標籤嗎？`)) { 
+                    const targetCat = categories[cIdx];
+                    if(confirm(`確定要完全移除「${targetCat.name}」主分類及其底下所有群組與標籤嗎？`)) { 
                         categories.splice(cIdx, 1); 
                         if(categories.length > 0) {
                             managementActiveTabId = categories[0].id;
-                            if(selectedMainCatId === cat.id) selectedMainCatId = categories[0].id;
+                            if(selectedMainCatId === targetCat.id) selectedMainCatId = categories[0].id;
                         } else {
                             managementActiveTabId = "";
                             selectedMainCatId = "";
