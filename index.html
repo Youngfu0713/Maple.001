@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>個人日程管理系統 - 標籤格式自訂版</title>
+    <title>個人日程管理系統 - 標籤管理優化版</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -96,10 +96,9 @@
         .sub-cat-tag-btn { font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .sub-cat-tag-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 800; }
 
-        /* 分類管理面板 */
-        .category-manage-panel { display: none; background: #f8fafc; padding: 14px; border-radius: var(--radius-md); border: 1px dashed var(--border-hover); gap: 12px; flex-direction: column; }
-        .category-manage-panel.active { display: flex; }
-        .manage-list-item { display: flex; flex-direction: column; background: #fff; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); gap: 8px; }
+        /* 🆕 彈出式分類管理面板 (優化痛點：不在最底部，改用 Action Sheet 呈現) */
+        .category-manage-panel { display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 4px; }
+        .manage-list-item { display: flex; flex-direction: column; background: #fff; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); gap: 8px; box-shadow: var(--shadow-sm); }
         .manage-main-row { display: flex; align-items: center; justify-content: space-between; }
         .manage-list-item .left { display: flex; align-items: center; gap: 8px; }
         .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; cursor: pointer; }
@@ -147,7 +146,6 @@
         .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; -webkit-tap-highlight-color: transparent; }
         .event-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         
-        /* 🛠️ 新格式文字排版樣式 */
         .event-text-line { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; }
         .prefix-badge-main { font-weight: 900; margin-right: 2px; }
         .prefix-badge-time { font-weight: 900; color: #475569; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0; margin-right: 4px; font-size: 0.85rem; }
@@ -243,7 +241,6 @@
                 <button class="quick-time-btn" id="btn-quick-time">⚡ 快速記時</button>
             </div>
             
-            <!-- ⚡ 已將安排行程按鈕移至此處 -->
             <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
             
             <div class="color-control-row">
@@ -258,19 +255,10 @@
                 <div class="cat-row-wrapper">
                     <span class="cat-label-title">主類別：</span>
                     <div id="category-buttons-list" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-grow: 1;"></div>
+                    <!-- ⚙️ 點擊後改為彈出 Action Sheet，省去下滑找面板的痛點 -->
                     <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
                 </div>
                 <div class="sub-cat-container-box" id="sub-category-container"></div>
-            </div>
-
-            <!-- ⚙️ 分類管理面板 -->
-            <div class="category-manage-panel" id="color-panel">
-                <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-                <div class="add-new-cat-row">
-                    <input type="text" id="new-cat-name" placeholder="新主類別名稱...">
-                    <input type="color" id="new-cat-color" value="#5151e5">
-                    <button class="add-cat-submit-btn" id="add-new-cat-btn">➕ 新增</button>
-                </div>
             </div>
         </div>
 
@@ -292,7 +280,29 @@
         <div class="timeline" id="timeline-list"></div>
     </div>
 
-    <!-- 多功能彈出層 Action Sheet -->
+    <!-- 🆕 獨立分流：主分類與標籤管理彈出層 (優化痛點核心) -->
+    <div class="modal-overlay" id="manage-modal" onclick="closeManageModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-drag-indicator"></div>
+            <div class="sheet-header">
+                <span class="sheet-title-desc">⚙️ 標籤與分類管理中心</span>
+                <p class="sheet-event-title" style="font-size: 0.95rem; color: var(--text-muted);">在此新增、編輯、刪除或排序分類與子標籤</p>
+            </div>
+            
+            <div class="category-manage-panel">
+                <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div class="add-new-cat-row">
+                    <input type="text" id="new-cat-name" placeholder="新主類別名稱...">
+                    <input type="color" id="new-cat-color" value="#5151e5">
+                    <button class="add-cat-submit-btn" id="add-new-cat-btn">➕ 新增主類別</button>
+                </div>
+            </div>
+
+            <button class="sheet-close-btn" onclick="closeManageModal()">完成並關閉</button>
+        </div>
+    </div>
+
+    <!-- 多功能彈出層 Action Sheet (事件卡片設定) -->
     <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
         <div class="action-sheet" onclick="event.stopPropagation()">
             <div class="sheet-drag-indicator"></div>
@@ -462,6 +472,15 @@
             return true;
         }
 
+        // --- 管理視窗控制 ---
+        function openManageModal() {
+            renderManagePanel();
+            document.getElementById('manage-modal').classList.add('show');
+        }
+        function closeManageModal() {
+            document.getElementById('manage-modal').classList.remove('show');
+        }
+
         // --- 主介面分類連動過濾 ---
         function renderCategorySelectors() {
             const listContainer = document.getElementById('category-buttons-list'); listContainer.innerHTML = '';
@@ -537,7 +556,7 @@
             saveToStorage(); n.value = ''; renderCategorySelectors(); renderManagePanel();
         }
 
-        // --- 🛠️ 主列表日程時間軸渲染（更新為：[主類別][時間] 標題排版） ---
+        // --- 主列表日程時間軸渲染 ---
         function renderTimeline() {
             const container = document.getElementById('timeline-list'); container.innerHTML = '';
             let dayEvents = events.filter(e => e.date === currentDate);
@@ -550,12 +569,10 @@
                 const card = document.createElement('div'); card.className = 'event-card'; card.onclick = () => openActionModal(evt.id);
                 const info = document.createElement('div'); info.className = 'event-info';
 
-                // 建立整行文字容器
                 const textLine = document.createElement('p');
                 textLine.className = 'event-text-line';
                 textLine.style.color = evt.fontColor || '#000000';
 
-                // 1. [主類別] 前綴
                 if (evt.mainCategoryName) {
                     const mainSpan = document.createElement('span');
                     mainSpan.className = 'prefix-badge-main';
@@ -564,11 +581,9 @@
                     textLine.appendChild(mainSpan);
                 }
 
-                // 解析時間括號 [HH:MM]
                 const tm = evt.title.match(/^\[(\d{2}:\d{2})\]/); 
                 let cleanTitle = evt.title;
 
-                // 2. [時間] 前綴
                 if (tm) {
                     const timeSpan = document.createElement('span');
                     timeSpan.className = 'prefix-badge-time';
@@ -577,12 +592,10 @@
                     cleanTitle = evt.title.replace(/^\[\d{2}:\d{2}\]\s*/, '');
                 }
 
-                // 3. 事項內文純文字
                 const titleText = document.createTextNode(cleanTitle);
                 textLine.appendChild(titleText);
                 info.appendChild(textLine);
 
-                // 4. 標籤/標籤/標籤 純文字串接呈現
                 if (evt.subCategories && evt.subCategories.length > 0) {
                     const subRow = document.createElement('div');
                     subRow.className = 'sub-pills-text-row';
@@ -610,9 +623,7 @@
             saveToStorage(); renderTimeline();
         }
 
-        // --- ⚙️ 后台分类管理面板 ---
-        document.getElementById('color-toggle-btn').addEventListener('click', () => document.getElementById('color-panel').classList.toggle('active'));
-        
+        // --- ⚙️ 彈出層內的分類管理面板渲染 ---
         function renderManagePanel() {
             const container = document.getElementById('manage-categories-list'); 
             container.innerHTML = '';
@@ -721,9 +732,9 @@
             });
         }
 
-        // --- 📱 手機端全局點擊委派控制中心 ---
+        // --- 全局點擊委派控制中心 ---
         function setupGlobalDelegation() {
-            const panel = document.getElementById('color-panel');
+            const panel = document.getElementById('manage-modal');
             panel.addEventListener('click', (e) => {
                 let target = e.target;
                 while (target && target !== panel && !target.hasAttribute('data-action')) {
@@ -791,7 +802,7 @@
             }
         }
 
-        // --- Action Sheet 彈出控制層 ---
+        // --- Action Sheet 彈出控制層 (日程變更) ---
         function openActionModal(evtId) {
             activeTargetEventId = evtId; const evt = events.find(e => e.id === evtId); if (!evt) return;
             document.getElementById('modal-event-title').innerText = evt.title;
@@ -940,6 +951,9 @@
             document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
             document.getElementById('evt-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEventForm(); } });
 
+            // ⚙️ 修改點：點擊管理按鈕，開啟彈出視窗
+            document.getElementById('color-toggle-btn').addEventListener('click', openManageModal);
+
             document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
             document.getElementById('new-cat-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewMainCategory(); } });
         }
@@ -950,7 +964,7 @@
             document.getElementById('print-timestamp').innerText = new Date().toLocaleString();
             html2canvas(document.querySelector('.calendar-container'), {
                 useCORS: true, scale: 2, backgroundColor: '#fcfbfa',
-                ignoreElements: (el) => el.classList.contains('backup-bar') || el.classList.contains('calendar-header') || el.classList.contains('event-form') || el.classList.contains('utility-control-bar') || el.classList.contains('manual-move-actions')
+                ignoreElements: (el) => el.classList.contains('backup-bar') || el.classList.contains('calendar-header') || el.classList.contains('event-form') || el.classList.contains('utility-control-bar') || el.classList.contains('manual-move-actions') || el.classList.contains('modal-overlay')
             }).then(canvas => {
                 ph.style.display = od; const link = document.createElement('a'); link.download = `日程安排_${currentDate}.png`; link.href = canvas.toDataURL('image/png'); link.click();
             }).catch(err => { ph.style.display = od; console.error(err); });
