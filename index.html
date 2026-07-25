@@ -3,164 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>個人日程管理系統 - 完整版</title>
+    <title>個人日程管理系統</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <style>
-        @font-face {
-            font-family: 'MiaoFont';
-            src: url('Miao.ttf') format('truetype');
-            font-weight: normal; font-style: normal; font-display: swap;
-        }
-
         :root {
             --primary: #5151e5;
-            --primary-hover: #3d3dbd;
-            --primary-light: #eef2ff;
             --bg-main: #fcfbfa; 
             --bg-card: #ffffff;
             --text-main: #1e293b; 
             --text-muted: #64748b;
             --border: #f1f5f9;
-            --border-hover: #cbd5e1;
-            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
             --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
-            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+            --radius-md: 10px;
         }
 
-        body {
-            font-family: "MiaoFont", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0;
-            display: flex; justify-content: center; overscroll-behavior-y: contain; -webkit-font-smoothing: antialiased;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; display: flex; justify-content: center; }
+        .calendar-container { width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh; box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
 
-        .calendar-container {
-            width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh;
-            box-shadow: var(--shadow-md); display: flex; flex-direction: column; position: relative;
-        }
+        /* Header */
+        .calendar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .calendar-header h1 { margin: 0 0 10px 0; font-size: 1.2rem; text-align: center; }
+        .quick-nav { display: flex; gap: 6px; margin-bottom: 10px; }
+        .nav-btn { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+        #btn-today { background: var(--primary); color: white; border: none; }
+        .date-picker-row { display: flex; justify-content: center; align-items: center; gap: 8px; }
 
-        /* 月曆彈窗樣式 */
-        .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 0; }
-        .cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #f1f5f9; border-radius: 8px; cursor: pointer; position: relative; background: #ffffff; }
-        .cal-cell:hover { background: #f8fafc; }
-        .cal-cell.today { border: 2px solid var(--primary); }
-        .cell-day { font-size: 0.8rem; font-weight: 700; color: #475569; }
-        .cell-count { font-size: 0.65rem; background: var(--primary); color: white; padding: 1px 6px; border-radius: 10px; margin-top: 4px; min-width: 16px; text-align: center; }
-        .empty-cell { background: #fcfbfa; border: none; }
-
-        .calendar-header { padding: 16px 20px 10px 20px; background: #ffffff; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(241, 245, 249, 0.8); }
-        .calendar-header h1 { margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 800; text-align: center; }
-        .quick-nav { display: flex; gap: 6px; margin-bottom: 8px; }
-        .nav-btn { font-family: inherit; padding: 8px 10px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; text-align: center; }
-        #btn-today { flex: 1.2; background: var(--primary); color: white; border: none; font-weight: 800; }
-
-        .date-picker-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .date-picker-row input[type="date"] { font-family: inherit; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted); background: #f8fafc; }
-
-        .event-form { padding: 14px 20px; background: #ffffff; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        /* Form */
+        .event-form { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
         .form-row { display: flex; gap: 8px; }
-        .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: #f8fafc; outline: none; }
-        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: #f1f5f9; color: #475569; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+        .submit-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        .color-control-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-        .font-color-picker-container { display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
-        .font-color-picker-container input[type="color"] { border: none; width: 24px; height: 24px; background: none; padding: 0; cursor: pointer; }
-        .inline-overview-btn { font-family: inherit; padding: 8px 14px; background: #eef2ff; color: var(--primary); border: 1px solid rgba(81, 81, 229, 0.15); border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 800; cursor: pointer; }
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; align-items: flex-end; z-index: 100; }
+        .modal-overlay.show { display: flex; }
+        .action-sheet { width: 100%; max-width: 550px; background: white; border-radius: 20px 20px 0 0; padding: 20px; max-height: 80vh; overflow-y: auto; }
+        .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
+        .cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+        .cal-cell.today { border: 2px solid var(--primary); }
+        .cell-day { font-size: 0.8rem; font-weight: bold; }
+        .cell-count { font-size: 0.7rem; background: var(--primary); color: white; padding: 2px 6px; border-radius: 10px; margin-top: 2px; }
 
-        .category-selector-container { display: flex; flex-direction: column; gap: 8px; }
-        .cat-row-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .cat-label-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); min-width: 45px; }
-        
-        .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; transition: all 0.2s; }
-        .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
-        .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
-
-        .sub-cat-container-box { display: none; background: #f8fafc; padding: 12px; border-radius: var(--radius-md); border: 1px dashed var(--border-hover); }
-        .sub-cat-container-box.active { display: block; }
-        .sub-cat-group-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
-        .sub-cat-group-title { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
-        .sub-cat-pills-list { display: flex; gap: 5px; flex-wrap: wrap; }
-        .sub-cat-tag-btn { font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; }
-        .sub-cat-tag-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 800; }
-
-        .manage-tabs-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 10px; }
-        .manage-tab-item { font-family: inherit; padding: 6px 12px; font-size: 0.82rem; font-weight: 800; border-radius: 6px 6px 0 0; border: 1px solid transparent; background: #f1f5f9; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
-        .manage-tab-item.active { background: #ffffff; border-color: #e2e8f0 #e2e8f0 transparent #e2e8f0; color: var(--text-main); position: relative; }
-
-        .category-manage-panel { display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 4px; }
-        .manage-list-item { display: flex; flex-direction: column; background: #fff; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); gap: 8px; box-shadow: var(--shadow-sm); }
-        .manage-main-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 8px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary); }
-        .left { display: flex; align-items: center; gap: 8px; }
-        .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; cursor: pointer; }
-        
-        .sort-action-group { display: flex; gap: 2px; align-items: center; }
-        .mini-sort-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 24px; height: 24px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-        .cat-action-btn-group { display: flex; gap: 4px; }
-        .cat-panel-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; }
-        .cat-btn-edit { background: #e2e8f0; color: var(--text-main); }
-        .cat-btn-del { background: #fee2e2; color: #ef4444; }
-
-        .manage-sub-box { background: #ffffff; border-radius: var(--radius-sm); padding: 4px 0; display: flex; flex-direction: column; gap: 8px; }
-        .manage-sub-group-block { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .manage-sub-group-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-weight: 800; color: var(--text-main); border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
-        
-        .group-action-links { display: flex; gap: 6px; font-size: 0.68rem; color: #64748b; }
-        .group-link-btn { cursor: pointer; font-weight: 800; }
-        .group-link-btn.del { color: #ef4444; }
-        
-        .manage-sub-list { display: flex; flex-wrap: wrap; gap: 5px; }
-        .manage-sub-pill { font-size: 0.72rem; font-weight: 700; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 20px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        
-        .sub-add-inline-form { display: flex; gap: 4px; margin-top: 4px; }
-        .sub-add-inline-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
-        .sub-add-inline-form button { font-family: inherit; background: #64748b; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; }
-        .group-add-form { display: flex; gap: 6px; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 6px; }
-        .group-add-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
-        .group-add-form button { font-family: inherit; background: #475569; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; }
-        .add-new-cat-row { display: flex; gap: 6px; margin-top: 8px; border-top: 2px solid #cbd5e1; padding-top: 10px; align-items: center; }
-        .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; }
-        .add-cat-submit-btn { font-family: inherit; background: #1e293b; color: white; border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
-
-        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
-
-        .utility-control-bar { padding: 12px 20px 0 20px; background: var(--bg-main); display: flex; flex-direction: column; gap: 8px; }
-        .utility-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-        .sort-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
-        .sort-select-wrapper { display: flex; gap: 4px; }
-        .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; }
-        .sort-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
-        .export-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
-        .pdf-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #ef4444; border: 1px solid #fca5a5; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); }
-        .img-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #10b981; border: 1px solid #a7f3d0; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); }
-
-        .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
-        .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
-        .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; }
-        .event-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-        .event-text-line { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; }
-        .prefix-badge-main { font-weight: 900; margin-right: 2px; }
-        .prefix-badge-time { font-weight: 900; color: #475569; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0; margin-right: 4px; font-size: 0.85rem; }
-        .sub-pills-text-row { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-top: 2px; word-break: break-all; }
-        .manual-move-actions { display: flex; gap: 2px; }
-        .move-step-btn { border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
-        .modal-overlay.show { opacity: 1; pointer-events: auto; }
-        .action-sheet { font-family: inherit; width: 100%; max-width: 550px; background: #ffffff; border-radius: 20px 20px 0 0; padding: 24px 20px 34px 20px; box-shadow: 0 -15px 40px rgba(15, 23, 42, 0.12); transform: translateY(100%); transition: transform 0.32s ease-out; display: flex; flex-direction: column; gap: 16px; max-height: 85vh; overflow-y: auto; }
-        .modal-overlay.show .action-sheet { transform: translateY(0); }
-        .sheet-drag-indicator { width: 40px; height: 5px; background-color: #e2e8f0; border-radius: 3px; align-self: center; }
-        .sheet-header { display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
-        .sheet-title-desc { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; }
-        .sheet-event-title { font-size: 1.05rem; font-weight: 800; margin: 0; }
-        .sheet-btn { font-family: inherit; background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-main); font-weight: 800; font-size: 0.88rem; }
-        .sheet-close-btn { font-family: inherit; background: #f1f5f9; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); text-align: center; }
+        /* Timeline */
+        .timeline { padding: 20px; flex-grow: 1; }
+        .event-card { background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .utility-row { display: flex; justify-content: space-between; padding: 10px 20px; }
+        .sheet-btn { width: 100%; padding: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="calendar-container">
+        <!-- Header -->
         <div class="calendar-header">
             <h1 id="current-day">日程管理</h1>
             <div class="quick-nav">
@@ -169,168 +63,128 @@
                 <button class="nav-btn" id="btn-next">後一天 ▶</button>
             </div>
             <div class="date-picker-row">
-                <label for="date-select">跳轉日期：</label>
                 <input type="date" id="date-select">
             </div>
         </div>
 
+        <!-- Input -->
         <div class="event-form">
             <div class="form-row">
-                <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
-                <button class="quick-time-btn" id="btn-quick-time">⚡ 快速記時</button>
+                <input type="text" id="evt-title" placeholder="輸入行程內容...">
+                <input type="color" id="evt-color" value="#5151e5">
             </div>
-            <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
-            <div class="color-control-row">
-                <div class="font-color-picker-container">
-                    <label for="evt-font-color">🎨 字體顏色：</label>
-                    <input type="color" id="evt-font-color" value="#000000">
-                </div>
-                <button class="inline-overview-btn" id="btn-cat-overview">🏷️ 類別總覽</button>
-            </div>
-            <div class="category-selector-container">
-                <div class="cat-row-wrapper">
-                    <span class="cat-label-title">主類別：</span>
-                    <div id="category-buttons-list" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-grow: 1;"></div>
-                    <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
-                </div>
-                <div class="sub-cat-container-box" id="sub-category-container"></div>
-            </div>
+            <button class="submit-btn" id="add-evt-btn">新增行程</button>
         </div>
 
-        <div class="utility-control-bar">
-            <!-- 新增：月曆總覽按鈕 -->
-            <button class="sheet-btn" style="width: 100%; padding: 10px; margin-bottom: 5px;" id="btn-month-overview">📅 查看本月行事曆總覽</button>
-            
-            <div class="export-btn-group">
-                <button class="pdf-export-btn" id="btn-export-pdf">📄 輸出 PDF</button>
-                <button class="img-export-btn" id="btn-export-img">📸 輸出圖檔</button>
-            </div>
-            <div class="utility-row" style="margin-top: 10px;">
-                <span class="sort-label">排列順序：</span>
-                <div class="sort-select-wrapper">
-                    <button class="sort-btn" id="sort-btn-manual">✍️ 手動</button>
-                    <button class="sort-btn" id="sort-btn-az">🔤 A-Z</button>
-                    <button class="sort-btn" id="sort-btn-za">🔤 Z-A</button>
-                </div>
-            </div>
+        <!-- Utility -->
+        <div class="utility-row">
+            <button class="sheet-btn" id="btn-month-overview">📅 查看本月行事曆</button>
         </div>
 
+        <!-- Timeline -->
         <div class="timeline" id="timeline-list"></div>
     </div>
 
-    <!-- 月曆彈窗 Modal -->
-    <div class="modal-overlay" id="month-calendar-modal" onclick="closeMonthModal()">
-        <div class="action-sheet" onclick="event.stopPropagation()" style="max-height: 85vh;">
-            <div class="sheet-drag-indicator"></div>
-            <div class="sheet-header">
-                <span class="sheet-title-desc">📅 月份總覽</span>
-                <p class="sheet-event-title" id="month-title">2026年 7月</p>
-            </div>
+    <!-- Modal -->
+    <div class="modal-overlay" id="month-calendar-modal">
+        <div class="action-sheet">
+            <div style="text-align: center; font-weight: bold;" id="month-title"></div>
             <div id="month-calendar-grid" class="month-grid"></div>
-            <button class="sheet-close-btn" onclick="closeMonthModal()">關閉</button>
+            <button class="sheet-btn" style="margin-top: 20px;" onclick="closeModal()">關閉</button>
         </div>
     </div>
 
     <script>
-        // --- 基礎邏輯與數據 ---
-        function getLocalTodayString() {
-            const d = new Date();
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        let currentDate = getLocalTodayString();
+        // --- 初始化資料 ---
         let events = JSON.parse(localStorage.getItem('calendar_events')) || [];
-        let categories = JSON.parse(localStorage.getItem('calendar_categories')) || [
-            { id: "cat_work", name: "工作公務", color: "#5151e5", subGroups: [] },
-            { id: "cat_life", name: "日常生活", color: "#10b981", subGroups: [] }
-        ];
+        let currentDate = new Date().toISOString().split('T')[0];
 
-        // --- 月曆視圖功能 ---
-        document.getElementById('btn-month-overview').addEventListener('click', openMonthModal);
-
-        function openMonthModal() {
-            renderMonthCalendar();
-            document.getElementById('month-calendar-modal').classList.add('show');
+        // --- 核心函數 ---
+        function renderTimeline() {
+            const list = document.getElementById('timeline-list');
+            list.innerHTML = '';
+            const dayEvents = events.filter(e => e.date === currentDate);
+            
+            if (dayEvents.length === 0) list.innerHTML = '<div style="text-align:center; color:#64748b;">今日無行程</div>';
+            
+            dayEvents.forEach(evt => {
+                const div = document.createElement('div');
+                div.className = 'event-card';
+                div.innerHTML = `<span style="font-weight:bold; color:${evt.color}">${evt.title}</span>`;
+                list.appendChild(div);
+            });
         }
 
-        function closeMonthModal() {
-            document.getElementById('month-calendar-modal').classList.remove('show');
+        function updateDateDisplay() {
+            document.getElementById('current-day').innerText = currentDate;
+            document.getElementById('date-select').value = currentDate;
         }
 
-        function renderMonthCalendar() {
+        // --- 事件處理 ---
+        document.getElementById('add-evt-btn').addEventListener('click', () => {
+            const title = document.getElementById('evt-title').value;
+            const color = document.getElementById('evt-color').value;
+            if(!title) return alert('請輸入內容');
+            
+            events.push({ date: currentDate, title, color });
+            localStorage.setItem('calendar_events', JSON.stringify(events));
+            document.getElementById('evt-title').value = '';
+            renderTimeline();
+        });
+
+        document.getElementById('date-select').addEventListener('change', (e) => {
+            currentDate = e.target.value;
+            renderTimeline();
+            updateDateDisplay();
+        });
+
+        document.getElementById('btn-prev').addEventListener('click', () => changeDate(-1));
+        document.getElementById('btn-next').addEventListener('click', () => changeDate(1));
+        document.getElementById('btn-today').addEventListener('click', () => { 
+            currentDate = new Date().toISOString().split('T')[0];
+            renderTimeline();
+            updateDateDisplay();
+        });
+
+        function changeDate(offset) {
+            const d = new Date(currentDate);
+            d.setDate(d.getDate() + offset);
+            currentDate = d.toISOString().split('T')[0];
+            renderTimeline();
+            updateDateDisplay();
+        }
+
+        // --- 月曆視窗 ---
+        function openModal() { document.getElementById('month-calendar-modal').classList.add('show'); renderGrid(); }
+        function closeModal() { document.getElementById('month-calendar-modal').classList.remove('show'); }
+        document.getElementById('btn-month-overview').addEventListener('click', openModal);
+
+        function renderGrid() {
             const grid = document.getElementById('month-calendar-grid');
             grid.innerHTML = '';
-            const now = new Date(currentDate);
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            
+            const dateObj = new Date(currentDate);
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth();
             document.getElementById('month-title').innerText = `${year}年 ${month + 1}月`;
+            
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             
-            for (let i = 0; i < firstDay; i++) {
-                grid.appendChild(document.createElement('div')).className = 'empty-cell';
-            }
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const count = events.filter(e => e.date === dateStr).length;
-                
+            for(let i=0; i<firstDay; i++) grid.appendChild(document.createElement('div'));
+            for(let d=1; d<=daysInMonth; d++) {
+                const str = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const count = events.filter(e => e.date === str).length;
                 const cell = document.createElement('div');
-                cell.className = `cal-cell ${dateStr === getLocalTodayString() ? 'today' : ''}`;
-                cell.innerHTML = `<span class="cell-day">${day}</span>`;
-                
-                if (count > 0) {
-                    cell.innerHTML += `<span class="cell-count">${count}</span>`;
-                }
-                
-                cell.onclick = () => {
-                    currentDate = dateStr;
-                    document.getElementById('date-select').value = dateStr;
-                    updateDateDisplay();
-                    renderTimeline();
-                    closeMonthModal();
-                };
+                cell.className = 'cal-cell';
+                cell.innerHTML = `<span class="cell-day">${d}</span>${count > 0 ? `<span class="cell-count">${count}</span>` : ''}`;
+                cell.onclick = () => { currentDate = str; renderTimeline(); updateDateDisplay(); closeModal(); };
                 grid.appendChild(cell);
             }
         }
 
-        // --- 既有系統邏輯 ---
-        function updateDateDisplay() {
-            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            const d = new Date(currentDate);
-            document.getElementById('current-day').innerText = `${currentDate} (${days[d.getDay()]})`;
-        }
-
-        function renderTimeline() {
-            // 此處為你現有的渲染邏輯，保持不動
-            const container = document.getElementById('timeline-list');
-            container.innerHTML = '<div class="no-events">行程列表已加載</div>'; 
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initDateConfig();
-            renderTimeline();
-        });
-
-        function initDateConfig() {
-            document.getElementById('date-select').value = currentDate;
-            updateDateDisplay();
-        }
-
-        // 綁定其他事件 (簡化版，保持你原本的 setupEventListeners 邏輯)
-        document.getElementById('btn-prev').addEventListener('click', () => changeDateOffset(-1));
-        document.getElementById('btn-next').addEventListener('click', () => changeDateOffset(1));
-        function changeDateOffset(o) { 
-            const d = new Date(currentDate); 
-            d.setDate(d.getDate() + o); 
-            currentDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
-            initDateConfig(); 
-            renderTimeline(); 
-        }
+        // 初始執行
+        updateDateDisplay();
+        renderTimeline();
     </script>
 </body>
 </html>
