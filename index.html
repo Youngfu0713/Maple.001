@@ -1,106 +1,434 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Knowledge Collection Workbench</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>個人日程管理系統 - 標籤管理優化版</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
+        @font-face {
+            font-family: 'MiaoFont';
+            src: url('Miao.ttf') format('truetype');
+            font-weight: normal; font-style: normal; font-display: swap;
+        }
+
         :root {
-            --primary-color: #8b5cf6;
-            --secondary-color: #64748b;
-            --radius-md: 12px;
-            --bg-pastel: #fdf2f8;
+            --primary: #5151e5;
+            --primary-hover: #3d3dbd;
+            --primary-light: #eef2ff;
+            --bg-main: #fcfbfa; 
+            --bg-card: #ffffff;
+            --text-main: #1e293b; 
+            --text-muted: #64748b;
+            --border: #f1f5f9;
+            --border-hover: #cbd5e1;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
         }
 
-        body { font-family: sans-serif; padding: 20px; background-color: var(--bg-pastel); }
-
-        /* 輸入表單區域 */
-        .event-form {
-            background: white; padding: 20px; border-radius: var(--radius-md);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;
+        body {
+            font-family: "MiaoFont", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0;
+            display: flex; justify-content: center; overscroll-behavior-y: contain; -webkit-font-smoothing: antialiased;
         }
 
-        .form-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .calendar-container {
+            width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh;
+            box-shadow: var(--shadow-md); display: flex; flex-direction: column; position: relative;
+        }
+
+        .calendar-header { padding: 16px 20px 10px 20px; background: #ffffff; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(241, 245, 249, 0.8); }
+        .calendar-header h1 { margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 800; text-align: center; }
+        .quick-nav { display: flex; gap: 6px; margin-bottom: 8px; }
+        .nav-btn { font-family: inherit; padding: 8px 10px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; text-align: center; -webkit-tap-highlight-color: transparent; }
+        #btn-today { flex: 1.2; background: var(--primary); color: white; border: none; font-weight: 800; }
+
+        .date-picker-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .date-picker-row input[type="date"] { font-family: inherit; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted); background: #f8fafc; }
+
+        .event-form { padding: 14px 20px; background: #ffffff; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        .form-row { display: flex; gap: 8px; }
+        .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: #f8fafc; outline: none; }
+        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: #f1f5f9; color: #475569; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+
+        /* 新增：跳轉按鈕樣式 */
+        .btn-row { display: flex; gap: 8px; }
+        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .jump-btn { font-family: inherit; background: #64748b; color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; flex: 1; -webkit-tap-highlight-color: transparent; }
+        .jump-btn:active { background: #475569; }
+
+        .color-control-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .font-color-picker-container { display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+        .font-color-picker-container input[type="color"] { border: none; width: 24px; height: 24px; background: none; padding: 0; cursor: pointer; }
+        .inline-overview-btn { font-family: inherit; padding: 8px 14px; background: #eef2ff; color: var(--primary); border: 1px solid rgba(81, 81, 229, 0.15); border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        .category-selector-container { display: flex; flex-direction: column; gap: 8px; }
+        .cat-row-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .cat-label-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); min-width: 45px; }
         
-        #evt-title { 
-            flex-grow: 1; padding: 12px; border: 1px solid #e2e8f0; 
-            border-radius: var(--radius-md); outline: none;
-        }
+        .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+        .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
+        .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; border: none; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-        .quick-time-btn {
-            background: #f1f5f9; border: none; padding: 10px; 
-            border-radius: var(--radius-md); cursor: pointer;
-        }
+        .sub-cat-container-box { display: none; background: #f8fafc; padding: 12px; border-radius: var(--radius-md); border: 1px dashed var(--border-hover); }
+        .sub-cat-container-box.active { display: block; }
+        .sub-cat-group-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
+        .sub-cat-group-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .sub-cat-group-title { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+        .sub-cat-group-title::before { content: ''; display: inline-block; width: 4px; height: 10px; background: var(--text-muted); border-radius: 2px; }
+        .sub-cat-pills-list { display: flex; gap: 5px; flex-wrap: wrap; }
+        .sub-cat-tag-btn { font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sub-cat-tag-btn.active { background: var(--text-main); color: #ffffff; border-color: var(--text-main); font-weight: 800; }
 
-        /* 按鈕容器 (您的新功能) */
-        .btn-group-row { display: flex; gap: 8px; width: 100%; margin-bottom: 12px; }
+        .manage-tabs-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 10px; }
+        .manage-tab-item { font-family: inherit; padding: 6px 12px; font-size: 0.82rem; font-weight: 800; border-radius: 6px 6px 0 0; border: 1px solid transparent; background: #f1f5f9; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .manage-tab-item.active { background: #ffffff; border-color: #e2e8f0 #e2e8f0 transparent #e2e8f0; color: var(--text-main); position: relative; }
+        .manage-tab-item.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #ffffff; }
 
-        .submit-btn {
-            background: var(--primary-color); color: white; border: none;
-            padding: 12px; border-radius: var(--radius-md); font-weight: 700; cursor: pointer;
-        }
+        .category-manage-panel { display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 4px; }
+        .manage-list-item { display: flex; flex-direction: column; background: #fff; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); gap: 8px; box-shadow: var(--shadow-sm); }
+        .manage-main-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 8px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary); }
+        .manage-list-item .left { display: flex; align-items: center; gap: 8px; }
+        .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; cursor: pointer; }
+        
+        .sort-action-group { display: flex; gap: 2px; align-items: center; }
+        .mini-sort-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: 24px; height: 24px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+        .mini-sort-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .jump-btn { 
-            font-family: inherit; background: var(--secondary-color); color: white; 
-            border: none; padding: 12px; border-radius: var(--radius-md); 
-            font-weight: 700; font-size: 0.9rem; cursor: pointer;
-        }
+        .cat-action-btn-group { display: flex; gap: 4px; }
+        .cat-panel-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; }
+        .cat-btn-edit { background: #e2e8f0; color: var(--text-main); }
+        .cat-btn-del { background: #fee2e2; color: #ef4444; }
 
-        /* 列表區域 */
-        #timeline-list {
-            padding: 20px; background: white; border-radius: var(--radius-md);
-            min-height: 800px; /* 為了演示滾動效果設置高度 */
+        .manage-sub-box { background: #ffffff; border-radius: var(--radius-sm); padding: 4px 0; display: flex; flex-direction: column; gap: 8px; }
+        .manage-sub-group-block { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .manage-sub-group-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-weight: 800; color: var(--text-main); border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
+        
+        .group-action-links { display: flex; gap: 6px; font-size: 0.68rem; color: #64748b; }
+        .group-link-btn { cursor: pointer; font-weight: 800; }
+        .group-link-btn.del { color: #ef4444; }
+        
+        .manage-sub-list { display: flex; flex-wrap: wrap; gap: 5px; }
+        .manage-sub-pill { font-size: 0.72rem; font-weight: 700; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 20px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
+        .manage-sub-pill:hover { background: #e2e8f0; }
+        
+        .sub-add-inline-form { display: flex; gap: 4px; margin-top: 4px; }
+        .sub-add-inline-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
+        .sub-add-inline-form button { font-family: inherit; background: #64748b; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .group-add-form { display: flex; gap: 6px; margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 6px; }
+        .group-add-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; }
+        .group-add-form button { font-family: inherit; background: #475569; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .add-new-cat-row { display: flex; gap: 6px; margin-top: 8px; border-top: 2px solid #cbd5e1; padding-top: 10px; align-items: center; }
+        .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; }
+        .add-new-cat-row input[type="color"] { border: none; width: 30px; height: 30px; background: none; padding: 0; cursor: pointer; }
+        .add-cat-submit-btn { font-family: inherit; background: #1e293b; color: white; border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        .utility-control-bar { padding: 12px 20px 0 20px; background: var(--bg-main); display: flex; flex-direction: column; gap: 8px; }
+        .utility-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .sort-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
+        .sort-select-wrapper { display: flex; gap: 4px; }
+        .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sort-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+        .export-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+        .pdf-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #ef4444; border: 1px solid #fca5a5; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
+        .img-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #10b981; border: 1px solid #a7f3d0; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
+
+        .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
+        .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
+        .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; -webkit-tap-highlight-color: transparent; }
+        .event-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        
+        .event-text-line { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; }
+        .prefix-badge-main { font-weight: 900; margin-right: 2px; }
+        .prefix-badge-time { font-weight: 900; color: #475569; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0; margin-right: 4px; font-size: 0.85rem; }
+        .sub-pills-text-row { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-top: 2px; word-break: break-all; }
+
+        .manual-move-actions { display: flex; gap: 2px; }
+        .move-step-btn { border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .action-sheet { font-family: inherit; width: 100%; max-width: 550px; background: #ffffff; border-radius: 20px 20px 0 0; padding: 24px 20px 34px 20px; box-shadow: 0 -15px 40px rgba(15, 23, 42, 0.12); transform: translateY(100%); transition: transform 0.32s ease-out; display: flex; flex-direction: column; gap: 16px; max-height: 85vh; overflow-y: auto; }
+        .modal-overlay.show .action-sheet { transform: translateY(0); }
+        .sheet-drag-indicator { width: 40px; height: 5px; background-color: #e2e8f0; border-radius: 3px; align-self: center; }
+        .sheet-header { display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; }
+        .sheet-title-desc { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; }
+        .sheet-event-title { font-size: 1.05rem; font-weight: 800; margin: 0; }
+        .sheet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .sheet-btn { font-family: inherit; background-color: #f8fafc; border: 1px solid #f1f5f9; border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-main); font-weight: 800; font-size: 0.88rem; -webkit-tap-highlight-color: transparent; }
+        .sheet-btn.danger-btn { grid-column: span 2; }
+        
+        .sheet-edit-panel, .sheet-move-date-panel, .sheet-category-panel, .sheet-tag-action-panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); padding: 16px; flex-direction: column; gap: 10px; }
+        .sheet-edit-panel.show, .sheet-move-date-panel.show, .sheet-category-panel.show, .sheet-tag-action-panel.show { display: flex; }
+        .sheet-edit-panel input[type="text"], .sheet-move-date-panel input[type="date"], .sheet-tag-action-panel input[type="text"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; background: white; }
+        
+        .sheet-category-grid { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+        .sheet-category-item-wrapper { background: white; border: 1px solid #f1f5f9; border-radius: var(--radius-md); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); -webkit-tap-highlight-color: transparent; }
+        .sheet-cat-main-row .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .sheet-sub-group-block { display: flex; flex-direction: column; gap: 4px; padding-left: 14px; border-left: 2px solid #e2e8f0; }
+        .sheet-sub-group-title { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); }
+        .sheet-sub-grid-row { display: flex; flex-wrap: wrap; gap: 4px; }
+        .sheet-sub-pill-btn { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #f1f5f9; border: 1px solid #cbd5e1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sheet-sub-pill-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+        
+        .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sheet-panel-submit.danger { background: #ef4444; }
+        .sheet-close-btn { font-family: inherit; background: #f1f5f9; border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); text-align: center; -webkit-tap-highlight-color: transparent; }
+
+        .modal-overview-sub-filter-row { display: flex; gap: 6px; flex-wrap: wrap; background: #f1f5f9; padding: 10px; border-radius: var(--radius-md); margin-bottom: 12px; align-items: center; }
+        .overview-sub-filter-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .overview-sub-filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .cat-group-section { margin-bottom: 14px; }
+        .cat-group-date-label { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
+        .cat-group-mini-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 10px 12px; margin-bottom: 5px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 4px; }
+        .cat-group-mini-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .cat-group-mini-title { font-size: 0.9rem; font-weight: 700; margin: 0; width: 100%; }
+
+        .print-header { display: none; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
+        .print-header h1 { margin: 0; font-size: 1.4rem; color: #1e293b; }
+
+        @media print {
+            body { background: white; color: black; }
+            .calendar-container { width: 100%; max-width: 100%; box-shadow: none; }
+            .calendar-header, .event-form, .utility-control-bar, .manual-move-actions, .modal-overlay { display: none !important; }
+            .timeline { padding: 0; background: white; }
+            .event-card { border: 1px solid #e2e8f0; background: white; page-break-inside: avoid; }
+            .print-header { display: block !important; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 輸入區 -->
-    <div class="event-form">
-        <div class="form-row">
-            <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
-            <button class="quick-time-btn" id="btn-quick-time">⚡</button>
+    <div class="calendar-container">
+        <div class="print-header" id="print-header-area">
+            <h1 id="print-date-title">日程安排表</h1>
+            <p>輸出時間：<span id="print-timestamp"></span></p>
         </div>
-        
-        <div class="btn-group-row">
-            <button class="submit-btn" id="add-evt-btn" style="flex: 3;">安排至行程表</button>
-            <button class="jump-btn" id="btn-jump-to-timeline" style="flex: 1;">查看</button>
+
+        <div class="calendar-header">
+            <h1 id="current-day">日程管理</h1>
+            <div class="quick-nav">
+                <button class="nav-btn" id="btn-prev">◀ 前一天</button>
+                <button class="nav-btn" id="btn-today">今天</button>
+                <button class="nav-btn" id="btn-next">後一天 ▶</button>
+            </div>
+            <div class="date-picker-row">
+                <label for="date-select">跳轉日期：</label>
+                <input type="date" id="date-select">
+            </div>
+        </div>
+
+        <div class="event-form">
+            <div class="form-row">
+                <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
+                <button class="quick-time-btn" id="btn-quick-time">⚡ 快速記時</button>
+            </div>
+            
+            <!-- 修改後：包含安排與跳轉 -->
+            <div class="btn-row">
+                <button class="submit-btn" id="add-evt-btn" style="flex: 2;">安排至行程表</button>
+                <button class="jump-btn" id="btn-jump-to-list">查看列表 ⬇</button>
+            </div>
+            
+            <div class="color-control-row">
+                <div class="font-color-picker-container">
+                    <label for="evt-font-color">🎨 字體顏色：</label>
+                    <input type="color" id="evt-font-color" value="#000000">
+                </div>
+                <button class="inline-overview-btn" id="btn-cat-overview">🏷️ 類別總覽</button>
+            </div>
+            
+            <div class="category-selector-container">
+                <div class="cat-row-wrapper">
+                    <span class="cat-label-title">主類別：</span>
+                    <div id="category-buttons-list" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-grow: 1;"></div>
+                    <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
+                </div>
+                <div class="sub-cat-container-box" id="sub-category-container"></div>
+            </div>
+        </div>
+
+        <div class="utility-control-bar">
+            <div class="export-btn-group">
+                <button class="pdf-export-btn" id="btn-export-pdf">📄 輸出 PDF</button>
+                <button class="img-export-btn" id="btn-export-img">📸 輸出圖檔</button>
+            </div>
+            <div class="utility-row">
+                <span class="sort-label">排列順序：</span>
+                <div class="sort-select-wrapper">
+                    <button class="sort-btn" id="sort-btn-manual">✍️ 手動</button>
+                    <button class="sort-btn" id="sort-btn-az">🔤 A-Z</button>
+                    <button class="sort-btn" id="sort-btn-za">🔤 Z-A</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline" id="timeline-list"></div>
+    </div>
+
+    <!-- 其餘 Modal 結構 (與之前保持一致) -->
+    <div class="modal-overlay" id="manage-modal" onclick="closeManageModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-drag-indicator"></div>
+            <div class="sheet-header">
+                <span class="sheet-title-desc">⚙️ 標籤與分類管理中心</span>
+                <p class="sheet-event-title" style="font-size: 0.95rem; color: var(--text-muted);">選擇下方分頁標籤管理所屬子群組</p>
+            </div>
+            <div class="manage-tabs-row" id="manage-tabs-container"></div>
+            <div class="category-manage-panel">
+                <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div class="add-new-cat-row">
+                    <input type="text" id="new-cat-name" placeholder="新主類別名稱...">
+                    <input type="color" id="new-cat-color" value="#5151e5">
+                    <button class="add-cat-submit-btn" id="add-new-cat-btn">➕ 新增主類別</button>
+                </div>
+            </div>
+            <button class="sheet-close-btn" onclick="closeManageModal()">完成並關閉</button>
         </div>
     </div>
 
-    <!-- 列表目標區 -->
-    <div id="timeline-list">
-        <h3>行程列表</h3>
-        <p>行程內容將會顯示於此處...</p>
+    <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-drag-indicator"></div>
+            <div class="sheet-header">
+                <span class="sheet-title-desc">📋 設定操作面板</span>
+                <p class="sheet-event-title" id="modal-event-title">載入中...</p>
+            </div>
+            <div class="sheet-grid" id="standard-action-grid">
+                <button class="sheet-btn" id="modal-btn-edit"><span>編輯內文</span></button>
+                <button class="sheet-btn" id="modal-btn-move"><span>跨日期移動</span></button>
+                <button class="sheet-btn" id="modal-btn-copy"><span>複製本事件</span></button>
+                <button class="sheet-btn" id="modal-btn-category"><span>切換類別設定</span></button>
+                <button class="sheet-btn danger-btn" id="modal-btn-delete"><span style="color:#ef4444;">刪除本行程</span></button>
+            </div>
+            <div class="sheet-edit-panel" id="modal-edit-panel">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">✏️ 修改事項名稱：</label>
+                <input type="text" id="modal-edit-title-input">
+                <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">🎨 字體顏色：</label>
+                    <input type="color" id="modal-edit-color-input">
+                </div>
+                <button class="sheet-panel-submit" id="modal-edit-submit">確認修改</button>
+            </div>
+            <div class="sheet-move-date-panel" id="modal-move-panel">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">📅 選擇目標日期：</label>
+                <input type="date" id="modal-move-date-input">
+                <button class="sheet-panel-submit" id="modal-move-submit">確認移轉</button>
+            </div>
+            <div class="sheet-category-panel" id="modal-category-panel">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">🏷️ 選擇主分類與子分類：</label>
+                <div class="sheet-category-grid" id="modal-category-selection-list"></div>
+                <button class="sheet-panel-submit" id="modal-category-submit">儲存分類設定</button>
+            </div>
+            <div class="sheet-tag-action-panel" id="modal-tag-action-panel">
+                <label id="tag-panel-label" style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">🏷️ 標籤設定</label>
+                <input type="text" id="modal-tag-name-input" placeholder="名稱...">
+                <div id="tag-move-select-container" style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted);">🎯 移動隸屬群組/類別：</label>
+                    <select id="modal-tag-move-select" style="font-family:inherit; padding: 8px; border-radius:6px; border:1px solid var(--border-hover); font-size:0.8rem;"></select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
+                    <button class="sheet-panel-submit" id="modal-tag-action-save">儲存修改</button>
+                    <button class="sheet-panel-submit danger" id="modal-tag-action-del">⚠️ 刪除</button>
+                </div>
+            </div>
+            <button class="sheet-close-btn" onclick="closeActionModal()">關閉選單</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="overview-modal" onclick="closeOverviewModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius: 20px; max-height: 80vh; margin: auto 15px;">
+            <div class="sheet-header">
+                <span class="sheet-title-desc">📊 分類多維度檢視</span>
+                <p class="sheet-event-title">依類別總覽所有事件</p>
+            </div>
+            <div class="modal-overview-sub-filter-row" id="overview-main-cat-tabs"></div>
+            <div class="modal-overview-sub-filter-row" id="overview-sub-cat-tabs"></div>
+            <div style="flex-grow: 1; overflow-y: auto; max-height: 45vh;" id="overview-result-timeline"></div>
+            <button class="sheet-close-btn" onclick="closeOverviewModal()">關閉總覽</button>
+        </div>
     </div>
 
     <script>
-        // 核心邏輯
-        function setupEventListeners() {
-            // 跳轉邏輯
-            document.getElementById('btn-jump-to-timeline').addEventListener('click', () => {
-                const target = document.getElementById('timeline-list');
-                if (target) {
-                    target.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
-                    });
-                }
-            });
-
-            // 原有的提交邏輯 (請根據您的具體需求填入)
-            document.getElementById('add-evt-btn').addEventListener('click', () => {
-                const title = document.getElementById('evt-title').value;
-                if(title) {
-                    console.log("新增行程:", title);
-                    // 在此執行您的 API 呼叫或 DOM 操作
-                }
-            });
+        // --- 核心變數 ---
+        function getLocalTodayString() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
-        // 初始化
-        document.addEventListener('DOMContentLoaded', setupEventListeners);
+        let currentDate = getLocalTodayString();
+        let events = JSON.parse(localStorage.getItem('calendar_events')) || [];
+        let sortMode = localStorage.getItem('calendar_sort_mode') || 'manual';
+        let categories = JSON.parse(localStorage.getItem('calendar_categories')) || [
+            { id: "cat_work", name: "工作公務", color: "#5151e5", subGroups: [{ id: "g1", title: "專案A組", items: ["開發", "測試", "上線"] }, { id: "g2", title: "客戶聯絡群", items: ["緊急", "待審核"] }] },
+            { id: "cat_life", name: "日常生活", color: "#10b981", subGroups: [{ id: "g3", title: "家庭事務", items: ["吃飯", "購物清單", "娛樂"] }, { id: "g4", title: "健身運動", items: ["日常", "健康"] }] }
+        ];
+
+        let selectedMainCatId = categories[0]?.id || "";
+        let managementActiveCatId = categories[0]?.id || ""; 
+        let selectedSubItems = []; 
+        let activeTargetEventId = null;
+        let activeTagConfig = { type: '', catIdx: null, groupIdx: null, itemIdx: null };
+
+        // --- 初始化 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initDateConfig();
+            renderCategorySelectors();
+            renderTimeline();
+            setupEventListeners();
+            updateSortBtnUI();
+        });
+
+        // --- 功能函數 (精簡呈現) ---
+        function initDateConfig() { document.getElementById('date-select').value = currentDate; updateDateDisplay(); }
+        function updateDateDisplay() {
+            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const d = new Date(currentDate);
+            document.getElementById('current-day').innerText = `${currentDate} (${days[d.getDay()]})`;
+            document.getElementById('print-date-title').innerText = `${currentDate} 日程安排表`;
+        }
+        function saveToStorage() { localStorage.setItem('calendar_events', JSON.stringify(events)); localStorage.setItem('calendar_categories', JSON.stringify(categories)); localStorage.setItem('calendar_sort_mode', sortMode); }
+
+        // --- 您的新跳轉功能 ---
+        function setupEventListeners() {
+            // 跳轉事件
+            document.getElementById('btn-jump-to-list').addEventListener('click', () => {
+                const target = document.getElementById('timeline-list');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+
+            // 其餘舊有的事件綁定
+            document.getElementById('btn-prev').addEventListener('click', () => changeDateOffset(-1));
+            document.getElementById('btn-next').addEventListener('click', () => changeDateOffset(1));
+            document.getElementById('btn-today').addEventListener('click', () => { currentDate = getLocalTodayString(); initDateConfig(); renderTimeline(); });
+            document.getElementById('date-select').addEventListener('change', (e) => { currentDate = e.target.value; updateDateDisplay(); renderTimeline(); });
+            document.getElementById('sort-btn-manual').addEventListener('click', () => changeSortMode('manual'));
+            document.getElementById('sort-btn-az').addEventListener('click', () => changeSortMode('az'));
+            document.getElementById('sort-btn-za').addEventListener('click', () => changeSortMode('za'));
+            document.getElementById('btn-export-pdf').addEventListener('click', () => { document.getElementById('print-timestamp').innerText = new Date().toLocaleString(); window.print(); });
+            document.getElementById('btn-export-img').addEventListener('click', doExportImage);
+            document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
+            document.getElementById('evt-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEventForm(); } });
+            document.getElementById('color-toggle-btn').addEventListener('click', openManageModal);
+            document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
+            document.getElementById('new-cat-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewMainCategory(); } });
+            document.getElementById('btn-quick-time').addEventListener('click', () => { const now = new Date(); const timeStr = now.toTimeString().substring(0, 5); const input = document.getElementById('evt-title'); if (!/^\[\d{2}:\d{2}\]/.test(input.value)) { input.value = `[${timeStr}] ` + input.value; } input.focus(); });
+        }
+
+        // 為了節省空間，請繼續沿用您原代碼中的其餘函式 (renderTimeline, submitEventForm, 等)
+        // 此處僅展示必要的變更與結構整合。
+        // 若您現有代碼未有變更，其餘邏輯皆可直接貼上，無須改動。
+        
+        // ... (這裡補上您原本剩餘的 JavaScript 函式區塊)
     </script>
 </body>
 </html>
-
