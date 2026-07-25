@@ -133,9 +133,56 @@
         .pdf-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #ef4444; border: 1px solid #fca5a5; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
         .img-export-btn { font-family: inherit; padding: 8px 12px; background: #ffffff; color: #10b981; border: 1px solid #a7f3d0; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
 
+        /* --- 新增：快速跳轉事件按鈕列樣式 --- */
+        .quick-jump-container {
+            padding: 10px 20px 0 20px;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+        .quick-jump-container::-webkit-scrollbar { display: none; }
+        .quick-jump-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .quick-jump-btn {
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #ffffff;
+            color: var(--text-main);
+            border: 1px solid var(--border-hover);
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .quick-jump-btn:active {
+            transform: scale(0.95);
+            background: var(--primary-light);
+        }
+        @keyframes highlightPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(81, 81, 229, 0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(81, 81, 229, 0); }
+            100% { transform: scale(1); box-shadow: var(--shadow-sm); }
+        }
+        .event-card.highlight {
+            animation: highlightPulse 0.8s ease-in-out;
+            outline: 2px solid var(--primary) !important;
+        }
+
         .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
-        .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; -webkit-tap-highlight-color: transparent; }
+        .event-card { border: none; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: #ffffff; -webkit-tap-highlight-color: transparent; transition: all 0.2s; }
         .event-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         
         .event-text-line { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; }
@@ -185,7 +232,7 @@
         .cat-group-mini-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .cat-group-mini-title { font-size: 0.9rem; font-weight: 700; margin: 0; width: 100%; }
 
-        /* --- 新增：月月曆 Grid 樣式 --- */
+        /* --- 月月曆 Grid 樣式 --- */
         .month-calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -250,7 +297,7 @@
         @media print {
             body { background: white; color: black; }
             .calendar-container { width: 100%; max-width: 100%; box-shadow: none; }
-            .calendar-header, .event-form, .utility-control-bar, .manual-move-actions, .modal-overlay { display: none !important; }
+            .calendar-header, .event-form, .utility-control-bar, .quick-jump-container, .manual-move-actions, .modal-overlay { display: none !important; }
             .timeline { padding: 0; background: white; }
             .event-card { border: 1px solid #e2e8f0; background: white; page-break-inside: avoid; }
             .print-header { display: block !important; }
@@ -319,6 +366,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- 新增：快速跳轉事件按鈕容器 -->
+        <div class="quick-jump-container" id="quick-jump-container"></div>
 
         <div class="timeline" id="timeline-list"></div>
     </div>
@@ -537,7 +587,7 @@
             document.getElementById('manage-modal').classList.remove('show');
         }
 
-        // --- 新增：月行事曆 Modal 控制與渲染 ---
+        // --- 月行事曆 Modal 控制與渲染 ---
         function openMonthModal() {
             const [y, m] = currentDate.split('-').map(Number);
             viewYear = y;
@@ -557,7 +607,6 @@
             const gridContainer = document.getElementById('month-calendar-grid');
             gridContainer.innerHTML = '';
 
-            // 1. 渲染 星期 Header
             const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
             weekDays.forEach(day => {
                 const h = document.createElement('div');
@@ -566,18 +615,15 @@
                 gridContainer.appendChild(h);
             });
 
-            // 2. 計算事件數量 Map (key: YYYY-MM-DD, val: count)
             const eventCounts = {};
             events.forEach(e => {
                 eventCounts[e.date] = (eventCounts[e.date] || 0) + 1;
             });
 
-            // 3. 計算當月第一天與天數
             const firstDay = new Date(viewYear, viewMonth, 1).getDay();
             const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
             const todayStr = getLocalTodayString();
 
-            // 上個月補白
             const prevMonthDays = new Date(viewYear, viewMonth, 0).getDate();
             for (let i = firstDay - 1; i >= 0; i--) {
                 const cell = document.createElement('div');
@@ -586,7 +632,6 @@
                 gridContainer.appendChild(cell);
             }
 
-            // 當月日期
             for (let d = 1; d <= daysInMonth; d++) {
                 const cell = document.createElement('div');
                 const mStr = String(viewMonth + 1).padStart(2, '0');
@@ -615,7 +660,6 @@
                 gridContainer.appendChild(cell);
             }
 
-            // 下個月補白 (維持 35 或 42 個格子)
             const totalCells = firstDay + daysInMonth;
             const remaining = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
             for (let i = 1; i <= remaining; i++) {
@@ -716,16 +760,77 @@
             saveToStorage(); n.value = ''; renderCategorySelectors(); renderManageTabs(); renderManagePanel();
         }
 
+        // --- 新增：渲染快速跳轉按鈕列 ---
+        function renderQuickJumpBar(dayEvents) {
+            const container = document.getElementById('quick-jump-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!dayEvents || dayEvents.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+
+            const label = document.createElement('span');
+            label.className = 'quick-jump-label';
+            label.innerText = '⚡ 快速跳轉：';
+            container.appendChild(label);
+
+            dayEvents.forEach((evt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-jump-btn';
+
+                // 整理按鈕顯示文字 (時間標籤 / 簡短內容)
+                let displayText = evt.title;
+                const tm = evt.title.match(/^\[(\d{2}:\d{2})\]/);
+                if (tm) {
+                    const cleanTitle = evt.title.replace(/^\[\d{2}:\d{2}\]\s*/, '');
+                    displayText = `[${tm[1]}] ${cleanTitle}`;
+                }
+                if (displayText.length > 10) {
+                    displayText = displayText.substring(0, 10) + '…';
+                }
+
+                btn.innerText = `${idx + 1}. ${displayText}`;
+                if (evt.mainCategoryColor) {
+                    btn.style.borderLeft = `3px solid ${evt.mainCategoryColor}`;
+                }
+
+                btn.onclick = () => {
+                    const targetEl = document.getElementById(`event-card-${evt.id}`);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetEl.classList.remove('highlight');
+                        void targetEl.offsetWidth; // 強制重繪以重設動畫
+                        targetEl.classList.add('highlight');
+                        setTimeout(() => targetEl.classList.remove('highlight'), 1000);
+                    }
+                };
+
+                container.appendChild(btn);
+            });
+        }
+
         function renderTimeline() {
             const container = document.getElementById('timeline-list'); container.innerHTML = '';
             let dayEvents = events.filter(e => e.date === currentDate);
+            
+            // 渲染快速跳轉按鈕列
+            renderQuickJumpBar(dayEvents);
+
             if (dayEvents.length === 0) { container.innerHTML = '<div class="no-events">今日尚無安排行程。</div>'; return; }
             if (sortMode === 'az') dayEvents.sort((a, b) => a.title.localeCompare(b.title, 'zh-Hant'));
             else if (sortMode === 'za') dayEvents.sort((a, b) => b.title.localeCompare(a.title, 'zh-Hant'));
             else dayEvents.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
             dayEvents.forEach((evt, index) => {
-                const card = document.createElement('div'); card.className = 'event-card'; card.onclick = () => openActionModal('event', evt.id);
+                const card = document.createElement('div');
+                card.className = 'event-card';
+                card.id = `event-card-${evt.id}`; // 綁定唯一識別 ID 供跳轉錨點使用
+                card.onclick = () => openActionModal('event', evt.id);
+                
                 const info = document.createElement('div'); info.className = 'event-info';
 
                 const textLine = document.createElement('p');
@@ -1050,7 +1155,6 @@
             document.getElementById('btn-next').addEventListener('click', () => changeDateOffset(1));
             document.getElementById('btn-today').addEventListener('click', () => { currentDate = getLocalTodayString(); initDateConfig(); renderTimeline(); });
             
-            // --- 月視圖事件監聽 ---
             document.getElementById('btn-month').addEventListener('click', openMonthModal);
             document.getElementById('btn-month-prev').addEventListener('click', () => {
                 viewMonth--;
@@ -1082,7 +1186,7 @@
             document.getElementById('print-timestamp').innerText = new Date().toLocaleString();
             html2canvas(document.querySelector('.calendar-container'), {
                 useCORS: true, scale: 2, backgroundColor: '#fcfbfa',
-                ignoreElements: (el) => el.classList.contains('calendar-header') || el.classList.contains('event-form') || el.classList.contains('utility-control-bar') || el.classList.contains('manual-move-actions') || el.classList.contains('modal-overlay')
+                ignoreElements: (el) => el.classList.contains('calendar-header') || el.classList.contains('event-form') || el.classList.contains('utility-control-bar') || el.classList.contains('quick-jump-container') || el.classList.contains('manual-move-actions') || el.classList.contains('modal-overlay')
             }).then(canvas => {
                 ph.style.display = od; const link = document.createElement('a'); link.download = `日程安排_${currentDate}.png`; link.href = canvas.toDataURL('image/png'); link.click();
             }).catch(err => { ph.style.display = od; console.error(err); });
