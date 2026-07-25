@@ -40,21 +40,6 @@
             box-shadow: var(--shadow-md); display: flex; flex-direction: column; position: relative;
         }
 
-        /* 💾 頂部資料安全備份列 */
-        .backup-bar {
-            background: #1e293b; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
-        }
-        .backup-title { color: #f8fafc; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 4px; }
-        .backup-btn-group { display: flex; gap: 6px; }
-        .backup-btn {
-            font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .btn-export-data { background: #10b981; color: white; }
-        .btn-export-data:hover { background: #059669; }
-        .btn-import-data { background: #f59e0b; color: white; }
-        .btn-import-data:hover { background: #d97706; }
-
         /* 導覽與標頭 */
         .calendar-header { padding: 16px 20px 10px 20px; background: #ffffff; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(241, 245, 249, 0.8); }
         .calendar-header h1 { margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 800; text-align: center; }
@@ -215,7 +200,7 @@
         @media print {
             body { background: white; color: black; }
             .calendar-container { width: 100%; max-width: 100%; box-shadow: none; }
-            .backup-bar, .calendar-header, .event-form, .utility-control-bar, .manual-move-actions, .modal-overlay { display: none !important; }
+            .calendar-header, .event-form, .utility-control-bar, .manual-move-actions, .modal-overlay { display: none !important; }
             .timeline { padding: 0; background: white; }
             .event-card { border: 1px solid #e2e8f0; background: white; page-break-inside: avoid; }
             .print-header { display: block !important; }
@@ -225,16 +210,6 @@
 <body>
 
     <div class="calendar-container">
-        <!-- 💾 頂部資料安全備份管理工具列 -->
-        <div class="backup-bar">
-            <div class="backup-title">🔒 全手動排序防失系統 (方案 A)</div>
-            <div class="backup-btn-group">
-                <button class="backup-btn btn-export-data" id="btn-backup-export">📤 備份資料</button>
-                <button class="backup-btn btn-import-data" id="btn-backup-import">📥 還原資料</button>
-                <input type="file" id="backup-file-input" accept=".json" style="display: none;">
-            </div>
-        </div>
-
         <div class="print-header" id="print-header-area">
             <h1 id="print-date-title">日程安排表</h1>
             <p>輸出時間：<span id="print-timestamp"></span></p>
@@ -428,11 +403,10 @@
         ];
 
         let selectedMainCatId = categories[0]?.id || "";
-        let managementActiveCatId = categories[0]?.id || ""; // 🆕 管理專用分頁標籤追蹤
+        let managementActiveCatId = categories[0]?.id || ""; 
         let selectedSubItems = []; 
         let activeTargetEventId = null;
         
-        // 🆕 追蹤當前正在彈出式修改的標籤對象中繼資料
         let activeTagConfig = { type: '', catIdx: null, groupIdx: null, itemIdx: null };
 
         // --- 初始化啟動 ---
@@ -442,7 +416,6 @@
             renderTimeline();
             setupEventListeners();
             updateSortBtnUI();
-            setupBackupLogic();
             setupGlobalDelegation();
         });
 
@@ -473,38 +446,6 @@
             return (yiq >= 145) ? '#1e293b' : '#f8fafc';
         }
 
-        function setupBackupLogic() {
-            document.getElementById('btn-backup-export').addEventListener('click', () => {
-                const dataStr = JSON.stringify({ version: "1.3", exportTime: new Date().toISOString(), categories, events }, null, 2);
-                const blob = new Blob([dataStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a'); link.download = `日程分類連動備份_${currentDate}.json`; link.href = url; link.click(); URL.revokeObjectURL(url);
-            });
-
-            document.getElementById('btn-backup-import').addEventListener('click', () => { document.getElementById('backup-file-input').click(); });
-            document.getElementById('backup-file-input').addEventListener('change', (e) => {
-                const file = e.target.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    try {
-                        const importedData = JSON.parse(evt.target.result);
-                        if (!importedData.categories || !importedData.events) return alert("無效的備份檔案格式！");
-                        if (confirm("導入將會覆蓋目前的行程與分類順序，確定要繼續嗎？")) {
-                            categories = importedData.categories; events = importedData.events; saveToStorage();
-                            if(categories.length > 0) {
-                                selectedMainCatId = categories[0].id;
-                                managementActiveCatId = categories[0].id;
-                            }
-                            selectedSubItems = []; renderCategorySelectors(); renderTimeline();
-                            alert("🎉 資料與自訂排序順序已完美還原！");
-                        }
-                    } catch (err) { alert("讀取備份檔失敗，請確認檔案是否損壞。"); }
-                    e.target.value = "";
-                };
-                reader.readAsText(file);
-            });
-        }
-
         document.getElementById('btn-quick-time').addEventListener('click', () => {
             const now = new Date(); const timeStr = now.toTimeString().substring(0, 5); const input = document.getElementById('evt-title');
             if (!/^\[\d{2}:\d{2}\]/.test(input.value)) { input.value = `[${timeStr}] ` + input.value; }
@@ -528,7 +469,6 @@
             document.getElementById('manage-modal').classList.remove('show');
         }
 
-        // 🆕 渲染管理視窗的頂部橫向分頁標籤 (Tabs)
         function renderManageTabs() {
             const container = document.getElementById('manage-tabs-container');
             container.innerHTML = '';
@@ -616,7 +556,7 @@
             const n = document.getElementById('new-cat-name'); const c = document.getElementById('new-cat-color'); if(!n.value.trim()) return;
             const newId = 'cat-'+Date.now();
             categories.push({ id: newId, name: n.value.trim(), color: c.value, subGroups: [] });
-            managementActiveCatId = newId; // 自動切到新分頁
+            managementActiveCatId = newId; 
             saveToStorage(); n.value = ''; renderCategorySelectors(); renderManageTabs(); renderManagePanel();
         }
 
@@ -676,11 +616,9 @@
             saveToStorage(); renderTimeline();
         }
 
-        // --- ⚙️ 彈出層內的分頁式分類面板渲染 ---
         function renderManagePanel() {
             const container = document.getElementById('manage-categories-list'); container.innerHTML = '';
             
-            // 尋找目前分頁選中的主類別
             const cIdx = categories.findIndex(c => c.id === managementActiveCatId);
             if (cIdx === -1) {
                 container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">請先選擇或新增主類別</div>';
@@ -690,7 +628,6 @@
             const cat = categories[cIdx];
             const item = document.createElement('div'); item.className = 'manage-list-item';
             
-            // 頂部主類別控制行 (移除原有的上下排序按鈕，改為直接修改名稱顏色與彈出式編輯)
             const mr = document.createElement('div'); mr.className = 'manage-main-row'; mr.style.borderLeftColor = cat.color;
             const leftDiv = document.createElement('div'); leftDiv.className = 'left';
             
@@ -704,7 +641,6 @@
             const titleStr = document.createElement('strong'); titleStr.innerText = `${cat.name} (本分頁主設定)`;
             leftDiv.appendChild(cp); leftDiv.appendChild(titleStr);
             
-            // 🆕 改為彈出式修改主類別名稱/刪除
             const actionGroup = document.createElement('div'); actionGroup.className = 'cat-action-btn-group';
             const editBtn = document.createElement('button'); editBtn.className = 'cat-panel-btn cat-btn-edit'; editBtn.innerText = '修改';
             editBtn.onclick = () => openActionModal('main-cat', cIdx);
@@ -719,7 +655,6 @@
             actionGroup.appendChild(editBtn); actionGroup.appendChild(delBtn);
             mr.appendChild(leftDiv); mr.appendChild(actionGroup); item.appendChild(mr);
 
-            // 子群組與子標籤清單
             const subBox = document.createElement('div'); subBox.className = 'manage-sub-box';
             if(cat.subGroups && cat.subGroups.length > 0) {
                 cat.subGroups.forEach((g, gIdx) => {
@@ -735,7 +670,6 @@
                     
                     const gt = document.createElement('span'); gt.innerHTML = ` 📂 <strong>${g.title}</strong>`;
                     
-                    // 🆕 子群組彈出式操作連結
                     const glinks = document.createElement('div'); glinks.className = 'group-action-links';
                     const linkEdit = document.createElement('span'); linkEdit.className = 'group-link-btn'; linkEdit.innerText = '✏️ 編輯';
                     linkEdit.onclick = () => openActionModal('group', cIdx, gIdx);
@@ -747,12 +681,10 @@
                     
                     gh.appendChild(sag); gh.appendChild(gt); gh.appendChild(glinks); gb.appendChild(gh);
                     
-                    // 子標籤藥丸渲染
                     const pl = document.createElement('div'); pl.className = 'manage-sub-list';
                     if(g.items && g.items.length > 0) {
                         g.items.forEach((it, iIdx) => {
                             const p = document.createElement('div'); p.className = 'manage-sub-pill'; p.innerText = it;
-                            // 🆕 點擊標籤藥丸，直接彈出式編輯名稱/刪除/移動隸屬關係！
                             p.onclick = () => openActionModal('tag-item', cIdx, gIdx, iIdx);
                             pl.appendChild(p);
                         });
@@ -761,7 +693,6 @@
                     }
                     gb.appendChild(pl);
 
-                    // 行內新增標籤表單
                     const aForm = document.createElement('div'); aForm.className = 'sub-add-inline-form';
                     const subInput = document.createElement('input'); subInput.type = 'text'; subInput.placeholder = '快速新增標籤...'; subInput.id = `input-add-item-${cIdx}-${gIdx}`;
                     const subBtn = document.createElement('button'); subBtn.innerText = '＋ 標籤';
@@ -779,7 +710,6 @@
                 subBox.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); padding:10px 0; text-align:center;">此分類主群組目前空空如也</div>';
             }
             
-            // 新增子群組表單
             const gForm = document.createElement('div'); gForm.className = 'group-add-form';
             const groupInput = document.createElement('input'); groupInput.type = 'text'; groupInput.placeholder = '新增子群組資料夾...'; id = `input-add-group-${cIdx}`;
             const groupBtn = document.createElement('button'); groupBtn.innerText = '📂 加新群組';
@@ -800,10 +730,8 @@
         }
 
         function setupGlobalDelegation() {
-            // 保留給未来可能的動態擴充，細部已移至專用函數內安全執行
         }
 
-        // --- 🆕 全能優化：Action Sheet 彈出式全功能設定中心 ---
         function openActionModal(targetType, cIdx, gIdx = null, iIdx = null) {
             closeAllSheetPanels();
             activeTagConfig = { type: targetType, catIdx: cIdx, groupIdx: gIdx, itemIdx: iIdx };
@@ -813,12 +741,11 @@
             const tagPanel = document.getElementById('modal-tag-action-panel');
             const mTitle = document.getElementById('modal-event-title');
             
-            // 重設下拉選項內容
             document.getElementById('modal-tag-move-select').innerHTML = '';
             document.getElementById('tag-move-select-container').style.display = 'none';
 
             if (targetType === 'event') {
-                activeTargetEventId = cIdx; // 此時第一個參數代表的就是 event ID
+                activeTargetEventId = cIdx; 
                 const evt = events.find(e => e.id === activeTargetEventId); if (!evt) return;
                 mTitle.innerText = evt.title;
                 stdGrid.style.display = 'grid';
@@ -840,7 +767,6 @@
                 document.getElementById('tag-panel-label').innerText = '✏️ 修改群組名稱：';
                 document.getElementById('modal-tag-name-input').value = group.title;
                 
-                // 允許子群組跨主類別移動
                 document.getElementById('tag-move-select-container').style.display = 'flex';
                 const sel = document.getElementById('modal-tag-move-select');
                 categories.forEach((c, index) => {
@@ -857,7 +783,6 @@
                 document.getElementById('tag-panel-label').innerText = '✏️ 修改標籤名稱：';
                 document.getElementById('modal-tag-name-input').value = item;
                 
-                // 允許子標籤跨類別或跨群組移動
                 document.getElementById('tag-move-select-container').style.display = 'flex';
                 const sel = document.getElementById('modal-tag-move-select');
                 categories.forEach((c, cArrIdx) => {
@@ -884,7 +809,6 @@
             document.getElementById('modal-tag-action-panel').classList.remove('show');
         }
 
-        // --- 🆕 處理彈出式標籤/群組/主類別的儲存與刪除事件 ---
         document.getElementById('modal-tag-action-save').addEventListener('click', () => {
             const { type, catIdx, groupIdx, itemIdx } = activeTagConfig;
             const newName = document.getElementById('modal-tag-name-input').value.trim();
@@ -936,7 +860,6 @@
             saveToStorage(); renderCategorySelectors(); renderManageTabs(); renderManagePanel(); renderTimeline(); closeActionModal();
         });
 
-        // --- 行程細部按鈕設定處理事件群 ---
         document.getElementById('modal-btn-edit').addEventListener('click', () => {
             closeAllSheetPanels(); const evt = events.find(e => e.id === activeTargetEventId);
             if (evt) {
@@ -1011,7 +934,6 @@
             if(confirm('確定移除此行程？')) { events = events.filter(e => e.id !== activeTargetEventId); saveToStorage(); renderTimeline(); closeActionModal(); }
         });
 
-        // --- 📊 跨日期篩選總覽模組 ---
         let oMain = "", oSub = "";
         document.getElementById('btn-cat-overview').addEventListener('click', () => { oMain = categories[0]?.name || ""; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); document.getElementById('overview-modal').classList.add('show'); });
         function closeOverviewModal() { document.getElementById('overview-modal').classList.remove('show'); }
@@ -1078,7 +1000,7 @@
             document.getElementById('print-timestamp').innerText = new Date().toLocaleString();
             html2canvas(document.querySelector('.calendar-container'), {
                 useCORS: true, scale: 2, backgroundColor: '#fcfbfa',
-                ignoreElements: (el) => el.classList.contains('backup-bar') || el.classList.contains('calendar-header') || el.classList.contains('event-form') || el.classList.contains('utility-control-bar') || el.classList.contains('manual-move-actions') || el.classList.contains('modal-overlay')
+                ignoreElements: (el) => el.classList.contains('calendar-header') || el.classList.contains('event-form') || el.classList.contains('utility-control-bar') || el.classList.contains('manual-move-actions') || el.classList.contains('modal-overlay')
             }).then(canvas => {
                 ph.style.display = od; const link = document.createElement('a'); link.download = `日程安排_${currentDate}.png`; link.href = canvas.toDataURL('image/png'); link.click();
             }).catch(err => { ph.style.display = od; console.error(err); });
