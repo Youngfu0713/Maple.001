@@ -59,7 +59,7 @@
         .date-picker-label-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 0.78rem; color: var(--text-muted); }
         .date-picker-row input[type="date"] { font-family: inherit; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted); background: #f8fafc; }
 
-        /* --- 行程快速跳轉 (移至日期選擇下方獨立一行樣式) --- */
+        /* --- 行程快速跳轉 --- */
         .quick-jump-bar { 
             display: flex; 
             align-items: center; 
@@ -73,10 +73,23 @@
         .quick-jump-btn { font-family: inherit; font-size: 0.73rem; font-weight: 700; padding: 3px 8px; border-radius: 14px; border: 1px solid var(--border-hover); background: #ffffff; color: var(--text-main); white-space: nowrap; cursor: pointer; transition: all 0.2s; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
         .quick-jump-btn:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
+        /* 輸入框專用跳轉按鈕樣式 */
+        .jump-to-input-btn {
+            background: #eef2ff;
+            color: var(--primary);
+            border: 1px solid rgba(81, 81, 229, 0.3);
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        .jump-to-input-btn:hover {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
         .event-form { padding: 14px 20px; background: #ffffff; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
         .form-row { display: flex; gap: 8px; }
-        .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: #f8fafc; outline: none; }
-        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: #f1f5f9; color: #475569; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+        .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: #f8fafc; outline: none; transition: border 0.2s, box-shadow 0.2s; }
 
         .color-control-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .font-color-picker-container { display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
@@ -144,6 +157,7 @@
         .add-new-cat-row input[type="color"] { border: none; width: 30px; height: 30px; background: none; padding: 0; cursor: pointer; }
         .add-cat-submit-btn { font-family: inherit; background: #1e293b; color: white; border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
+        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: #f1f5f9; color: #475569; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
         .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
         .utility-control-bar { padding: 12px 20px 10px 20px; background: var(--bg-main); display: flex; flex-direction: column; gap: 8px; }
@@ -312,9 +326,11 @@
                 </div>
             </div>
 
-            <!-- 行程快速跳轉定位按鈕列 (移至跳轉日期下方獨立一行) -->
-            <div class="quick-jump-bar" id="quick-jump-bar" style="display: none;">
+            <!-- 行程快速跳轉定位按鈕列 -->
+            <div class="quick-jump-bar" id="quick-jump-bar">
                 <span class="quick-jump-title">📍 跳轉：</span>
+                <!-- 新增：跳轉至請輸入重要事項按鈕 -->
+                <button class="quick-jump-btn jump-to-input-btn" id="btn-jump-to-input">✏️ 請輸入重要事項</button>
                 <div class="quick-jump-list" id="quick-jump-list"></div>
             </div>
         </div>
@@ -747,18 +763,30 @@
             saveToStorage(); n.value = ''; renderCategorySelectors(); renderManageTabs(); renderManagePanel();
         }
 
-        /* 事件快速跳轉按鈕渲染與定位邏輯 */
+        /* 跳轉至請輸入重要事項輸入框 */
+        function jumpToInputTitle() {
+            const input = document.getElementById('evt-title');
+            if (input) {
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                input.focus();
+                input.classList.remove('card-highlight');
+                void input.offsetWidth;
+                input.classList.add('card-highlight');
+            }
+        }
+
+        /* 行程快速跳轉按鈕渲染與定位邏輯 */
         function renderQuickJumpButtons(dayEvents) {
             const container = document.getElementById('quick-jump-list');
             const bar = document.getElementById('quick-jump-bar');
             container.innerHTML = '';
 
+            // 保持跳轉條為 flex 顯示，以維護跳轉至輸入框的功能
+            bar.style.display = 'flex';
+
             if (!dayEvents || dayEvents.length === 0) {
-                bar.style.display = 'none';
                 return;
             }
-
-            bar.style.display = 'flex';
 
             dayEvents.forEach(evt => {
                 const btn = document.createElement('button');
@@ -1152,6 +1180,10 @@
             document.getElementById('btn-export-img').addEventListener('click', doExportImage);
             document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
             document.getElementById('evt-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEventForm(); } });
+            
+            /* 綁定跳轉至輸入框事件 */
+            document.getElementById('btn-jump-to-input').addEventListener('click', jumpToInputTitle);
+
             document.getElementById('color-toggle-btn').addEventListener('click', openManageModal);
             document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
             document.getElementById('new-cat-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewMainCategory(); } });
