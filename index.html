@@ -3,36 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>個人日程管理系統</title>
-    
+    <title>個人日程管理系統 - 完整功能版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root {
-            --primary: #5151e5;
-            --bg-main: #fcfbfa; 
-            --bg-card: #ffffff;
-            --text-main: #1e293b; 
-            --text-muted: #64748b;
-            --border: #f1f5f9;
-            --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
-            --radius-md: 10px;
-        }
-
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; display: flex; justify-content: center; }
-        .calendar-container { width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh; box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
-
-        /* Header */
+        :root { --primary: #5151e5; --bg-main: #fcfbfa; --text-main: #1e293b; --text-muted: #64748b; --border: #f1f5f9; --radius-md: 10px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: var(--bg-main); color: var(--text-main); margin: 0; display: flex; justify-content: center; }
+        .calendar-container { width: 100%; max-width: 550px; background: white; min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        
+        /* Header & Utility */
         .calendar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
         .calendar-header h1 { margin: 0 0 10px 0; font-size: 1.2rem; text-align: center; }
         .quick-nav { display: flex; gap: 6px; margin-bottom: 10px; }
         .nav-btn { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
         #btn-today { background: var(--primary); color: white; border: none; }
-        .date-picker-row { display: flex; justify-content: center; align-items: center; gap: 8px; }
-
-        /* Form */
-        .event-form { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Form & Categories */
+        .event-form { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
         .form-row { display: flex; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
         .submit-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .cat-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+        .cat-tag { padding: 4px 12px; border-radius: 20px; background: #f1f5f9; font-size: 0.75rem; cursor: pointer; border: 2px solid transparent; }
+        .cat-tag.active { border-color: var(--primary); background: #eef2ff; }
+
+        /* Timeline */
+        .timeline { padding: 20px; flex-grow: 1; }
+        .event-card { background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
 
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; align-items: flex-end; z-index: 100; }
@@ -40,21 +36,12 @@
         .action-sheet { width: 100%; max-width: 550px; background: white; border-radius: 20px 20px 0 0; padding: 20px; max-height: 80vh; overflow-y: auto; }
         .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
         .cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
-        .cal-cell.today { border: 2px solid var(--primary); }
-        .cell-day { font-size: 0.8rem; font-weight: bold; }
         .cell-count { font-size: 0.7rem; background: var(--primary); color: white; padding: 2px 6px; border-radius: 10px; margin-top: 2px; }
-
-        /* Timeline */
-        .timeline { padding: 20px; flex-grow: 1; }
-        .event-card { background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .utility-row { display: flex; justify-content: space-between; padding: 10px 20px; }
-        .sheet-btn { width: 100%; padding: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="calendar-container">
-        <!-- Header -->
         <div class="calendar-header">
             <h1 id="current-day">日程管理</h1>
             <div class="quick-nav">
@@ -62,129 +49,127 @@
                 <button class="nav-btn" id="btn-today">今天</button>
                 <button class="nav-btn" id="btn-next">後一天 ▶</button>
             </div>
-            <div class="date-picker-row">
-                <input type="date" id="date-select">
-            </div>
+            <input type="date" id="date-select" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px;">
         </div>
 
-        <!-- Input -->
         <div class="event-form">
             <div class="form-row">
                 <input type="text" id="evt-title" placeholder="輸入行程內容...">
-                <input type="color" id="evt-color" value="#5151e5">
+                <button class="submit-btn" id="add-evt-btn" style="padding: 0 15px;">新增</button>
             </div>
-            <button class="submit-btn" id="add-evt-btn">新增行程</button>
+            <div class="cat-row" id="cat-container"></div>
         </div>
 
-        <!-- Utility -->
-        <div class="utility-row">
-            <button class="sheet-btn" id="btn-month-overview">📅 查看本月行事曆</button>
+        <div style="padding: 10px 20px; display: flex; gap: 8px;">
+            <button class="nav-btn" id="btn-month-overview">📅 查看月曆總覽</button>
+            <button class="nav-btn" onclick="sortEvents('az')">🔤 A-Z</button>
+            <button class="nav-btn" onclick="exportData()">📤 輸出</button>
         </div>
 
-        <!-- Timeline -->
         <div class="timeline" id="timeline-list"></div>
     </div>
 
-    <!-- Modal -->
     <div class="modal-overlay" id="month-calendar-modal">
         <div class="action-sheet">
             <div style="text-align: center; font-weight: bold;" id="month-title"></div>
             <div id="month-calendar-grid" class="month-grid"></div>
-            <button class="sheet-btn" style="margin-top: 20px;" onclick="closeModal()">關閉</button>
+            <button class="submit-btn" style="width:100%; margin-top:20px;" onclick="closeModal()">關閉</button>
         </div>
     </div>
 
     <script>
-        // --- 初始化資料 ---
         let events = JSON.parse(localStorage.getItem('calendar_events')) || [];
+        let categories = ['工作', '生活', '學習', '其他'];
         let currentDate = new Date().toISOString().split('T')[0];
+        let selectedCat = '工作';
 
-        // --- 核心函數 ---
         function renderTimeline() {
             const list = document.getElementById('timeline-list');
             list.innerHTML = '';
-            const dayEvents = events.filter(e => e.date === currentDate);
-            
-            if (dayEvents.length === 0) list.innerHTML = '<div style="text-align:center; color:#64748b;">今日無行程</div>';
-            
-            dayEvents.forEach(evt => {
+            events.filter(e => e.date === currentDate).forEach((evt, idx) => {
                 const div = document.createElement('div');
                 div.className = 'event-card';
-                div.innerHTML = `<span style="font-weight:bold; color:${evt.color}">${evt.title}</span>`;
+                div.innerHTML = `<span>[${evt.cat}] ${evt.title}</span><button onclick="del(${idx})" style="border:none; background:none; color:red;">✕</button>`;
                 list.appendChild(div);
             });
         }
 
-        function updateDateDisplay() {
-            document.getElementById('current-day').innerText = currentDate;
-            document.getElementById('date-select').value = currentDate;
+        function del(idx) {
+            events.splice(idx, 1);
+            localStorage.setItem('calendar_events', JSON.stringify(events));
+            renderTimeline();
         }
 
-        // --- 事件處理 ---
+        function renderCats() {
+            const container = document.getElementById('cat-container');
+            container.innerHTML = '';
+            categories.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = `cat-tag ${selectedCat === c ? 'active' : ''}`;
+                btn.innerText = c;
+                btn.onclick = () => { selectedCat = c; renderCats(); };
+                container.appendChild(btn);
+            });
+        }
+
         document.getElementById('add-evt-btn').addEventListener('click', () => {
             const title = document.getElementById('evt-title').value;
-            const color = document.getElementById('evt-color').value;
-            if(!title) return alert('請輸入內容');
-            
-            events.push({ date: currentDate, title, color });
+            if(!title) return alert('輸入內容');
+            events.push({ date: currentDate, title, cat: selectedCat });
             localStorage.setItem('calendar_events', JSON.stringify(events));
             document.getElementById('evt-title').value = '';
             renderTimeline();
         });
 
-        document.getElementById('date-select').addEventListener('change', (e) => {
-            currentDate = e.target.value;
-            renderTimeline();
-            updateDateDisplay();
-        });
-
-        document.getElementById('btn-prev').addEventListener('click', () => changeDate(-1));
-        document.getElementById('btn-next').addEventListener('click', () => changeDate(1));
-        document.getElementById('btn-today').addEventListener('click', () => { 
-            currentDate = new Date().toISOString().split('T')[0];
-            renderTimeline();
-            updateDateDisplay();
-        });
-
-        function changeDate(offset) {
-            const d = new Date(currentDate);
-            d.setDate(d.getDate() + offset);
+        // 導航與月曆邏輯
+        document.getElementById('btn-prev').onclick = () => changeDate(-1);
+        document.getElementById('btn-next').onclick = () => changeDate(1);
+        document.getElementById('date-select').onchange = (e) => { currentDate = e.target.value; update(); };
+        
+        function changeDate(o) {
+            let d = new Date(currentDate);
+            d.setDate(d.getDate() + o);
             currentDate = d.toISOString().split('T')[0];
-            renderTimeline();
-            updateDateDisplay();
+            update();
         }
 
-        // --- 月曆視窗 ---
+        function update() {
+            document.getElementById('date-select').value = currentDate;
+            document.getElementById('current-day').innerText = currentDate;
+            renderTimeline();
+        }
+
+        function sortEvents(type) {
+            events.sort((a,b) => a.title.localeCompare(b.title));
+            renderTimeline();
+        }
+
+        function exportData() { alert('資料已導出至控制台'); console.log(JSON.stringify(events)); }
+
+        // 月曆模組
         function openModal() { document.getElementById('month-calendar-modal').classList.add('show'); renderGrid(); }
         function closeModal() { document.getElementById('month-calendar-modal').classList.remove('show'); }
-        document.getElementById('btn-month-overview').addEventListener('click', openModal);
+        document.getElementById('btn-month-overview').onclick = openModal;
 
         function renderGrid() {
             const grid = document.getElementById('month-calendar-grid');
             grid.innerHTML = '';
-            const dateObj = new Date(currentDate);
-            const year = dateObj.getFullYear();
-            const month = dateObj.getMonth();
-            document.getElementById('month-title').innerText = `${year}年 ${month + 1}月`;
-            
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            for(let i=0; i<firstDay; i++) grid.appendChild(document.createElement('div'));
-            for(let d=1; d<=daysInMonth; d++) {
-                const str = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const count = events.filter(e => e.date === str).length;
+            const [y, m] = currentDate.split('-').map(Number);
+            document.getElementById('month-title').innerText = `${y}年 ${m}月`;
+            const days = new Date(y, m, 0).getDate();
+            for(let d=1; d<=days; d++) {
+                const str = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const cnt = events.filter(e => e.date === str).length;
                 const cell = document.createElement('div');
                 cell.className = 'cal-cell';
-                cell.innerHTML = `<span class="cell-day">${d}</span>${count > 0 ? `<span class="cell-count">${count}</span>` : ''}`;
-                cell.onclick = () => { currentDate = str; renderTimeline(); updateDateDisplay(); closeModal(); };
+                cell.innerHTML = `<span>${d}</span>${cnt>0 ? `<span class="cell-count">${cnt}</span>` : ''}`;
+                cell.onclick = () => { currentDate = str; update(); closeModal(); };
                 grid.appendChild(cell);
             }
         }
 
-        // 初始執行
-        updateDateDisplay();
-        renderTimeline();
+        update();
+        renderCats();
     </script>
 </body>
 </html>
