@@ -35,7 +35,6 @@
         #btn-today { flex: 1.1; background: var(--primary); color: #fff; border: none; }
         #btn-month { flex: 1.2; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); }
         
-        /* 下拉選單樣式 */
         .theme-select-wrapper { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
         .theme-select-dropdown { font-family: inherit; padding: 5px 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 0.78rem; font-weight: 700; flex-grow: 1; cursor: pointer; }
         
@@ -231,7 +230,7 @@
     <div class="timeline" id="timeline-list"></div>
 </div>
 
-<!-- Modal 區塊 (保持不變) -->
+<!-- Modal 區塊 -->
 <div class="modal-overlay" id="emoji-modal" onclick="closeEmojiModal()">
     <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius:18px;max-height:75vh;margin:auto 12px;">
         <div class="sheet-header"><span class="sheet-title-desc">😀 常用圖示</span></div>
@@ -327,11 +326,9 @@
     let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth();
 
     window.addEventListener('DOMContentLoaded',()=>{
-        // 初始化風格設定
         const themeSelect = document.getElementById('theme-select');
         themeSelect.value = currentTheme;
         setTheme(currentTheme);
-        
         initDateConfig();renderCategorySelectors();renderTimeline();renderQuickJumpBar();
         setupEventListeners();updateSortBtnUI();renderEmojiGrid();
     });
@@ -342,8 +339,6 @@
         currentTheme=t;
         document.body.setAttribute('data-theme',t);
         localStorage.setItem('calendar_theme',t);
-        const s = document.getElementById('theme-select');
-        if(s) s.value = t;
     }
 
     function initDateConfig(){document.getElementById('date-select').value=currentDate;updateDateDisplay()}
@@ -434,7 +429,79 @@
     function openManageModal(){if(categories.length>0)managementActiveCatId=categories[0].id;renderManageTabs();renderManagePanel();document.getElementById('manage-modal').classList.add('show')}
     function closeManageModal(){document.getElementById('manage-modal').classList.remove('show');if(!categories.find(c=>c.id===selectedMainCatId)&&categories.length>0)selectedMainCatId=categories[0].id;renderCategorySelectors()}
     function renderManageTabs(){const c=document.getElementById('manage-tabs-container');c.innerHTML='';categories.forEach(cat=>{const t=document.createElement('button');t.className='manage-tab-item';t.innerText=cat.name;if(cat.id===managementActiveCatId)t.classList.add('active');t.onclick=()=>{managementActiveCatId=cat.id;renderManageTabs();renderManagePanel()};c.appendChild(t)})}
-    function renderManagePanel(){const cat=categories.find(c=>c.id===managementActiveCatId),ct=document.getElementById('manage-categories-list');ct.innerHTML='';if(!cat){ct.innerHTML='<p style="color:var(--text-muted);font-size:0.75rem;">請先新增類別</p>';return}const mi=document.createElement('div');mi.className='manage-list-item';mi.innerHTML='<div class="manage-main-row" style="border-left-color:'+cat.color+';"><div class="left"><span style="font-weight:800;">'+cat.name+'</span><input type="color" value="'+cat.color+'" onchange="updateCatColor(\''+cat.id+'\',this.value)"></div><div class="cat-action-btn-group"><button class="cat-panel-btn cat-btn-edit" onclick="renameCategory(\''+cat.id+'\')">✏️</button><button class="cat-panel-btn cat-btn-del" onclick="deleteCategory(\''+cat.id+'\')">🗑️</button></div></div>';const sb=document.createElement('div');sb.className='manage-sub-box';if(cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach(g=>{const bl=document.createElement('div');bl.className='manage-sub-group-block';bl.innerHTML='<div class="manage-sub-group-header"><span>📁 '+g.title+'</span><div class="group-action-links"><span class="group-link-btn" onclick="renameSubGroup(\''+cat.id+'\',\''+g.id+'\')">改名</span><span class="group-link-btn del" onclick="deleteSubGroup(\''+cat.id+'\',\''+g.id+'\')">刪除</span></div></div>';const sl=document.createElement('div');sl.className='manage-sub-list';g.items.forEach((item,ii)=>{const p=document.createElement('div');p.className='manage-sub-pill';p.innerHTML=item+' <span style="font-size:0.58rem;color:var(--text-muted);" onclick="event.stopPropagation();deleteSubItem(\''+cat.id+'\',\''+g.id+'\','+ii+')">✕</span>';p.onclick=()=>{const nm=prompt('修改子分類：',item);if(nm&&nm.trim()){g.items[ii]=nm.trim();saveToStorage();renderManagePanel();renderCategorySelectors()}};sl.appendChild(p)});const ar=document.createElement('div');ar.style.cssText='display:flex;gap:3px;margin-top:3px;';const ai=document.createElement('input');ai.type='text';ai.placeholder='新子分類...';ai.style.cssText='font-family:inherit;flex:1;padding:2px 5px;border:1px solid var(--border);border-radius:4px;font-size:0.68rem;background:var(--bg-main);color:var(--text-main);';const ab=document.createElement('button');ab.innerText='+';ab.style.cssText='font-family:inherit;background:var(--primary);color:#fff;border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;';ab.onclick=()=>{const v=ai.value.trim();if(v){g.items.push(v);saveToStorage();renderManagePanel();renderCategorySelectors()}};ar.appendChild(ai);ar.appendChild(ab);bl.appendChild(sl);bl.appendChild(ar);sb.appendChild(bl)});const agr=document.createElement('div');agr.style.cssText='display:flex;gap:3px;margin-top:5px;';const agi=document.createElement('input');agi.type='text';agi.placeholder='新子群組名稱...';agi.style.cssText='font-family:inherit;flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:0.7rem;background:var(--bg-main);color:var(--text-main);';const agb=document.createElement('button');agb.innerText='➕ 新增群組';agb.style.cssText='font-family:inherit;background:var(--text-main);color:var(--bg-card);border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:0.7rem;font-weight:700;';agb.onclick=()=>{const v=agi.value.trim();if(v){if(!cat.subGroups)cat.subGroups=[];cat.subGroups.push({id:'g'+Date.now(),title:v,items:[]});saveToStorage();renderManagePanel();renderCategorySelectors()}};agr.appendChild(agi);agr.appendChild(agb);mi.appendChild(sb);mi.appendChild(agr);ct.appendChild(mi)}
+    
+    // --- 新增的排序邏輯 ---
+    function moveCategory(cid, direction) {
+        const idx = categories.findIndex(c => c.id === cid);
+        const newIdx = idx + direction;
+        if (newIdx >= 0 && newIdx < categories.length) {
+            const temp = categories[idx];
+            categories[idx] = categories[newIdx];
+            categories[newIdx] = temp;
+            saveToStorage();
+            renderManageTabs(); 
+            renderManagePanel(); 
+            renderCategorySelectors();
+        }
+    }
+    function moveSubGroup(catId, gid, direction) {
+        const cat = categories.find(c => c.id === catId);
+        if (!cat || !cat.subGroups) return;
+        const idx = cat.subGroups.findIndex(g => g.id === gid);
+        const newIdx = idx + direction;
+        if (newIdx >= 0 && newIdx < cat.subGroups.length) {
+            const temp = cat.subGroups[idx];
+            cat.subGroups[idx] = cat.subGroups[newIdx];
+            cat.subGroups[newIdx] = temp;
+            saveToStorage();
+            renderManagePanel();
+            renderCategorySelectors();
+        }
+    }
+
+    // --- 修改後的管理面板渲染 ---
+    function renderManagePanel(){
+        const cat=categories.find(c=>c.id===managementActiveCatId), ct=document.getElementById('manage-categories-list');
+        ct.innerHTML='';
+        if(!cat){ct.innerHTML='<p style="color:var(--text-muted);font-size:0.75rem;">請先新增類別</p>';return}
+        const catIdx = categories.findIndex(c => c.id === cat.id);
+        const mi=document.createElement('div');mi.className='manage-list-item';
+        mi.innerHTML=`<div class="manage-main-row" style="border-left-color:${cat.color};">
+            <div class="left"><span style="font-weight:800;">${cat.name}</span><input type="color" value="${cat.color}" onchange="updateCatColor('${cat.id}',this.value)"></div>
+            <div class="cat-action-btn-group">
+                <button class="cat-panel-btn cat-btn-edit" onclick="moveCategory('${cat.id}', -1)" ${catIdx === 0 ? 'disabled style="opacity:0.3"' : ''}>▲</button>
+                <button class="cat-panel-btn cat-btn-edit" onclick="moveCategory('${cat.id}', 1)" ${catIdx === categories.length - 1 ? 'disabled style="opacity:0.3"' : ''}>▼</button>
+                <button class="cat-panel-btn cat-btn-edit" onclick="renameCategory('${cat.id}')">✏️</button>
+                <button class="cat-panel-btn cat-btn-del" onclick="deleteCategory('${cat.id}')">🗑️</button>
+            </div>
+        </div>`;
+        const sb=document.createElement('div');sb.className='manage-sub-box';
+        if(cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach((g, gIdx)=>{
+            const bl=document.createElement('div');bl.className='manage-sub-group-block';
+            bl.innerHTML=`<div class="manage-sub-group-header"><span>📁 ${g.title}</span>
+                <div class="group-action-links">
+                    <span class="group-link-btn" onclick="moveSubGroup('${cat.id}','${g.id}', -1)" ${gIdx === 0 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>▲</span>
+                    <span class="group-link-btn" onclick="moveSubGroup('${cat.id}','${g.id}', 1)" ${gIdx === cat.subGroups.length - 1 ? 'style="opacity:0.3;pointer-events:none;"' : ''}>▼</span>
+                    <span class="group-link-btn" onclick="renameSubGroup('${cat.id}','${g.id}')">改名</span>
+                    <span class="group-link-btn del" onclick="deleteSubGroup('${cat.id}','${g.id}')">刪除</span>
+                </div>
+            </div>`;
+            const sl=document.createElement('div');sl.className='manage-sub-list';
+            g.items.forEach((item,ii)=>{
+                const p=document.createElement('div');p.className='manage-sub-pill';p.innerHTML=item+' <span style="font-size:0.58rem;color:var(--text-muted);" onclick="event.stopPropagation();deleteSubItem(\''+cat.id+'\',\''+g.id+'\','+ii+')">✕</span>';
+                p.onclick=()=>{const nm=prompt('修改子分類：',item);if(nm&&nm.trim()){g.items[ii]=nm.trim();saveToStorage();renderManagePanel();renderCategorySelectors()}};sl.appendChild(p);
+            });
+            const ar=document.createElement('div');ar.style.cssText='display:flex;gap:3px;margin-top:3px;';
+            const ai=document.createElement('input');ai.type='text';ai.placeholder='新子分類...';ai.style.cssText='font-family:inherit;flex:1;padding:2px 5px;border:1px solid var(--border);border-radius:4px;font-size:0.68rem;background:var(--bg-main);color:var(--text-main);';
+            const ab=document.createElement('button');ab.innerText='+';ab.style.cssText='font-family:inherit;background:var(--primary);color:#fff;border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;';
+            ab.onclick=()=>{const v=ai.value.trim();if(v){g.items.push(v);saveToStorage();renderManagePanel();renderCategorySelectors()}};ar.appendChild(ai);ar.appendChild(ab);bl.appendChild(sl);bl.appendChild(ar);sb.appendChild(bl);
+        });
+        const agr=document.createElement('div');agr.style.cssText='display:flex;gap:3px;margin-top:5px;';
+        const agi=document.createElement('input');agi.type='text';agi.placeholder='新子群組名稱...';agi.style.cssText='font-family:inherit;flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:0.7rem;background:var(--bg-main);color:var(--text-main);';
+        const agb=document.createElement('button');agb.innerText='➕ 新增群組';agb.style.cssText='font-family:inherit;background:var(--text-main);color:var(--bg-card);border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:0.7rem;font-weight:700;';
+        agb.onclick=()=>{const v=agi.value.trim();if(v){if(!cat.subGroups)cat.subGroups=[];cat.subGroups.push({id:'g'+Date.now(),title:v,items:[]});saveToStorage();renderManagePanel();renderCategorySelectors()}};agr.appendChild(agi);agr.appendChild(agb);mi.appendChild(sb);mi.appendChild(agr);ct.appendChild(mi);
+    }
+
     function updateCatColor(cid,c){const cat=categories.find(x=>x.id===cid);if(cat){cat.color=c;saveToStorage();renderCategorySelectors()}}
     function renameCategory(cid){const cat=categories.find(x=>x.id===cid);if(!cat)return;const n=prompt('修改類別名稱：',cat.name);if(n&&n.trim()){cat.name=n.trim();saveToStorage();renderManageTabs();renderManagePanel();renderCategorySelectors()}}
     function deleteCategory(cid){const cat=categories.find(x=>x.id===cid);if(!cat||!confirm('確定刪除「'+cat.name+'」及其所有子分類？'))return;categories=categories.filter(x=>x.id!==cid);saveToStorage();if(categories.length>0)managementActiveCatId=categories[0].id;else managementActiveCatId='';renderManageTabs();renderManagePanel();renderCategorySelectors()}
@@ -461,10 +528,7 @@
         document.getElementById('add-evt-btn').addEventListener('click',submitEventForm);
         document.getElementById('btn-quick-time').addEventListener('click',insertQuickTime);
         document.getElementById('color-toggle-btn').addEventListener('click',openManageModal);
-        
-        // 綁定下拉選單事件
         document.getElementById('theme-select').addEventListener('change', (e) => setTheme(e.target.value));
-
         document.getElementById('sort-btn-manual').addEventListener('click',()=>setSortMode('manual'));
         document.getElementById('sort-btn-az').addEventListener('click',()=>setSortMode('az'));
         document.getElementById('sort-btn-za').addEventListener('click',()=>setSortMode('za'));
