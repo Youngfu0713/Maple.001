@@ -1368,103 +1368,260 @@
             if (evt) { events.push({...evt, id: 'evt-'+Date.now(), orderIndex: events.filter(e => e.date === currentDate).length}); saveToStorage(); renderTimeline(); closeActionModal(); }
         });
 
-        document.getElementById('modal-btn-category').addEventListener('click', () => { closeAllSheetPanels(); renderModalCategoryGrid(); document.getElementById('modal-category-panel').classList.add('show'); });
-        
-        function renderModalCategoryGrid() {
-            const container = document.getElementById('modal-category-selection-list'); container.innerHTML = '';
-            const evt = events.find(e => e.id === activeTargetEventId); if (!evt) return;
-            categories.forEach(cat => {
-                const wrap = document.createElement('div'); wrap.className = 'sheet-category-item-wrapper';
-                const mr = document.createElement('div'); mr.className = 'sheet-cat-main-row';
-                const isSelected = evt.mainCategoryName === cat.name;
-                mr.style.backgroundColor = isSelected ? cat.color : 'transparent';
-                mr.style.color = isSelected ? getContrastColor(cat.color) : 'var(--text-main)';
-                mr.innerHTML = `<div class="dot" style="background:${cat.color}; border:1px solid #cbd5e1;"></div><span>${cat.name}${isSelected?' (已選)':''}</span>`;
-                mr.onclick = () => { evt.mainCategoryName = cat.name; evt.mainCategoryColor = cat.color; evt.subCategories = []; renderModalCategoryGrid(); };
-                wrap.appendChild(mr);
-                if (cat.subGroups) {
-                    cat.subGroups.forEach(g => {
-                        const sb = document.createElement('div'); sb.className = 'sheet-sub-group-block';
-                        sb.innerHTML = `<div class="sheet-sub-group-title">${g.title}</div>`;
-                        const gr = document.createElement('div'); gr.className = 'sheet-sub-grid-row';
-                        g.items.forEach(it => {
-                            const isA = evt.subCategories && evt.subCategories.includes(it);
-                            const pb = document.createElement('button'); pb.className = `sheet-sub-pill-btn ${isA?'active':''}`; pb.innerText = it;
-                            pb.onclick = () => { if(!evt.subCategories) evt.subCategories = []; if(evt.subCategories.includes(it)) evt.subCategories = evt.subCategories.filter(i => i!==it); else evt.subCategories.push(it); renderModalCategoryGrid(); };
-                            gr.appendChild(pb);
-                        });
-                        sb.appendChild(gr); wrap.appendChild(sb);
-                    });
-                }
-                container.appendChild(wrap);
-            });
-        }
-        document.getElementById('modal-category-submit').addEventListener('click', () => { saveToStorage(); renderTimeline(); closeActionModal(); });
         document.getElementById('modal-btn-delete').addEventListener('click', () => {
-            if(confirm('確定移除此行程？')) { events = events.filter(e => e.id !== activeTargetEventId); saveToStorage(); renderTimeline(); closeActionModal(); }
+            if (activeTargetEventId && confirm('確定要刪除此行程嗎？')) {
+                events = events.filter(e => e.id !== activeTargetEventId);
+                saveToStorage();
+                renderTimeline();
+                closeActionModal();
+            }
         });
 
-        let oMain = "", oSub = "";
-        document.getElementById('btn-cat-overview').addEventListener('click', () => { oMain = categories[0]?.name || ""; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); document.getElementById('overview-modal').classList.add('show'); });
-        function closeOverviewModal() { document.getElementById('overview-modal').classList.remove('show'); }
+        document.getElementById('modal-btn-category').addEventListener('click', () => { 
+            closeAllSheetPanels(); 
+            renderModalCategoryGrid(); 
+            document.getElementById('modal-category-panel').classList.add('show'); 
+        });
         
-        function renderOverviewFilters() {
-            const mr = document.getElementById('overview-main-cat-tabs'); mr.innerHTML = '<strong>主：</strong>';
-            categories.forEach(c => { const b = document.createElement('button'); b.className = `overview-sub-filter-btn ${oMain===c.name?'active':''}`; b.innerText = c.name; b.onclick = () => { oMain = c.name; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); }; mr.appendChild(b); });
-            const sr = document.getElementById('overview-sub-cat-tabs'); sr.innerHTML = '<strong>子：</strong>';
-            const cc = categories.find(c => c.name === oMain);
-            if(cc && cc.subGroups) {
-                const ba = document.createElement('button'); ba.className = `overview-sub-filter-btn ${oSub===""?'active':''}`; ba.innerText="全部"; ba.onclick = () => { oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); }; sr.appendChild(ba);
-                let items = []; cc.subGroups.forEach(g => items.push(...g.items));
-                items.forEach(it => {
-                    const b = document.createElement('button');
-                    b.className = `overview-sub-filter-btn ${oSub===it?'active':''}`;
-                    b.innerText = it;
-                    b.onclick = () => { oSub = it; renderOverviewFilters(); renderOverviewTimeline(); };
-                    sr.appendChild(b);
-                });
-            }
+        function renderModalCategoryGrid() {
+            const evt = events.find(e => e.id === activeTargetEventId);
+            if (!evt) return;
+
+            let tempMainCat = categories.find(c => c.name === evt.mainCategoryName) || categories[0];
+            let tempSubCats = evt.subCategories ? [...evt.subCategories] : [];
+
+            renderModalCategoryGridInternal(tempMainCat ? tempMainCat.id : (categories[0]?.id || ''), tempSubCats);
         }
 
-        function renderOverviewTimeline() {
-            const resContainer = document.getElementById('overview-result-timeline');
-            resContainer.innerHTML = '';
-            
-            let filtered = events.filter(e => e.mainCategoryName === oMain);
-            if (oSub) {
-                filtered = filtered.filter(e => e.subCategories && e.subCategories.includes(oSub));
+        function renderModalCategoryGridInternal(selectedCatId, selectedSubs) {
+            const container = document.getElementById('modal-category-selection-list');
+            container.innerHTML = '';
+            const evt = events.find(e => e.id === activeTargetEventId);
+            if (!evt) return;
+
+            let tempMainCat = categories.find(c => c.id === selectedCatId) || categories[0];
+
+            categories.forEach(cat => {
+                const itemWrapper = document.createElement('div');
+                itemWrapper.className = 'sheet-category-item-wrapper';
+
+                const mainRow = document.createElement('div');
+                mainRow.className = 'sheet-cat-main-row';
+                
+                const isSelected = tempMainCat && tempMainCat.id === cat.id;
+                if (isSelected) mainRow.style.backgroundColor = 'var(--primary-light)';
+                
+                mainRow.innerHTML = `
+                    <span class="dot" style="background-color: ${cat.color};"></span>
+                    <span style="flex-grow: 1; color: var(--text-main);">${cat.name}</span>
+                    <span style="color: var(--primary); font-weight: bold;">${isSelected ? '✓' : ''}</span>
+                `;
+
+                mainRow.onclick = () => {
+                    renderModalCategoryGridInternal(cat.id, selectedSubs);
+                };
+
+                itemWrapper.appendChild(mainRow);
+
+                if (cat.subGroups && cat.subGroups.length > 0) {
+                    cat.subGroups.forEach(group => {
+                        const subBlock = document.createElement('div');
+                        subBlock.className = 'sheet-sub-group-block';
+
+                        const groupTitle = document.createElement('div');
+                        groupTitle.className = 'sheet-sub-group-title';
+                        groupTitle.innerText = group.title;
+                        subBlock.appendChild(groupTitle);
+
+                        const pillsRow = document.createElement('div');
+                        pillsRow.className = 'sheet-sub-grid-row';
+
+                        group.items.forEach(subItem => {
+                            const pill = document.createElement('button');
+                            const active = selectedSubs.includes(subItem);
+                            pill.className = `sheet-sub-pill-btn ${active ? 'active' : ''}`;
+                            pill.innerText = subItem;
+                            pill.onclick = (e) => {
+                                e.stopPropagation();
+                                if (selectedSubs.includes(subItem)) {
+                                    const idx = selectedSubs.indexOf(subItem);
+                                    if (idx > -1) selectedSubs.splice(idx, 1);
+                                } else {
+                                    selectedSubs.push(subItem);
+                                }
+                                renderModalCategoryGridInternal(tempMainCat.id, selectedSubs);
+                            };
+                            pillsRow.appendChild(pill);
+                        });
+
+                        subBlock.appendChild(pillsRow);
+                        itemWrapper.appendChild(subBlock);
+                    });
+                }
+
+                container.appendChild(itemWrapper);
+            });
+
+            document.getElementById('modal-category-submit').onclick = () => {
+                if (evt) {
+                    evt.mainCategoryName = tempMainCat ? tempMainCat.name : '';
+                    evt.mainCategoryColor = tempMainCat ? tempMainCat.color : '#5151e5';
+                    evt.subCategories = [...selectedSubs];
+                    saveToStorage();
+                    renderTimeline();
+                    closeActionModal();
+                }
+            };
+        }
+
+        /* --- 分類總覽模組邏輯 --- */
+        let overviewSelectedMainCat = 'ALL';
+        let overviewSelectedSubCat = 'ALL';
+
+        document.getElementById('btn-cat-overview').addEventListener('click', openOverviewModal);
+
+        function openOverviewModal() {
+            overviewSelectedMainCat = 'ALL';
+            overviewSelectedSubCat = 'ALL';
+            renderOverviewFilterTabs();
+            renderOverviewResults();
+            document.getElementById('overview-modal').classList.add('show');
+        }
+
+        function closeOverviewModal() {
+            document.getElementById('overview-modal').classList.remove('show');
+        }
+
+        function renderOverviewFilterTabs() {
+            const mainTabs = document.getElementById('overview-main-cat-tabs');
+            mainTabs.innerHTML = '';
+
+            const allMainBtn = document.createElement('button');
+            allMainBtn.className = `overview-sub-filter-btn ${overviewSelectedMainCat === 'ALL' ? 'active' : ''}`;
+            allMainBtn.innerText = '全部主類別';
+            allMainBtn.onclick = () => {
+                overviewSelectedMainCat = 'ALL';
+                overviewSelectedSubCat = 'ALL';
+                renderOverviewFilterTabs();
+                renderOverviewResults();
+            };
+            mainTabs.appendChild(allMainBtn);
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `overview-sub-filter-btn ${overviewSelectedMainCat === cat.id ? 'active' : ''}`;
+                btn.innerText = cat.name;
+                btn.onclick = () => {
+                    overviewSelectedMainCat = cat.id;
+                    overviewSelectedSubCat = 'ALL';
+                    renderOverviewFilterTabs();
+                    renderOverviewResults();
+                };
+                mainTabs.appendChild(btn);
+            });
+
+            const subTabs = document.getElementById('overview-sub-cat-tabs');
+            subTabs.innerHTML = '';
+
+            const allSubBtn = document.createElement('button');
+            allSubBtn.className = `overview-sub-filter-btn ${overviewSelectedSubCat === 'ALL' ? 'active' : ''}`;
+            allSubBtn.innerText = '全部子標籤';
+            allSubBtn.onclick = () => {
+                overviewSelectedSubCat = 'ALL';
+                renderOverviewFilterTabs();
+                renderOverviewResults();
+            };
+            subTabs.appendChild(allSubBtn);
+
+            let availableSubCats = new Set();
+            if (overviewSelectedMainCat === 'ALL') {
+                categories.forEach(c => c.subGroups?.forEach(g => g.items?.forEach(i => availableSubCats.add(i))));
+            } else {
+                const targetCat = categories.find(c => c.id === overviewSelectedMainCat);
+                targetCat?.subGroups?.forEach(g => g.items?.forEach(i => availableSubCats.add(i)));
             }
-            
+
+            availableSubCats.forEach(sub => {
+                const btn = document.createElement('button');
+                btn.className = `overview-sub-filter-btn ${overviewSelectedSubCat === sub ? 'active' : ''}`;
+                btn.innerText = sub;
+                btn.onclick = () => {
+                    overviewSelectedSubCat = sub;
+                    renderOverviewFilterTabs();
+                    renderOverviewResults();
+                };
+                subTabs.appendChild(btn);
+            });
+        }
+
+        function renderOverviewResults() {
+            const container = document.getElementById('overview-result-timeline');
+            container.innerHTML = '';
+
+            let filtered = events.filter(evt => {
+                if (overviewSelectedMainCat !== 'ALL') {
+                    const cat = categories.find(c => c.id === overviewSelectedMainCat);
+                    if (cat && evt.mainCategoryName !== cat.name) return false;
+                }
+                if (overviewSelectedSubCat !== 'ALL') {
+                    if (!evt.subCategories || !evt.subCategories.includes(overviewSelectedSubCat)) return false;
+                }
+                return true;
+            });
+
             if (filtered.length === 0) {
-                resContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.85rem;">無符合條件的行程記錄</div>';
+                container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">尚無符合條件的行程記錄</div>';
                 return;
             }
 
-            const groups = {};
-            filtered.forEach(e => {
-                if (!groups[e.date]) groups[e.date] = [];
-                groups[e.date].push(e);
+            const grouped = {};
+            filtered.forEach(evt => {
+                if (!grouped[evt.date]) grouped[evt.date] = [];
+                grouped[evt.date].push(evt);
             });
 
-            const dates = Object.keys(groups).sort().reverse();
-            dates.forEach(d => {
-                const sec = document.createElement('div');
-                sec.className = 'cat-group-section';
-                sec.innerHTML = `<span class="cat-group-date-label">📅 ${d}</span>`;
-                
-                groups[d].forEach(evt => {
+            const sortedDates = Object.keys(grouped).sort().reverse();
+
+            sortedDates.forEach(d => {
+                const section = document.createElement('div');
+                section.className = 'cat-group-section';
+
+                const dateLabel = document.createElement('div');
+                dateLabel.className = 'cat-group-date-label';
+                dateLabel.innerText = d;
+                section.appendChild(dateLabel);
+
+                grouped[d].forEach(evt => {
                     const card = document.createElement('div');
                     card.className = 'cat-group-mini-card';
-                    let subText = (evt.subCategories && evt.subCategories.length > 0) ? `<span style="font-size:0.72rem; color:var(--text-muted);">${evt.subCategories.join('/')}</span>` : '';
-                    card.innerHTML = `
-                        <div class="cat-group-mini-title-row">
-                            <p class="cat-group-mini-title" style="color: ${evt.fontColor || 'inherit'};">${evt.title}</p>
-                        </div>
-                        ${subText}
-                    `;
-                    sec.appendChild(card);
+
+                    const titleRow = document.createElement('div');
+                    titleRow.className = 'cat-group-mini-title-row';
+
+                    const pTitle = document.createElement('p');
+                    pTitle.className = 'cat-group-mini-title';
+                    pTitle.style.color = evt.fontColor || 'var(--text-main)';
+
+                    let textHtml = '';
+                    if (evt.mainCategoryName) {
+                        textHtml += `<span class="prefix-badge-main" style="color: ${evt.mainCategoryColor || 'var(--primary)'}">[${evt.mainCategoryName}]</span> `;
+                    }
+                    textHtml += evt.title;
+                    pTitle.innerHTML = textHtml;
+                    titleRow.appendChild(pTitle);
+
+                    if (evt.subCategories && evt.subCategories.length > 0) {
+                        const subRow = document.createElement('div');
+                        subRow.className = 'sub-pills-text-row';
+                        subRow.innerText = evt.subCategories.join('/');
+                        titleRow.appendChild(subRow);
+                    }
+
+                    card.appendChild(titleRow);
+                    section.appendChild(card);
                 });
-                resContainer.appendChild(sec);
+
+                container.appendChild(section);
             });
         }
     </script>
