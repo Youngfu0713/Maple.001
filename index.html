@@ -87,6 +87,38 @@
             border-color: var(--primary);
         }
 
+        /* --- Emoji 符號面板專用樣式 --- */
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            padding: 10px 0;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .emoji-item-btn {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .emoji-item-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: scale(1.08);
+        }
+        .emoji-item-btn:active {
+            transform: scale(0.92);
+        }
+
         .event-form { padding: 14px 20px; background: #ffffff; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
         .form-row { display: flex; gap: 8px; }
         .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: #f8fafc; outline: none; transition: border 0.2s, box-shadow 0.2s; }
@@ -329,9 +361,16 @@
             <!-- 行程快速跳轉定位按鈕列 -->
             <div class="quick-jump-bar" id="quick-jump-bar">
                 <span class="quick-jump-title">📍 跳轉：</span>
-                <!-- 新增：跳轉至請輸入重要事項按鈕 -->
+                <!-- 跳轉至請輸入重要事項按鈕 -->
                 <button class="quick-jump-btn jump-to-input-btn" id="btn-jump-to-input">✏️ 請輸入重要事項</button>
                 <div class="quick-jump-list" id="quick-jump-list"></div>
+            </div>
+
+            <!-- 新增：跳轉下方 Emoji 彈出窗觸發按鈕列 -->
+            <div style="margin-top: 6px;">
+                <button class="quick-jump-btn" id="btn-toggle-emoji-modal" style="background: #ffffff; border-color: var(--primary); color: var(--primary); font-weight: 800; width: 100%; padding: 6px 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+                    😃 選擇符號 / Emoji 彈出窗
+                </button>
             </div>
         </div>
 
@@ -377,6 +416,20 @@
         </div>
 
         <div class="timeline" id="timeline-list"></div>
+    </div>
+
+    <!-- Emoji / 圖示選擇彈出視窗 -->
+    <div class="modal-overlay" id="emoji-modal" onclick="closeEmojiModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius: 20px; max-height: 80vh; margin: auto 15px;">
+            <div class="sheet-header">
+                <span class="sheet-title-desc">😀 常用圖示與符號選擇器</span>
+                <p class="sheet-event-title" style="font-size: 0.95rem;">點擊符號即可新增至「重要事項」輸入框</p>
+            </div>
+            
+            <div class="emoji-grid" id="emoji-grid-container"></div>
+
+            <button class="sheet-close-btn" onclick="closeEmojiModal()">關閉選單</button>
+        </div>
     </div>
 
     <!-- 月視圖彈出模組 (Month Modal) -->
@@ -524,6 +577,15 @@
             }
         ];
 
+        /* 圖片中所有符號與圖示清單 */
+        const customEmojiList = [
+            '✅', '✔️', '☑️', '🔘', '⚪', '➕',
+            '➖', '⭕', '❌', '🙆‍♀️', '🙅‍♀️', '🙆‍♂️',
+            '🙅‍♂️', '☑️', '☒', '☐', '■', '□',
+            '✕', '✓', '✔', '✖', '✗', '✘',
+            '×', '●', '○', 'ⓧ', '★', '☆'
+        ];
+
         let selectedMainCatId = categories[0]?.id || "";
         let managementActiveCatId = categories[0]?.id || ""; 
         let selectedSubItems = []; 
@@ -540,6 +602,7 @@
             renderTimeline();
             setupEventListeners();
             updateSortBtnUI();
+            renderEmojiGrid();
         });
 
         function initDateConfig() {
@@ -567,6 +630,49 @@
             const b = parseInt(hex.substr(4, 2), 16);
             const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             return (yiq >= 145) ? '#1e293b' : '#f8fafc';
+        }
+
+        /* 渲染 Emoji 圖示格線 */
+        function renderEmojiGrid() {
+            const container = document.getElementById('emoji-grid-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            customEmojiList.forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.className = 'emoji-item-btn';
+                btn.innerText = emoji;
+                btn.onclick = () => insertEmojiToInput(emoji);
+                container.appendChild(btn);
+            });
+        }
+
+        /* 插入點選的 Emoji 至輸入框游標處或結尾 */
+        function insertEmojiToInput(emoji) {
+            const input = document.getElementById('evt-title');
+            if (!input) return;
+
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const currentVal = input.value;
+
+            input.value = currentVal.substring(0, start) + emoji + currentVal.substring(end);
+            
+            // 重新定位游標於新增圖示之後
+            const newPos = start + emoji.length;
+            input.focus();
+            input.setSelectionRange(newPos, newPos);
+
+            // 滾動並突顯輸入框
+            jumpToInputTitle();
+        }
+
+        function openEmojiModal() {
+            document.getElementById('emoji-modal').classList.add('show');
+        }
+
+        function closeEmojiModal() {
+            document.getElementById('emoji-modal').classList.remove('show');
         }
 
         document.getElementById('btn-quick-time').addEventListener('click', () => {
@@ -1184,6 +1290,9 @@
             /* 綁定跳轉至輸入框事件 */
             document.getElementById('btn-jump-to-input').addEventListener('click', jumpToInputTitle);
 
+            /* 綁定開啟 Emoji 彈出窗事件 */
+            document.getElementById('btn-toggle-emoji-modal').addEventListener('click', openEmojiModal);
+
             document.getElementById('color-toggle-btn').addEventListener('click', openManageModal);
             document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
             document.getElementById('new-cat-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewMainCategory(); } });
@@ -1203,4 +1312,3 @@
     </script>
 </body>
 </html>
-
