@@ -1,920 +1,1473 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人行程排程與類別管理系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>個人日程管理系統 - 標籤管理優化版</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
-        :root {
-            --primary: #7b61ff;
-            --primary-light: #f0ecff;
-            --bg-main: #fcf9f6;
-            --card-bg: #ffffff;
-            --text-main: #2c3e50;
-            --text-muted: #8a99ad;
-            --border-color: #f0edeb;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
-            --radius-md: 14px;
-            --radius-lg: 20px;
+        @font-face {
+            font-family: 'MiaoFont';
+            src: url('Miao.ttf') format('truetype');
+            font-weight: normal; font-style: normal; font-display: swap;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        :root {
+            --primary: #5151e5;
+            --primary-hover: #3d3dbd;
+            --primary-light: #eef2ff;
+            --bg-main: #fcfbfa; 
+            --bg-card: #ffffff;
+            --text-main: #1e293b; 
+            --text-muted: #64748b;
+            --border: #f1f5f9;
+            --border-hover: #cbd5e1;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+        }
+
+        /* --- 風格主題定義 --- */
+        body[data-theme="macaron"] {
+            --primary: #f07b95;
+            --primary-hover: #d85c78;
+            --primary-light: #fff0f3;
+            --bg-main: #faf6f0;
+            --bg-card: #ffffff;
+            --text-main: #4a3e3d;
+            --text-muted: #8c7a78;
+            --border: #f3e5df;
+            --border-hover: #e6c2b8;
+        }
+
+        body[data-theme="dark"] {
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+            --primary-light: #1e1b4b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --border-hover: #475569;
+        }
+
+        body[data-theme="nordic"] {
+            --primary: #0d9488;
+            --primary-hover: #0f766e;
+            --primary-light: #ccfbf1;
+            --bg-main: #f4f7f6;
+            --bg-card: #ffffff;
+            --text-main: #132a2f;
+            --text-muted: #52796f;
+            --border: #e0e7e5;
+            --border-hover: #b2c9c2;
         }
 
         body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 16px;
+            font-family: "MiaoFont", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0;
+            display: flex; justify-content: center; overscroll-behavior-y: contain; -webkit-font-smoothing: antialiased;
+            transition: background-color 0.25s, color 0.25s;
         }
 
-        .app-container {
+        .calendar-container {
+            width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh;
+            box-shadow: var(--shadow-md); display: flex; flex-direction: column; position: relative;
+        }
+
+        .calendar-header { padding: 16px 20px 10px 20px; background: var(--bg-card); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
+        .calendar-header h1 { margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 800; text-align: center; }
+        .quick-nav { display: flex; gap: 6px; margin-bottom: 8px; }
+        .nav-btn { font-family: inherit; padding: 8px 10px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; text-align: center; -webkit-tap-highlight-color: transparent; }
+        #btn-today { flex: 1.1; background: var(--primary); color: white; border: none; font-weight: 800; }
+        #btn-month { flex: 1.2; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); font-weight: 800; }
+
+        /* --- 跳轉日期列 --- */
+        .date-picker-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            gap: 8px; 
+            padding: 2px 0; 
+        }
+        .date-picker-row::-webkit-scrollbar, .quick-jump-list::-webkit-scrollbar { display: none; }
+        .date-picker-label-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 0.78rem; color: var(--text-muted); }
+        .date-picker-row input[type="date"] { font-family: inherit; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted); background: var(--bg-main); }
+
+        /* --- 行程快速跳轉 --- */
+        .quick-jump-bar { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            margin-top: 6px;
             width: 100%;
-            max-width: 480px;
-            background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-            height: calc(100vh - 32px);
+            min-width: 0; 
         }
+        .quick-jump-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+        .quick-jump-list { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; flex-grow: 1; }
+        .quick-jump-btn { font-family: inherit; font-size: 0.73rem; font-weight: 700; padding: 3px 8px; border-radius: 14px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-main); white-space: nowrap; cursor: pointer; transition: all 0.2s; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+        .quick-jump-btn:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
-        /* --- 頂部導覽區 --- */
-        .app-header {
-            padding: 16px 20px;
-            background: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 10;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-icon-text {
+        /* 輸入框專用跳轉按鈕樣式 */
+        .jump-to-input-btn {
             background: var(--primary-light);
             color: var(--primary);
-            border: none;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .btn-icon-text:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .btn-add {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .date-nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #f8f7fb;
-            padding: 6px 12px;
-            border-radius: 12px;
-        }
-
-        .date-nav button {
-            background: none;
-            border: none;
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-
-        .date-display {
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-
-        /* --- 行程時間軸區 --- */
-        .timeline-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .event-card {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-left: 5px solid var(--primary);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
-            box-shadow: var(--shadow-sm);
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .event-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-        }
-
-        .event-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .event-time {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .event-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .event-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 4px;
-        }
-
-        .main-tag {
-            font-size: 0.75rem;
+            border: 1px solid var(--border-hover);
             font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 6px;
-            background: var(--primary-light);
-            color: var(--primary);
+            flex-shrink: 0;
         }
-
-        .sub-tag {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            background: #f1f3f5;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-
-        /* --- 彈出視窗（Modal）通用樣式 --- */
-        .modal-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            z-index: 100;
-        }
-
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-sheet {
-            width: 100%;
-            max-height: 85%;
-            background: #ffffff;
-            border-radius: 24px 24px 0 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow-y: auto;
-        }
-
-        .modal-overlay.show .modal-sheet {
-            transform: translateY(0);
-        }
-
-        .sheet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .sheet-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-        }
-
-        .sheet-close {
-            background: #f1f3f5;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            font-weight: bold;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-
-        /* --- 分類選擇列表樣式 --- */
-        .sheet-category-item-wrapper {
-            background: #fcfbfe;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .sheet-cat-main-row {
-            padding: 12px 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: background 0.2s;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .sheet-sub-group-block {
-            padding: 8px 14px 12px 14px;
-            background: #ffffff;
-            border-top: 1px dashed var(--border-color);
-        }
-
-        .sheet-sub-group-title {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .sheet-sub-grid-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .sheet-sub-pill-btn {
-            border: 1px solid var(--border-color);
-            background: #ffffff;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--text-main);
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-
-        .sheet-sub-pill-btn.active {
+        .jump-to-input-btn:hover {
             background: var(--primary);
             color: #ffffff;
             border-color: var(--primary);
         }
 
-        .modal-actions-row {
+        /* --- Emoji 符號面板專用樣式 --- */
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            padding: 10px 0;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .emoji-item-btn {
+            aspect-ratio: 1;
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .btn-flex-1 {
-            flex: 1;
-            padding: 12px;
-            border-radius: var(--radius-md);
-            font-weight: 700;
-            border: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius-sm);
             cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .emoji-item-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: scale(1.08);
+        }
+        .emoji-item-btn:active {
+            transform: scale(0.92);
         }
 
-        .btn-save {
-            background: var(--primary);
-            color: #ffffff;
-        }
+        .event-form { padding: 14px 20px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        .form-row { display: flex; gap: 8px; }
+        .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: var(--bg-main); color: var(--text-main); outline: none; transition: border 0.2s, box-shadow 0.2s; }
 
-        .btn-delete {
-            background: #ffe3e3;
-            color: #e03131;
-        }
+        .color-control-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .font-color-picker-container { display: flex; align-items: center; gap: 8px; background: var(--bg-main); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+        .font-color-picker-container input[type="color"] { border: none; width: 24px; height: 24px; background: none; padding: 0; cursor: pointer; }
+        .inline-overview-btn { font-family: inherit; padding: 8px 14px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-        /* --- 類別總覽（Overview Modal）樣式 --- */
-        .overview-filter-group {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 6px;
-            scrollbar-width: none;
-        }
+        .category-selector-container { display: flex; flex-direction: column; gap: 8px; }
+        .cat-row-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .cat-label-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); min-width: 45px; }
+        
+        .cat-tag-btn { font-family: inherit; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 2px solid transparent; cursor: pointer; opacity: 0.45; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+        .cat-tag-btn.active { opacity: 1; border-color: rgba(30, 41, 59, 0.7); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1); }
+        .color-edit-toggle { font-family: inherit; padding: 5px 10px; border-radius: 20px; background: var(--bg-main); border: 1px solid var(--border); font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-        .overview-filter-group::-webkit-scrollbar {
-            display: none;
-        }
+        .sub-cat-container-box { display: none; background: var(--bg-main); padding: 12px; border-radius: var(--radius-md); border: 1px dashed var(--border-hover); }
+        .sub-cat-container-box.active { display: block; }
+        .sub-cat-group-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; border-bottom: 1px dashed var(--border-hover); padding-bottom: 8px; }
+        .sub-cat-group-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .sub-cat-group-title { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+        .sub-cat-group-title::before { content: ''; display: inline-block; width: 4px; height: 10px; background: var(--text-muted); border-radius: 2px; }
+        .sub-cat-pills-list { display: flex; gap: 5px; flex-wrap: wrap; }
+        .sub-cat-tag-btn { font-family: inherit; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sub-cat-tag-btn.active { background: var(--text-main); color: var(--bg-card); border-color: var(--text-main); font-weight: 800; }
 
-        .overview-sub-filter-btn {
-            white-space: nowrap;
-            background: #f1f3f5;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-        }
+        .manage-tabs-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; border-bottom: 2px solid var(--border); margin-bottom: 10px; }
+        .manage-tab-item { font-family: inherit; padding: 6px 12px; font-size: 0.82rem; font-weight: 800; border-radius: 6px 6px 0 0; border: 1px solid transparent; background: var(--bg-main); color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .manage-tab-item.active { background: var(--bg-card); border-color: var(--border) var(--border) transparent var(--border); color: var(--text-main); position: relative; }
+        .manage-tab-item.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--bg-card); }
 
-        .overview-sub-filter-btn.active {
-            background: var(--primary);
-            color: #ffffff;
-        }
+        .category-manage-panel { display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 4px; }
+        .manage-list-item { display: flex; flex-direction: column; background: var(--bg-card); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); gap: 8px; box-shadow: var(--shadow-sm); }
+        .manage-main-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-main); padding: 8px; border-radius: var(--radius-sm); border-left: 4px solid var(--primary); }
+        .manage-list-item .left { display: flex; align-items: center; gap: 8px; }
+        .manage-list-item input[type="color"] { border: none; width: 28px; height: 24px; background: none; padding: 0; cursor: pointer; }
+        
+        .sort-action-group { display: flex; gap: 2px; align-items: center; }
+        .mini-sort-btn { background: var(--bg-main); border: 1px solid var(--border-hover); color: var(--text-main); width: 24px; height: 24px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+        .mini-sort-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .cat-group-section {
-            margin-bottom: 16px;
-        }
+        .cat-action-btn-group { display: flex; gap: 4px; }
+        .cat-panel-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; }
+        .cat-btn-edit { background: var(--border-hover); color: var(--text-main); }
+        .cat-btn-del { background: #fee2e2; color: #ef4444; }
 
-        .cat-group-date-label {
-            font-size: 0.82rem;
+        .manage-sub-box { background: var(--bg-card); border-radius: var(--radius-sm); padding: 4px 0; display: flex; flex-direction: column; gap: 8px; }
+        .manage-sub-group-block { background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .manage-sub-group-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-weight: 800; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+        
+        .group-action-links { display: flex; gap: 6px; font-size: 0.68rem; color: var(--text-muted); }
+        .group-link-btn { cursor: pointer; font-weight: 800; }
+        .group-link-btn.del { color: #ef4444; }
+        
+        .manage-sub-list { display: flex; flex-wrap: wrap; gap: 5px; }
+        .manage-sub-pill { font-size: 0.72rem; font-weight: 700; background: var(--bg-main); border: 1px solid var(--border-hover); padding: 4px 8px; border-radius: 20px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; color: var(--text-main); }
+        .manage-sub-pill:hover { background: var(--primary-light); color: var(--primary); }
+        
+        .sub-add-inline-form { display: flex; gap: 4px; margin-top: 4px; }
+        .sub-add-inline-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; background: var(--bg-main); color: var(--text-main); }
+        .sub-add-inline-form button { font-family: inherit; background: var(--text-muted); color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .group-add-form { display: flex; gap: 6px; margin-top: 6px; border-top: 1px dashed var(--border-hover); padding-top: 6px; }
+        .group-add-form input[type="text"] { font-family: inherit; flex: 1; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.75rem; background: var(--bg-main); color: var(--text-main); }
+        .group-add-form button { font-family: inherit; background: var(--text-main); color: var(--bg-card); border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .add-new-cat-row { display: flex; gap: 6px; margin-top: 8px; border-top: 2px solid var(--border-hover); padding-top: 10px; align-items: center; }
+        .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; background: var(--bg-main); color: var(--text-main); }
+        .add-new-cat-row input[type="color"] { border: none; width: 30px; height: 30px; background: none; padding: 0; cursor: pointer; }
+        .add-cat-submit-btn { font-family: inherit; background: var(--text-main); color: var(--bg-card); border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        .utility-control-bar { padding: 12px 20px 10px 20px; background: var(--bg-main); display: flex; flex-direction: column; gap: 8px; }
+        .utility-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .sort-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
+        .sort-select-wrapper { display: flex; gap: 4px; }
+        .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sort-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+        .export-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+        .pdf-export-btn { font-family: inherit; padding: 8px 12px; background: var(--bg-card); color: #ef4444; border: 1px solid #fca5a5; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
+        .img-export-btn { font-family: inherit; padding: 8px 12px; background: var(--bg-card); color: #10b981; border: 1px solid #a7f3d0; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: var(--shadow-sm); -webkit-tap-highlight-color: transparent; }
+
+        /* 高亮定位動畫 */
+        @keyframes pulse-highlight {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(81, 81, 229, 0); }
+            50% { transform: scale(1.02); box-shadow: 0 0 14px rgba(81, 81, 229, 0.45); border: 2px solid var(--primary); }
+            100% { transform: scale(1); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04); }
+        }
+        .card-highlight { animation: pulse-highlight 1.2s ease-in-out; }
+
+        .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; position: relative; background: var(--bg-main); min-height: 300px; }
+        .no-events { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 0.85rem; font-weight: 600; }
+        .event-card { border: 1px solid transparent; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: var(--bg-card); transition: transform 0.2s, box-shadow 0.2s; -webkit-tap-highlight-color: transparent; }
+        .event-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        
+        .event-text-line { font-size: 0.92rem; font-weight: 700; margin: 0; line-height: 1.5; word-break: break-all; }
+        .prefix-badge-main { font-weight: 900; margin-right: 2px; }
+        .prefix-badge-time { font-weight: 900; color: var(--text-muted); background: var(--bg-main); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border-hover); margin-right: 4px; font-size: 0.85rem; }
+        .sub-pills-text-row { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; margin-top: 2px; word-break: break-all; }
+
+        .manual-move-actions { display: flex; gap: 2px; }
+        .move-step-btn { border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .action-sheet { font-family: inherit; width: 100%; max-width: 550px; background: var(--bg-card); color: var(--text-main); border-radius: 20px 20px 0 0; padding: 24px 20px 34px 20px; box-shadow: 0 -15px 40px rgba(15, 23, 42, 0.12); transform: translateY(100%); transition: transform 0.32s ease-out; display: flex; flex-direction: column; gap: 16px; max-height: 85vh; overflow-y: auto; }
+        .modal-overlay.show .action-sheet { transform: translateY(0); }
+        .sheet-drag-indicator { width: 40px; height: 5px; background-color: var(--border-hover); border-radius: 3px; align-self: center; }
+        .sheet-header { display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+        .sheet-title-desc { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; }
+        .sheet-event-title { font-size: 1.05rem; font-weight: 800; margin: 0; }
+        .sheet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .sheet-btn { font-family: inherit; background-color: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-main); font-weight: 800; font-size: 0.88rem; -webkit-tap-highlight-color: transparent; }
+        .sheet-btn.danger-btn { grid-column: span 2; }
+        
+        .sheet-edit-panel, .sheet-move-date-panel, .sheet-category-panel, .sheet-tag-action-panel { display: none; background: var(--bg-main); border: 1px solid var(--border-hover); border-radius: var(--radius-lg); padding: 16px; flex-direction: column; gap: 10px; }
+        .sheet-edit-panel.show, .sheet-move-date-panel.show, .sheet-category-panel.show, .sheet-tag-action-panel.show { display: flex; }
+        .sheet-edit-panel input[type="text"], .sheet-move-date-panel input[type="date"], .sheet-tag-action-panel input[type="text"] { font-family: inherit; padding: 10px; border: 1px solid var(--border-hover); border-radius: var(--radius-md); font-size: 0.9rem; outline: none; background: var(--bg-card); color: var(--text-main); }
+        
+        .sheet-category-grid { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+        .sheet-category-item-wrapper { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); -webkit-tap-highlight-color: transparent; }
+        .sheet-cat-main-row .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .sheet-sub-group-block { display: flex; flex-direction: column; gap: 4px; padding-left: 14px; border-left: 2px solid var(--border-hover); }
+        .sheet-sub-group-title { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); }
+        .sheet-sub-grid-row { display: flex; flex-wrap: wrap; gap: 4px; }
+        .sheet-sub-pill-btn { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: var(--bg-main); border: 1px solid var(--border-hover); color: var(--text-main); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sheet-sub-pill-btn.active { background: var(--text-main); color: var(--bg-card); border-color: var(--text-main); }
+        
+        .sheet-panel-submit { font-family: inherit; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-size: 0.88rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .sheet-panel-submit.danger { background: #ef4444; }
+        .sheet-close-btn { font-family: inherit; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 10px; border-radius: var(--radius-md); text-align: center; -webkit-tap-highlight-color: transparent; }
+
+        .modal-overview-sub-filter-row { display: flex; gap: 6px; flex-wrap: wrap; background: var(--bg-main); padding: 10px; border-radius: var(--radius-md); margin-bottom: 12px; align-items: center; }
+        .overview-sub-filter-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .overview-sub-filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .cat-group-section { margin-bottom: 14px; }
+        .cat-group-date-label { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); background: var(--bg-main); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; }
+        .cat-group-mini-card { background: var(--bg-card); border: 1px solid var(--border); padding: 10px 12px; margin-bottom: 5px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 4px; }
+        .cat-group-mini-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .cat-group-mini-title { font-size: 0.9rem; font-weight: 700; margin: 0; width: 100%; }
+
+        .month-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            padding: 8px 0;
+            text-align: center;
+        }
+        .month-day-header {
+            font-size: 0.75rem;
             font-weight: 800;
             color: var(--text-muted);
-            margin-bottom: 6px;
-            display: block;
+            padding: 6px 0;
         }
-
-        .cat-group-mini-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
+        .month-day-cell {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 6px 2px;
+            min-height: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
             cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .month-day-cell:hover {
+            background: var(--primary-light);
+        }
+        .month-day-cell.other-month {
+            opacity: 0.3;
+            background: transparent;
+        }
+        .month-day-cell.is-today {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .month-day-cell.is-selected {
+            outline: 2px solid var(--primary);
+            background: var(--bg-card);
+        }
+        .month-day-number {
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .month-event-count {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: white;
+            background: var(--primary);
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 14px;
+            margin-top: 2px;
+            line-height: 1;
         }
 
-        .cat-group-mini-title {
-            font-size: 0.9rem;
-            font-weight: 700;
+        .print-header { display: none; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 12px; }
+        .print-header h1 { margin: 0; font-size: 1.4rem; color: #1e293b; }
+
+        @media print {
+            body { background: white; color: black; }
+            .calendar-container { width: 100%; max-width: 100%; box-shadow: none; }
+            .calendar-header, .event-form, .utility-control-bar, .manual-move-actions, .modal-overlay { display: none !important; }
+            .timeline { padding: 0; background: white; }
+            .event-card { border: 1px solid #e2e8f0; background: white; page-break-inside: avoid; }
+            .print-header { display: block !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- 頁首與導覽區 -->
-        <header class="app-header">
-            <div class="header-top">
-                <h1 class="header-title">📅 排程筆記</h1>
-                <div class="header-actions">
-                    <button class="btn-icon-text" id="btn-cat-overview">🔍 總覽</button>
-                    <button class="btn-icon-text btn-add" id="btn-add-event">＋ 新增</button>
+    <div class="calendar-container">
+        <div class="print-header" id="print-header-area">
+            <h1 id="print-date-title">日程安排表</h1>
+            <p>輸出時間：<span id="print-timestamp"></span></p>
+        </div>
+
+        <div class="calendar-header">
+            <h1 id="current-day">日程管理</h1>
+            <div class="quick-nav">
+                <button class="nav-btn" id="btn-prev">◀ 前一天</button>
+                <button class="nav-btn" id="btn-today">今天</button>
+                <button class="nav-btn" id="btn-month">📅 月行事曆</button>
+                <button class="nav-btn" id="btn-next">後一天 ▶</button>
+            </div>
+            
+            <!-- 跳轉日期 -->
+            <div class="date-picker-row">
+                <div class="date-picker-label-group">
+                    <label for="date-select">跳轉日期：</label>
+                    <input type="date" id="date-select">
                 </div>
             </div>
-            <div class="date-nav">
-                <button id="btn-prev-date">❮</button>
-                <span class="date-display" id="date-display-text">2026-07-26 (日)</span>
-                <button id="btn-next-date">❯</button>
+
+            <!-- 行程快速跳轉定位按鈕列 -->
+            <div class="quick-jump-bar" id="quick-jump-bar">
+                <span class="quick-jump-title">📍 跳轉：</span>
+                <!-- 跳轉至請輸入重要事項按鈕 -->
+                <button class="quick-jump-btn jump-to-input-btn" id="btn-jump-to-input">✏️ 請輸入重要事項</button>
+                <div class="quick-jump-list" id="quick-jump-list"></div>
             </div>
-        </header>
 
-        <!-- 行程時間軸內容區 -->
-        <main class="timeline-container" id="timeline-container">
-            <!-- 動態渲染行程卡片 -->
-        </main>
+            <!-- 跳轉下方 Emoji 彈出窗觸發按鈕列 -->
+            <div style="margin-top: 6px;">
+                <button class="quick-jump-btn" id="btn-toggle-emoji-modal" style="background: var(--bg-card); border-color: var(--primary); color: var(--primary); font-weight: 800; width: 100%; padding: 6px 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+                    😃 選擇符號 / Emoji 彈出窗
+                </button>
+            </div>
+        </div>
 
-        <!-- 彈出視窗 1：單一行程編輯與分類設定 Modal -->
-        <div class="modal-overlay" id="action-modal">
-            <div class="modal-sheet">
-                <div class="sheet-header">
-                    <h3 class="sheet-title" id="action-modal-title">行程分類與設定</h3>
-                    <button class="sheet-close" id="modal-close-btn">✕</button>
+        <div class="event-form">
+            <div class="form-row">
+                <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
+                <button class="quick-time-btn" id="btn-quick-time">⚡ 快速記時</button>
+            </div>
+            
+            <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
+            
+            <div class="color-control-row">
+                <div class="font-color-picker-container">
+                    <label for="evt-font-color">🎨 字體顏色：</label>
+                    <input type="color" id="evt-font-color" value="#000000">
                 </div>
-                
-                <div id="modal-category-selection-list">
-                    <!-- 動態渲染類別與子標籤選擇按鈕 -->
+                <button class="inline-overview-btn" id="btn-cat-overview">🏷️ 類別總覽</button>
+            </div>
+            
+            <div class="category-selector-container">
+                <div class="cat-row-wrapper">
+                    <span class="cat-label-title">主類別：</span>
+                    <div id="category-buttons-list" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-grow: 1;"></div>
+                    <button class="color-edit-toggle" id="color-toggle-btn">⚙️ 管理</button>
                 </div>
+                <div class="sub-cat-container-box" id="sub-category-container"></div>
+            </div>
+        </div>
 
-                <div class="modal-actions-row">
-                    <button class="btn-flex-1 btn-delete" id="modal-btn-delete">刪除行程</button>
-                    <button class="btn-flex-1 btn-save" id="modal-category-submit">儲存修改</button>
+        <div class="utility-control-bar">
+            <div class="export-btn-group">
+                <button class="pdf-export-btn" id="btn-export-pdf">📄 輸出 PDF</button>
+                <button class="img-export-btn" id="btn-export-img">📸 輸出圖檔</button>
+            </div>
+            
+            <!-- 風格切換功能區 -->
+            <div class="utility-row" style="margin-top: 4px;">
+                <span class="sort-label">🎨 介面風格：</span>
+                <div class="sort-select-wrapper" id="theme-btn-group">
+                    <button class="sort-btn" data-theme="default">經典藍</button>
+                    <button class="sort-btn" data-theme="macaron">馬卡龍</button>
+                    <button class="sort-btn" data-theme="dark">深色夜間</button>
+                    <button class="sort-btn" data-theme="nordic">清新薄荷</button>
+                </div>
+            </div>
+
+            <div class="utility-row">
+                <span class="sort-label">排列順序：</span>
+                <div class="sort-select-wrapper">
+                    <button class="sort-btn" id="sort-btn-manual">✍️ 手動</button>
+                    <button class="sort-btn" id="sort-btn-az">🔤 A-Z</button>
+                    <button class="sort-btn" id="sort-btn-za">🔤 Z-A</button>
                 </div>
             </div>
         </div>
 
-        <!-- 彈出視窗 2：分類總覽（Overview Modal） -->
-        <div class="modal-overlay" id="overview-modal">
-            <div class="modal-sheet" style="max-height: 90%;">
-                <div class="sheet-header">
-                    <h3 class="sheet-title">🗂️ 分類行程總覽</h3>
-                    <button class="sheet-close" id="overview-close-btn">✕</button>
-                </div>
+        <div class="timeline" id="timeline-list"></div>
+    </div>
 
-                <!-- 主類別 Tab 篩選頁籤 -->
-                <div class="overview-filter-group" id="overview-main-cat-tabs"></div>
+    <!-- Emoji / 圖示選擇彈出視窗 -->
+    <div class="modal-overlay" id="emoji-modal" onclick="closeEmojiModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius: 20px; max-height: 80vh; margin: auto 15px;">
+            <div class="sheet-header">
+                <span class="sheet-title-desc">😀 常用圖示與符號選擇器</span>
+                <p class="sheet-event-title" style="font-size: 0.95rem;">點擊符號即可新增至「重要事項」輸入框</p>
+            </div>
+            
+            <div class="emoji-grid" id="emoji-grid-container"></div>
 
-                <!-- 子標籤 Tab 篩選頁籤 -->
-                <div class="overview-filter-group" id="overview-sub-cat-tabs"></div>
+            <button class="sheet-close-btn" onclick="closeEmojiModal()">關閉選單</button>
+        </div>
+    </div>
 
-                <!-- 搜尋與篩選結果呈現區 -->
-                <div id="overview-result-timeline" style="flex: 1; overflow-y: auto; margin-top: 8px;">
-                    <!-- 動態渲染符合條件的行程 -->
+    <!-- 月視圖彈出模組 (Month Modal) -->
+    <div class="modal-overlay" id="month-modal" onclick="closeMonthModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius: 20px; max-height: 85vh; margin: auto 15px;">
+            <div class="sheet-header">
+                <span class="sheet-title-desc">📅 月度總覽與事件統計</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+                    <button class="nav-btn" id="btn-month-prev" style="padding: 4px 10px; flex: initial;">◀ 上個月</button>
+                    <h3 id="month-picker-title" style="margin: 0; font-size: 1.05rem; font-weight: 800; text-align: center;">-</h3>
+                    <button class="nav-btn" id="btn-month-next" style="padding: 4px 10px; flex: initial;">下個月 ▶</button>
                 </div>
             </div>
+            
+            <div class="month-calendar-grid" id="month-calendar-grid"></div>
+
+            <button class="sheet-close-btn" onclick="closeMonthModal()">關閉月曆</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="manage-modal" onclick="closeManageModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-drag-indicator"></div>
+            <div class="sheet-header">
+                <span class="sheet-title-desc">⚙️ 標籤與分類管理中心</span>
+                <p class="sheet-event-title" style="font-size: 0.95rem; color: var(--text-muted);">選擇下方分頁標籤管理所屬子群組</p>
+            </div>
+            
+            <div class="manage-tabs-row" id="manage-tabs-container"></div>
+
+            <div class="category-manage-panel">
+                <div id="manage-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div class="add-new-cat-row">
+                    <input type="text" id="new-cat-name" placeholder="新主類別名稱...">
+                    <input type="color" id="new-cat-color" value="#5151e5">
+                    <button class="add-cat-submit-btn" id="add-new-cat-btn">➕ 新增主類別</button>
+                </div>
+            </div>
+
+            <button class="sheet-close-btn" onclick="closeManageModal()">完成並關閉</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-drag-indicator"></div>
+            <div class="sheet-header">
+                <span class="sheet-title-desc">📋 設定操作面板</span>
+                <p class="sheet-event-title" id="modal-event-title">載入中...</p>
+            </div>
+
+            <div class="sheet-grid" id="standard-action-grid">
+                <button class="sheet-btn" id="modal-btn-edit"><span>編輯內文</span></button>
+                <button class="sheet-btn" id="modal-btn-move"><span>跨日期移動</span></button>
+                <button class="sheet-btn" id="modal-btn-copy"><span>複製本事件</span></button>
+                <button class="sheet-btn" id="modal-btn-category"><span>切換類別設定</span></button>
+                <button class="sheet-btn danger-btn" id="modal-btn-delete"><span style="color:#ef4444;">刪除本行程</span></button>
+            </div>
+
+            <div class="sheet-edit-panel" id="modal-edit-panel">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">✏️ 修改事項名稱：</label>
+                <input type="text" id="modal-edit-title-input">
+                <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
+                    <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">🎨 字體顏色：</label>
+                    <input type="color" id="modal-edit-color-input">
+                </div>
+                <button class="sheet-panel-submit" id="modal-edit-submit">確認修改</button>
+            </div>
+
+            <div class="sheet-move-date-panel" id="modal-move-panel">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">📅 選擇目標日期：</label>
+                <input type="date" id="modal-move-date-input">
+                <button class="sheet-panel-submit" id="modal-move-submit">確認移轉</button>
+            </div>
+
+            <div class="sheet-category-panel" id="modal-category-panel">
+                <label style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">🏷️ 選擇主分類與子分類：</label>
+                <div class="sheet-category-grid" id="modal-category-selection-list"></div>
+                <button class="sheet-panel-submit" id="modal-category-submit">儲存分類設定</button>
+            </div>
+
+            <div class="sheet-tag-action-panel" id="modal-tag-action-panel">
+                <label id="tag-panel-label" style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">🏷️ 標籤設定</label>
+                <input type="text" id="modal-tag-name-input" placeholder="名稱...">
+                
+                <div id="tag-move-select-container" style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted);">🎯 移動隸屬群組/類別：</label>
+                    <select id="modal-tag-move-select" style="font-family:inherit; padding: 8px; border-radius:6px; border:1px solid var(--border-hover); font-size:0.8rem; background: var(--bg-card); color: var(--text-main);"></select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
+                    <button class="sheet-panel-submit" id="modal-tag-action-save">儲存修改</button>
+                    <button class="sheet-panel-submit danger" id="modal-tag-action-del">⚠️ 刪除</button>
+                </div>
+            </div>
+
+            <button class="sheet-close-btn" onclick="closeActionModal()">關閉選單</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="overview-modal" onclick="closeOverviewModal()">
+        <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius: 20px; max-height: 80vh; margin: auto 15px;">
+            <div class="sheet-header">
+                <span class="sheet-title-desc">📊 分類多維度檢視</span>
+                <p class="sheet-event-title">依類別總覽所有事件</p>
+            </div>
+            <div class="modal-overview-sub-filter-row" id="overview-main-cat-tabs"></div>
+            <div class="modal-overview-sub-filter-row" id="overview-sub-cat-tabs"></div>
+            <div style="flex-grow: 1; overflow-y: auto; max-height: 45vh;" id="overview-result-timeline"></div>
+            <button class="sheet-close-btn" onclick="closeOverviewModal()">關閉總覽</button>
         </div>
     </div>
 
     <script>
-        /* --- 初始化資料與分類定義 --- */
-        const categories = [
-            {
-                name: '工作職場',
-                color: '#FFB3BA',
+        function getLocalTodayString() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        let currentDate = getLocalTodayString();
+        let events = JSON.parse(localStorage.getItem('calendar_events')) || [];
+        let sortMode = localStorage.getItem('calendar_sort_mode') || 'manual';
+        let currentTheme = localStorage.getItem('calendar_theme') || 'default';
+        
+        let categories = JSON.parse(localStorage.getItem('calendar_categories')) || [
+            { 
+                id: "cat_work", 
+                name: "工作公務", 
+                color: "#5151e5", 
                 subGroups: [
-                    { title: '項目類型', items: ['會議', '專案', '報告', '出差'] },
-                    { title: '優先程度', items: ['緊急', '重要', '待追蹤'] }
-                ]
+                    { id: "g1", title: "專案A組", items: ["開發", "測試", "上線"] },
+                    { id: "g2", title: "客戶聯絡群", items: ["緊急", "待審核"] }
+                ] 
             },
-            {
-                name: '個人生活',
-                color: '#BAE1FF',
+            { 
+                id: "cat_life", 
+                name: "日常生活", 
+                color: "#10b981", 
                 subGroups: [
-                    { title: '生活類別', items: ['家務', '採買', '帳單', '休養'] }
-                ]
-            },
-            {
-                name: '學習提升',
-                color: '#BAFFC9',
-                subGroups: [
-                    { title: '學習主題', items: ['程式開發', '外語', '閱讀', '線上課程'] }
-                ]
-            },
-            {
-                name: '健康運動',
-                color: '#FFFFBA',
-                subGroups: [
-                    { title: '運動項目', items: ['健身', '跑步', '瑜伽', '回診'] }
-                ]
+                    { id: "g3", title: "家庭事務", items: ["吃飯", "購物清單", "娛樂"] },
+                    { id: "g4", title: "健身運動", items: ["日常", "健康"] }
+                ] 
             }
         ];
 
-        // 日期與系統狀態
-        let currentDate = '2026-07-26';
+        /* 所有符號與圖示清單 */
+        const customEmojiList = [
+            '✅', '✔️', '☑️', '🔘', '⚪', '➕',
+            '➖', '⭕', '❌', '🙆‍♀️', '🙅‍♀️', '🙆‍♂️',
+            '🙅‍♂️', '☑️', '☒', '☐', '■', '□',
+            '✕', '✓', '✔', '✖', '✗', '✘',
+            '×', '●', '○', 'ⓧ', '★', '☆'
+        ];
+
+        let selectedMainCatId = categories[0]?.id || "";
+        let managementActiveCatId = categories[0]?.id || ""; 
+        let selectedSubItems = []; 
         let activeTargetEventId = null;
+        
+        let activeTagConfig = { type: '', catIdx: null, groupIdx: null, itemIdx: null };
 
-        // 預設示範行程
-        let events = [
-            {
-                id: 'evt-1',
-                date: '2026-07-26',
-                time: '09:00 - 10:30',
-                title: 'NMMO 溶劑回收系統會議',
-                mainCategoryName: '工作職場',
-                mainCategoryColor: '#FFB3BA',
-                subCategories: ['會議', '重要'],
-                fontColor: '#2c3e50'
-            },
-            {
-                id: 'evt-2',
-                date: '2026-07-26',
-                time: '14:00 - 16:00',
-                title: 'Python / GAS 腳本開發',
-                mainCategoryName: '學習提升',
-                mainCategoryColor: '#BAFFC9',
-                subCategories: ['程式開發'],
-                fontColor: '#2c3e50'
-            },
-            {
-                id: 'evt-3',
-                date: '2026-07-27',
-                time: '19:00 - 20:30',
-                title: '健身房有氧與重訓',
-                mainCategoryName: '健康運動',
-                mainCategoryColor: '#FFFFBA',
-                subCategories: ['健身'],
-                fontColor: '#2c3e50'
-            }
-        ];
+        let viewYear = new Date().getFullYear();
+        let viewMonth = new Date().getMonth();
 
-        /* --- LocalStorage 持久化儲存 --- */
-        function loadFromStorage() {
-            const saved = localStorage.getItem('app_timeline_events');
-            if (saved) {
-                try { events = JSON.parse(saved); } catch (e) { console.error(e); }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTheme(currentTheme);
+            initDateConfig();
+            renderCategorySelectors();
+            renderTimeline();
+            setupEventListeners();
+            updateSortBtnUI();
+            renderEmojiGrid();
+        });
+
+        /* --- 事件監聽器整合設定 --- */
+        function setupEventListeners() {
+            document.getElementById('btn-prev').addEventListener('click', () => changeDate(-1));
+            document.getElementById('btn-next').addEventListener('click', () => changeDate(1));
+            document.getElementById('btn-today').addEventListener('click', () => {
+                currentDate = getLocalTodayString();
+                initDateConfig();
+                renderTimeline();
+            });
+            document.getElementById('btn-month').addEventListener('click', openMonthModal);
+            document.getElementById('date-select').addEventListener('change', (e) => {
+                if (e.target.value) {
+                    currentDate = e.target.value;
+                    updateDateDisplay();
+                    renderTimeline();
+                }
+            });
+
+            document.getElementById('btn-jump-to-input').addEventListener('click', jumpToInputTitle);
+            document.getElementById('btn-toggle-emoji-modal').addEventListener('click', openEmojiModal);
+            document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
+            document.getElementById('color-toggle-btn').addEventListener('click', openManageModal);
+            document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
+
+            // 主題按鈕事件綁定
+            document.querySelectorAll('#theme-btn-group .sort-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = btn.getAttribute('data-theme');
+                    setTheme(theme);
+                });
+            });
+
+            // 排序按鈕事件綁定
+            document.getElementById('sort-btn-manual').addEventListener('click', () => setSortMode('manual'));
+            document.getElementById('sort-btn-az').addEventListener('click', () => setSortMode('az'));
+            document.getElementById('sort-btn-za').addEventListener('click', () => setSortMode('za'));
+
+            // 月視圖切換按鈕
+            document.getElementById('btn-month-prev').addEventListener('click', () => {
+                viewMonth--;
+                if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+                renderMonthCalendar();
+            });
+            document.getElementById('btn-month-next').addEventListener('click', () => {
+                viewMonth++;
+                if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+                renderMonthCalendar();
+            });
+
+            // PDF 與圖片導出
+            document.getElementById('btn-export-pdf').addEventListener('click', () => {
+                document.getElementById('print-timestamp').innerText = new Date().toLocaleString('zh-TW');
+                window.print();
+            });
+
+            document.getElementById('btn-export-img').addEventListener('click', exportAsImage);
+        }
+
+        function changeDate(offset) {
+            const parts = currentDate.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            d.setDate(d.getDate() + offset);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            currentDate = `${year}-${month}-${day}`;
+            initDateConfig();
+            renderTimeline();
+        }
+
+        function setSortMode(mode) {
+            sortMode = mode;
+            saveToStorage();
+            updateSortBtnUI();
+            renderTimeline();
+        }
+
+        function updateSortBtnUI() {
+            ['manual', 'az', 'za'].forEach(mode => {
+                const btn = document.getElementById(`sort-btn-${mode}`);
+                if (btn) {
+                    if (sortMode === mode) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+        }
+
+        function exportAsImage() {
+            const container = document.querySelector('.calendar-container');
+            if (!container || typeof html2canvas === 'undefined') {
+                return alert('圖片匯出模組載入失敗！');
             }
+            
+            html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-main')
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `日程表_${currentDate}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                alert('圖片匯出失敗：' + err.message);
+            });
+        }
+
+        /* --- 風格主題切換邏輯 --- */
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('calendar_theme', theme);
+            updateThemeBtnUI();
+        }
+
+        function updateThemeBtnUI() {
+            document.querySelectorAll('#theme-btn-group .sort-btn').forEach(btn => {
+                if (btn.getAttribute('data-theme') === currentTheme) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function initDateConfig() {
+            document.getElementById('date-select').value = currentDate;
+            updateDateDisplay();
+        }
+
+        function updateDateDisplay() {
+            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const parts = currentDate.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            document.getElementById('current-day').innerText = `${currentDate} (${days[d.getDay()]})`;
+            document.getElementById('print-date-title').innerText = `${currentDate} 日程安排表`;
         }
 
         function saveToStorage() {
-            localStorage.setItem('app_timeline_events', JSON.stringify(events));
+            localStorage.setItem('calendar_events', JSON.stringify(events));
+            localStorage.setItem('calendar_categories', JSON.stringify(categories));
+            localStorage.setItem('calendar_sort_mode', sortMode);
+            localStorage.setItem('calendar_theme', currentTheme);
         }
 
-        /* --- 頁面初始化與導覽 --- */
-        document.addEventListener('DOMContentLoaded', () => {
-            loadFromStorage();
-            initDateConfig();
-            renderTimeline();
-            setupEventListeners();
+        function getContrastColor(hexColor) {
+            const hex = hexColor.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 145) ? '#1e293b' : '#f8fafc';
+        }
+
+        /* 渲染 Emoji 圖示格線 */
+        function renderEmojiGrid() {
+            const container = document.getElementById('emoji-grid-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            customEmojiList.forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.className = 'emoji-item-btn';
+                btn.innerText = emoji;
+                btn.onclick = () => insertEmojiToInput(emoji);
+                container.appendChild(btn);
+            });
+        }
+
+        /* 插入點選的 Emoji 至輸入框，並於點選後自動關閉彈出視窗 */
+        function insertEmojiToInput(emoji) {
+            const input = document.getElementById('evt-title');
+            if (!input) return;
+
+            const start = input.selectionStart ?? input.value.length;
+            const end = input.selectionEnd ?? input.value.length;
+            const currentVal = input.value;
+
+            input.value = currentVal.substring(0, start) + emoji + currentVal.substring(end);
+            
+            const newPos = start + emoji.length;
+            input.focus();
+            input.setSelectionRange(newPos, newPos);
+
+            jumpToInputTitle();
+            closeEmojiModal();
+        }
+
+        function openEmojiModal() {
+            document.getElementById('emoji-modal').classList.add('show');
+        }
+
+        function closeEmojiModal() {
+            document.getElementById('emoji-modal').classList.remove('show');
+        }
+
+        document.getElementById('btn-quick-time').addEventListener('click', () => {
+            const now = new Date(); const timeStr = now.toTimeString().substring(0, 5); const input = document.getElementById('evt-title');
+            if (!/^\[\d{2}:\d{2}\]/.test(input.value)) { input.value = `[${timeStr}] ` + input.value; }
+            input.focus();
         });
 
-        function initDateConfig() {
-            const d = new Date(currentDate);
-            const days = ['日', '一', '二', '三', '四', '五', '六'];
-            document.getElementById('date-display-text').innerText = `${currentDate} (${days[d.getDay()]})`;
+        function moveItemInArray(arr, index, direction) {
+            if (index + direction < 0 || index + direction >= arr.length) return false;
+            const temp = arr[index]; arr[index] = arr[index + direction]; arr[index + direction] = temp;
+            return true;
         }
 
-        function setupEventListeners() {
-            document.getElementById('btn-prev-date').addEventListener('click', () => changeDate(-1));
-            document.getElementById('btn-next-date').addEventListener('click', () => changeDate(1));
-            document.getElementById('btn-add-event').addEventListener('click', addNewEventPrompt);
-            document.getElementById('modal-close-btn').addEventListener('click', closeActionModal);
-            document.getElementById('overview-close-btn').addEventListener('click', closeOverviewModal);
+        function openManageModal() {
+            if (!managementActiveCatId && categories.length > 0) managementActiveCatId = categories[0].id;
+            renderManageTabs();
+            renderManagePanel();
+            document.getElementById('manage-modal').classList.add('show');
+        }
+        function closeManageModal() {
+            document.getElementById('manage-modal').classList.remove('show');
         }
 
-        function changeDate(offsetDays) {
-            const d = new Date(currentDate);
-            d.setDate(d.getDate() + offsetDays);
-            currentDate = d.toISOString().split('T')[0];
-            initDateConfig();
-            renderTimeline();
+        function openMonthModal() {
+            const [y, m] = currentDate.split('-').map(Number);
+            viewYear = y;
+            viewMonth = m - 1;
+            renderMonthCalendar();
+            document.getElementById('month-modal').classList.add('show');
         }
 
-        function addNewEventPrompt() {
-            const title = prompt('請輸入新增行程標題：');
-            if (!title) return;
-            const newEvt = {
-                id: 'evt-' + Date.now(),
-                date: currentDate,
-                time: '10:00 - 11:00',
-                title: title,
-                mainCategoryName: '',
-                mainCategoryColor: '#7b61ff',
-                subCategories: [],
-                fontColor: '#2c3e50'
-            };
-            events.push(newEvt);
-            saveToStorage();
-            renderTimeline();
-            openActionModal(newEvt.id);
+        function closeMonthModal() {
+            document.getElementById('month-modal').classList.remove('show');
         }
 
-        /* --- 時間軸卡片渲染 --- */
-        function renderTimeline() {
-            const container = document.getElementById('timeline-container');
+        function renderMonthCalendar() {
+            const titleEl = document.getElementById('month-picker-title');
+            titleEl.innerText = `${viewYear} 年 ${viewMonth + 1} 月`;
+
+            const gridContainer = document.getElementById('month-calendar-grid');
+            gridContainer.innerHTML = '';
+
+            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+            weekDays.forEach(day => {
+                const h = document.createElement('div');
+                h.className = 'month-day-header';
+                h.innerText = day;
+                gridContainer.appendChild(h);
+            });
+
+            const eventCounts = {};
+            events.forEach(e => {
+                eventCounts[e.date] = (eventCounts[e.date] || 0) + 1;
+            });
+
+            const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const todayStr = getLocalTodayString();
+
+            const prevMonthDays = new Date(viewYear, viewMonth, 0).getDate();
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const cell = document.createElement('div');
+                cell.className = 'month-day-cell other-month';
+                cell.innerHTML = `<span class="month-day-number">${prevMonthDays - i}</span>`;
+                gridContainer.appendChild(cell);
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const cell = document.createElement('div');
+                const mStr = String(viewMonth + 1).padStart(2, '0');
+                const dStr = String(d).padStart(2, '0');
+                const dateKey = `${viewYear}-${mStr}-${dStr}`;
+
+                cell.className = 'month-day-cell';
+                if (dateKey === todayStr) cell.classList.add('is-today');
+                if (dateKey === currentDate) cell.classList.add('is-selected');
+
+                const count = eventCounts[dateKey] || 0;
+                let badgeHtml = count > 0 ? `<span class="month-event-count">${count}件</span>` : '<span style="height:12px;"></span>';
+
+                cell.innerHTML = `
+                    <span class="month-day-number">${d}</span>
+                    ${badgeHtml}
+                `;
+
+                cell.onclick = () => {
+                    currentDate = dateKey;
+                    initDateConfig();
+                    renderTimeline();
+                    closeMonthModal();
+                };
+
+                gridContainer.appendChild(cell);
+            }
+
+            const totalCells = firstDay + daysInMonth;
+            const remaining = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
+            for (let i = 1; i <= remaining; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'month-day-cell other-month';
+                cell.innerHTML = `<span class="month-day-number">${i}</span>`;
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        function renderManageTabs() {
+            const container = document.getElementById('manage-tabs-container');
+            container.innerHTML = '';
+            categories.forEach(cat => {
+                const tab = document.createElement('button');
+                tab.className = `manage-tab-item ${cat.id === managementActiveCatId ? 'active' : ''}`;
+                tab.innerText = cat.name;
+                tab.style.borderTop = `3px solid ${cat.color}`;
+                tab.onclick = () => {
+                    managementActiveCatId = cat.id;
+                    renderManageTabs();
+                    renderManagePanel();
+                };
+                container.appendChild(tab);
+            });
+        }
+
+        function renderCategorySelectors() {
+            const listContainer = document.getElementById('category-buttons-list'); listContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `cat-tag-btn ${cat.id === selectedMainCatId ? 'active' : ''}`;
+                btn.style.backgroundColor = cat.color;
+                
+                const txtColor = getContrastColor(cat.color);
+                if (cat.id === selectedMainCatId) {
+                    btn.style.color = txtColor;
+                } else {
+                    btn.style.color = 'var(--text-muted)'; btn.style.backgroundColor = 'var(--bg-main)';
+                }
+                
+                btn.innerText = cat.name;
+                btn.onclick = () => { 
+                    selectedMainCatId = cat.id; selectedSubItems = []; renderCategorySelectors(); 
+                };
+                listContainer.appendChild(btn);
+            });
+
+            const subContainer = document.getElementById('sub-category-container');
+            const activeCat = categories.find(c => c.id === selectedMainCatId);
+            
+            if (activeCat && activeCat.subGroups && activeCat.subGroups.length > 0) {
+                subContainer.classList.add('active'); subContainer.innerHTML = '';
+                activeCat.subGroups.forEach(group => {
+                    const row = document.createElement('div'); row.className = 'sub-cat-group-row';
+                    const title = document.createElement('div'); title.className = 'sub-cat-group-title'; title.innerText = group.title;
+                    row.appendChild(title);
+                    
+                    const pillsList = document.createElement('div'); pillsList.className = 'sub-cat-pills-list';
+                    group.items.forEach(item => {
+                        const pill = document.createElement('button');
+                        pill.className = `sub-cat-tag-btn ${selectedSubItems.includes(item) ? 'active' : ''}`; pill.innerText = item;
+                        pill.onclick = (e) => {
+                            e.preventDefault();
+                            if (selectedSubItems.includes(item)) selectedSubItems = selectedSubItems.filter(i => i !== item);
+                            else selectedSubItems.push(item);
+                            renderCategorySelectors();
+                        };
+                        pillsList.appendChild(pill);
+                    });
+                    row.appendChild(pillsList); subContainer.appendChild(row);
+                });
+            } else { 
+                subContainer.classList.remove('active');
+                subContainer.innerHTML = activeCat ? '<div style="font-size:0.75rem; color:var(--text-muted);">此類別下尚無隸屬子群組標籤</div>' : '請先選擇主類別';
+            }
+        }
+
+        function submitEventForm() {
+            const titleInput = document.getElementById('evt-title'); if (!titleInput.value.trim()) return alert('請先輸入事項內容！');
+            const matchedCat = categories.find(c => c.id === selectedMainCatId);
+            const fontColor = document.getElementById('evt-font-color').value;
+            const dayEventsCount = events.filter(e => e.date === currentDate).length;
+
+            events.push({
+                id: 'evt-' + Date.now(), date: currentDate, title: titleInput.value.trim(), fontColor: fontColor,
+                mainCategoryName: matchedCat ? matchedCat.name : '', mainCategoryColor: matchedCat ? matchedCat.color : '#5151e5',
+                subCategories: [...selectedSubItems], orderIndex: dayEventsCount
+            });
+            saveToStorage(); titleInput.value = ''; selectedSubItems = []; renderTimeline(); renderCategorySelectors();
+        }
+
+        function submitNewMainCategory() {
+            const n = document.getElementById('new-cat-name'); const c = document.getElementById('new-cat-color'); if(!n.value.trim()) return;
+            const newId = 'cat-'+Date.now();
+            categories.push({ id: newId, name: n.value.trim(), color: c.value, subGroups: [] });
+            managementActiveCatId = newId; 
+            saveToStorage(); n.value = ''; renderCategorySelectors(); renderManageTabs(); renderManagePanel();
+        }
+
+        /* 跳轉至請輸入重要事項輸入框 */
+        function jumpToInputTitle() {
+            const input = document.getElementById('evt-title');
+            if (input) {
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                input.focus();
+                input.classList.remove('card-highlight');
+                void input.offsetWidth;
+                input.classList.add('card-highlight');
+            }
+        }
+
+        /* 行程快速跳轉按鈕渲染與定位邏輯 */
+        function renderQuickJumpButtons(dayEvents) {
+            const container = document.getElementById('quick-jump-list');
+            const bar = document.getElementById('quick-jump-bar');
             container.innerHTML = '';
 
-            const dayEvents = events.filter(e => e.date === currentDate);
+            bar.style.display = 'flex';
 
-            if (dayEvents.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding: 40px 0; color: var(--text-muted); font-size:0.9rem;">今天尚無排定行程，點擊「＋ 新增」開始規劃吧！</div>`;
+            if (!dayEvents || dayEvents.length === 0) {
                 return;
             }
 
             dayEvents.forEach(evt => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-jump-btn';
+
+                let label = evt.title;
+                const tm = evt.title.match(/^\[(\d{2}:\d{2})\]/);
+                if (tm) {
+                    const cleanTitle = evt.title.replace(/^\[\d{2}:\d{2}\]\s*/, '');
+                    label = `[${tm[1]}] ${cleanTitle}`;
+                }
+                if (evt.mainCategoryName) {
+                    label = `[${evt.mainCategoryName}] ${label}`;
+                }
+
+                btn.innerText = label;
+                btn.onclick = () => jumpToEventCard(evt.id);
+                container.appendChild(btn);
+            });
+        }
+
+        function jumpToEventCard(evtId) {
+            const card = document.getElementById(`event-card-${evtId}`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.classList.remove('card-highlight');
+                void card.offsetWidth;
+                card.classList.add('card-highlight');
+            }
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-list'); container.innerHTML = '';
+            let dayEvents = events.filter(e => e.date === currentDate);
+
+            renderQuickJumpButtons(dayEvents);
+
+            if (dayEvents.length === 0) { container.innerHTML = '<div class="no-events">今日尚無安排行程。</div>'; return; }
+            if (sortMode === 'az') dayEvents.sort((a, b) => a.title.localeCompare(b.title, 'zh-Hant'));
+            else if (sortMode === 'za') dayEvents.sort((a, b) => b.title.localeCompare(a.title, 'zh-Hant'));
+            else dayEvents.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+
+            dayEvents.forEach((evt, index) => {
                 const card = document.createElement('div');
                 card.className = 'event-card';
-                card.style.borderLeftColor = evt.mainCategoryColor || 'var(--primary)';
+                card.id = `event-card-${evt.id}`;
+                card.onclick = () => openActionModal('event', evt.id);
+                
+                const info = document.createElement('div'); info.className = 'event-info';
 
-                const tagsHtml = [
-                    evt.mainCategoryName ? `<span class="main-tag" style="background:${evt.mainCategoryColor}33; color:${evt.mainCategoryColor}">${evt.mainCategoryName}</span>` : '',
-                    ...(evt.subCategories || []).map(s => `<span class="sub-tag">#${s}</span>`)
-                ].join('');
+                const textLine = document.createElement('p');
+                textLine.className = 'event-text-line';
+                textLine.style.color = evt.fontColor || '#000000';
 
-                card.innerHTML = `
-                    <div class="event-header">
-                        <span class="event-time">⏰ ${evt.time}</span>
-                    </div>
-                    <div class="event-title">${evt.title}</div>
-                    ${tagsHtml ? `<div class="event-tags">${tagsHtml}</div>` : ''}
-                `;
+                if (evt.mainCategoryName) {
+                    const mainSpan = document.createElement('span');
+                    mainSpan.className = 'prefix-badge-main';
+                    mainSpan.style.color = evt.mainCategoryColor || 'var(--primary)';
+                    mainSpan.innerText = `[${evt.mainCategoryName}]`;
+                    textLine.appendChild(mainSpan);
+                }
 
-                card.onclick = () => openActionModal(evt.id);
+                const tm = evt.title.match(/^\[(\d{2}:\d{2})\]/); let cleanTitle = evt.title;
+                if (tm) {
+                    const timeSpan = document.createElement('span'); timeSpan.className = 'prefix-badge-time'; timeSpan.innerText = `[${tm[1]}]`; textLine.appendChild(timeSpan);
+                    cleanTitle = evt.title.replace(/^\[\d{2}:\d{2}\]\s*/, '');
+                }
+
+                const titleText = document.createTextNode(cleanTitle); textLine.appendChild(titleText); info.appendChild(textLine);
+
+                if (evt.subCategories && evt.subCategories.length > 0) {
+                    const subRow = document.createElement('div'); subRow.className = 'sub-pills-text-row'; subRow.innerText = evt.subCategories.join('/'); info.appendChild(subRow);
+                }
+                card.appendChild(info);
+
+                if (sortMode === 'manual') {
+                    const act = document.createElement('div'); act.className = 'manual-move-actions'; act.onclick = (e) => e.stopPropagation();
+                    const ub = document.createElement('button'); ub.className = 'move-step-btn'; ub.innerText = '▲'; ub.disabled = index === 0; ub.onclick = () => moveOrderStep(evt.id, -1);
+                    const db = document.createElement('button'); db.className = 'move-step-btn'; db.innerText = '▼'; db.disabled = index === dayEvents.length - 1; db.onclick = () => moveOrderStep(evt.id, 1);
+                    act.appendChild(ub); act.appendChild(db); card.appendChild(act);
+                }
                 container.appendChild(card);
             });
         }
 
-        function jumpToEventCard(eventId) {
-            openActionModal(eventId);
+        function moveOrderStep(evtId, direction) {
+            let dayEvents = events.filter(e => e.date === currentDate).sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+            const idx = dayEvents.findIndex(e => e.id === evtId); if (idx === -1) return;
+            const sw = idx + direction; if (sw < 0 || sw >= dayEvents.length) return;
+            const temp = dayEvents[idx].orderIndex; dayEvents[idx].orderIndex = dayEvents[sw].orderIndex; dayEvents[sw].orderIndex = temp;
+            saveToStorage(); renderTimeline();
         }
 
-        /* --- 行程編輯與分類 Modal 邏輯 --- */
-        function openActionModal(eventId) {
-            activeTargetEventId = eventId;
-            const evt = events.find(e => e.id === eventId);
-            if (!evt) return;
-
-            document.getElementById('action-modal-title').innerText = evt.title;
-            modalTempMainCat = null;
-            modalTempSubCats = [];
-            renderModalCategoryGrid();
-            document.getElementById('action-modal').classList.add('show');
-        }
-
-        function closeActionModal() {
-            document.getElementById('action-modal').classList.remove('show');
-        }
-
-        /* --- 核心邏輯：分類選擇 Grid 與單複選控制 --- */
-        let modalTempMainCat = null;
-        let modalTempSubCats = [];
-
-        function renderModalCategoryGrid() {
-            const evt = events.find(e => e.id === activeTargetEventId);
-            if (!evt) return;
-
-            if (modalTempMainCat === null) {
-                modalTempMainCat = evt.mainCategoryName || '';
-                modalTempSubCats = [...(evt.subCategories || [])];
-            }
-
-            const container = document.getElementById('modal-category-selection-list');
-            container.innerHTML = '';
-
-            categories.forEach(cat => {
-                const itemWrapper = document.createElement('div');
-                itemWrapper.className = 'sheet-category-item-wrapper';
-
-                const isMainActive = (modalTempMainCat === cat.name);
-
-                const mainRow = document.createElement('div');
-                mainRow.className = 'sheet-cat-main-row';
-                if (isMainActive) {
-                    mainRow.style.backgroundColor = 'var(--primary-light)';
-                }
-
-                const dot = document.createElement('span');
-                dot.className = 'dot';
-                dot.style.backgroundColor = cat.color;
-
-                const nameText = document.createElement('span');
-                nameText.style.flex = '1';
-                nameText.innerText = cat.name + (isMainActive ? '  ✓' : '');
-
-                mainRow.appendChild(dot);
-                mainRow.appendChild(nameText);
-
-                mainRow.onclick = () => {
-                    modalTempMainCat = cat.name;
-                    modalTempSubCats = [];
-                    renderModalCategoryGrid();
-                };
-
-                itemWrapper.appendChild(mainRow);
-
-                if (isMainActive && cat.subGroups && cat.subGroups.length > 0) {
-                    cat.subGroups.forEach(group => {
-                        const subBlock = document.createElement('div');
-                        subBlock.className = 'sheet-sub-group-block';
-
-                        const groupTitle = document.createElement('span');
-                        groupTitle.className = 'sheet-sub-group-title';
-                        groupTitle.innerText = group.title;
-                        subBlock.appendChild(groupTitle);
-
-                        const pillsRow = document.createElement('div');
-                        pillsRow.className = 'sheet-sub-grid-row';
-
-                        group.items.forEach(subItem => {
-                            const btn = document.createElement('button');
-                            const isSubActive = modalTempSubCats.includes(subItem);
-                            btn.className = `sheet-sub-pill-btn ${isSubActive ? 'active' : ''}`;
-                            btn.innerText = subItem;
-                            
-                            btn.onclick = (e) => {
-                                e.stopPropagation();
-                                if (isSubActive) {
-                                    modalTempSubCats = modalTempSubCats.filter(s => s !== subItem);
-                                } else {
-                                    modalTempSubCats.push(subItem);
-                                }
-                                renderModalCategoryGrid();
-                            };
-
-                            pillsRow.appendChild(btn);
-                        });
-
-                        subBlock.appendChild(pillsRow);
-                        itemWrapper.appendChild(subBlock);
-                    });
-                }
-
-                container.appendChild(itemWrapper);
-            });
-        }
-
-        /* --- 彈出視窗：分類設定儲存與行程刪除 --- */
-        document.getElementById('modal-category-submit').addEventListener('click', () => {
-            const evt = events.find(e => e.id === activeTargetEventId);
-            if (evt) {
-                const matchedCat = categories.find(c => c.name === modalTempMainCat);
-                evt.mainCategoryName = modalTempMainCat || '';
-                evt.mainCategoryColor = matchedCat ? matchedCat.color : '#5151e5';
-                evt.subCategories = [...modalTempSubCats];
-                saveToStorage();
-                renderTimeline();
-                closeActionModal();
-            }
-        });
-
-        document.getElementById('modal-btn-delete').addEventListener('click', () => {
-            const evt = events.find(e => e.id === activeTargetEventId);
-            if (evt && confirm(`確定要刪除行程：「${evt.title}」嗎？`)) {
-                events = events.filter(e => e.id !== activeTargetEventId);
-                saveToStorage();
-                renderTimeline();
-                closeActionModal();
-            }
-        });
-
-        /* --- 類別總覽 (Overview Modal) 邏輯 --- */
-        let overviewSelectedCat = 'all';
-        let overviewSelectedSubCat = 'all';
-
-        document.getElementById('btn-cat-overview').addEventListener('click', openOverviewModal);
-
-        function openOverviewModal() {
-            overviewSelectedCat = 'all';
-            overviewSelectedSubCat = 'all';
-            renderOverviewTabs();
-            renderOverviewResult();
-            document.getElementById('overview-modal').classList.add('show');
-        }
-
-        function closeOverviewModal() {
-            document.getElementById('overview-modal').classList.remove('show');
-        }
-
-        function renderOverviewTabs() {
-            const mainTabsContainer = document.getElementById('overview-main-cat-tabs');
-            const subTabsContainer = document.getElementById('overview-sub-cat-tabs');
+        function renderManagePanel() {
+            const container = document.getElementById('manage-categories-list'); container.innerHTML = '';
+            const cIdx = categories.findIndex(c => c.id === managementActiveCatId);
+            if (cIdx === -1) { container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">請先選擇或新增主類別</div>'; return; }
             
-            mainTabsContainer.innerHTML = '';
-            subTabsContainer.innerHTML = '';
-
-            // 1. 渲染主類別篩選按鈕
-            const allMainBtn = document.createElement('button');
-            allMainBtn.className = `overview-sub-filter-btn ${overviewSelectedCat === 'all' ? 'active' : ''}`;
-            allMainBtn.innerText = '全部主類別';
-            allMainBtn.onclick = () => {
-                overviewSelectedCat = 'all';
-                overviewSelectedSubCat = 'all';
-                renderOverviewTabs();
-                renderOverviewResult();
-            };
-            mainTabsContainer.appendChild(allMainBtn);
-
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.className = `overview-sub-filter-btn ${overviewSelectedCat === cat.name ? 'active' : ''}`;
-                btn.innerText = cat.name;
-                btn.onclick = () => {
-                    overviewSelectedCat = cat.name;
-                    overviewSelectedSubCat = 'all';
-                    renderOverviewTabs();
-                    renderOverviewResult();
-                };
-                mainTabsContainer.appendChild(btn);
+            const cat = categories[cIdx];
+            const item = document.createElement('div'); item.className = 'manage-list-item';
+            const mr = document.createElement('div'); mr.className = 'manage-main-row'; mr.style.borderLeftColor = cat.color;
+            const leftDiv = document.createElement('div'); leftDiv.className = 'left';
+            const cp = document.createElement('input'); cp.type = 'color'; cp.value = cat.color;
+            cp.addEventListener('change', (e) => {
+                cat.color = e.target.value;
+                events.forEach(ev => { if(ev.mainCategoryName === cat.name) ev.mainCategoryColor = cat.color; });
+                saveToStorage(); renderCategorySelectors(); renderManageTabs(); renderManagePanel(); renderTimeline();
             });
+            const titleStr = document.createElement('strong'); titleStr.innerText = `${cat.name} (本分頁主設定)`;
+            leftDiv.appendChild(cp); leftDiv.appendChild(titleStr);
+            const actionGroup = document.createElement('div'); actionGroup.className = 'cat-action-btn-group';
+            const editBtn = document.createElement('button'); editBtn.className = 'cat-panel-btn cat-btn-edit'; editBtn.innerText = '修改';
+            editBtn.onclick = () => openActionModal('main-cat', cIdx);
+            const delBtn = document.createElement('button'); delBtn.className = 'cat-panel-btn cat-btn-del'; delBtn.innerText = '刪除';
+            delBtn.onclick = () => {
+                if(confirm(`確定要移除整個「${cat.name}」主分類嗎？其下所有標籤將同步消失。`)) {
+                    categories.splice(cIdx, 1);
+                    managementActiveCatId = categories[0]?.id || "";
+                    saveToStorage(); renderCategorySelectors(); renderManageTabs(); renderManagePanel();
+                }
+            };
+            actionGroup.appendChild(editBtn); actionGroup.appendChild(delBtn);
+            mr.appendChild(leftDiv); mr.appendChild(actionGroup); item.appendChild(mr);
 
-            // 2. 渲染子類別篩選按鈕 (若有選定特定主類別)
-            if (overviewSelectedCat !== 'all') {
-                const targetCat = categories.find(c => c.name === overviewSelectedCat);
-                if (targetCat && targetCat.subGroups) {
-                    const allSubBtn = document.createElement('button');
-                    allSubBtn.className = `overview-sub-filter-btn ${overviewSelectedSubCat === 'all' ? 'active' : ''}`;
-                    allSubBtn.innerText = '全部子標籤';
-                    allSubBtn.onclick = () => {
-                        overviewSelectedSubCat = 'all';
-                        renderOverviewTabs();
-                        renderOverviewResult();
+            const subBox = document.createElement('div'); subBox.className = 'manage-sub-box';
+            if(cat.subGroups && cat.subGroups.length > 0) {
+                cat.subGroups.forEach((g, gIdx) => {
+                    const gb = document.createElement('div'); gb.className = 'manage-sub-group-block';
+                    const gh = document.createElement('div'); gh.className = 'manage-sub-group-header';
+                    const sag = document.createElement('div'); sag.className = 'sort-action-group';
+                    const gUp = document.createElement('button'); gUp.className = 'mini-sort-btn'; gUp.innerText = '▲'; if(gIdx === 0) gUp.disabled = true;
+                    gUp.onclick = () => { moveItemInArray(cat.subGroups, gIdx, -1); saveToStorage(); renderManagePanel(); renderCategorySelectors(); };
+                    const gDown = document.createElement('button'); gDown.className = 'mini-sort-btn'; gDown.innerText = '▼'; if(gIdx === cat.subGroups.length - 1) gDown.disabled = true;
+                    gDown.onclick = () => { moveItemInArray(cat.subGroups, gIdx, 1); saveToStorage(); renderManagePanel(); renderCategorySelectors(); };
+                    sag.appendChild(gUp); sag.appendChild(gDown);
+                    const gt = document.createElement('span'); gt.innerHTML = ` 📂 <strong>${g.title}</strong>`;
+                    const glinks = document.createElement('div'); glinks.className = 'group-action-links';
+                    const linkEdit = document.createElement('span'); linkEdit.className = 'group-link-btn'; linkEdit.innerText = '✏️ 編輯';
+                    linkEdit.onclick = () => openActionModal('group', cIdx, gIdx);
+                    const linkDel = document.createElement('span'); linkDel.className = 'group-link-btn del'; linkDel.innerText = '✕ 刪除';
+                    linkDel.onclick = () => {
+                        if(confirm(`確定刪除群組「${g.title}」及其內所有標籤？`)) { cat.subGroups.splice(gIdx, 1); saveToStorage(); renderManagePanel(); renderCategorySelectors(); }
                     };
-                    subTabsContainer.appendChild(allSubBtn);
+                    glinks.appendChild(linkEdit); glinks.appendChild(linkDel);
+                    gh.appendChild(sag); gh.appendChild(gt); gh.appendChild(glinks); gb.appendChild(gh);
+                    const pl = document.createElement('div'); pl.className = 'manage-sub-list';
+                    if(g.items && g.items.length > 0) {
+                        g.items.forEach((it, iIdx) => {
+                            const p = document.createElement('div'); p.className = 'manage-sub-pill'; p.innerText = it;
+                            p.onclick = () => openActionModal('tag-item', cIdx, gIdx, iIdx);
+                            pl.appendChild(p);
+                        });
+                    } else { pl.innerHTML = '<span style="font-size:0.7rem; color:var(--text-muted); padding:4px;">暫無標籤</span>'; }
+                    gb.appendChild(pl);
+                    const aForm = document.createElement('div'); aForm.className = 'sub-add-inline-form';
+                    const subInput = document.createElement('input'); subInput.type = 'text'; subInput.placeholder = '新增標籤...'; subInput.id = `input-add-item-${cIdx}-${gIdx}`;
+                    const subBtn = document.createElement('button'); subBtn.innerText = '＋ 標籤';
+                    const triggerAdd = () => { const val = subInput.value.trim(); if(val) { g.items.push(val); saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+                    subBtn.onclick = triggerAdd; subInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); triggerAdd(); } });
+                    aForm.appendChild(subInput); aForm.appendChild(subBtn); gb.appendChild(aForm); subBox.appendChild(gb);
+                });
+            }
+            const gForm = document.createElement('div'); gForm.className = 'group-add-form';
+            const groupInput = document.createElement('input'); groupInput.type = 'text'; groupInput.placeholder = '新增子群組資料夾...';
+            const groupBtn = document.createElement('button'); groupBtn.innerText = '📂 加新群組';
+            const triggerAddGroup = () => { const val = groupInput.value.trim(); if(val) { if(!cat.subGroups) cat.subGroups = []; cat.subGroups.push({ id: 'sg-'+Date.now(), title: val, items: [] }); saveToStorage(); renderManagePanel(); renderCategorySelectors(); } };
+            groupBtn.onclick = triggerAddGroup;
+            groupInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); triggerAddGroup(); } });
+            gForm.appendChild(groupInput); gForm.appendChild(groupBtn); subBox.appendChild(gForm);
+            item.appendChild(subBox); container.appendChild(item);
+        }
 
-                    const collectedItems = new Set();
-                    targetCat.subGroups.forEach(g => g.items.forEach(i => collectedItems.add(i)));
+        function openActionModal(targetType, cIdx, gIdx = null, iIdx = null) {
+            closeAllSheetPanels();
+            activeTagConfig = { type: targetType, catIdx: cIdx, groupIdx: gIdx, itemIdx: iIdx };
+            const actionModal = document.getElementById('action-modal');
+            const stdGrid = document.getElementById('standard-action-grid');
+            const tagPanel = document.getElementById('modal-tag-action-panel');
+            const mTitle = document.getElementById('modal-event-title');
+            document.getElementById('modal-tag-move-select').innerHTML = '';
+            document.getElementById('tag-move-select-container').style.display = 'none';
 
-                    collectedItems.forEach(item => {
-                        const btn = document.createElement('button');
-                        btn.className = `overview-sub-filter-btn ${overviewSelectedSubCat === item ? 'active' : ''}`;
-                        btn.innerText = item;
-                        btn.onclick = () => {
-                            overviewSelectedSubCat = item;
-                            renderOverviewTabs();
-                            renderOverviewResult();
-                        };
-                        subTabsContainer.appendChild(btn);
+            if (targetType === 'event') {
+                activeTargetEventId = cIdx; 
+                const evt = events.find(e => e.id === activeTargetEventId); if (!evt) return;
+                mTitle.innerText = evt.title;
+                stdGrid.style.display = 'grid';
+                tagPanel.className = 'sheet-tag-action-panel';
+            } else if (targetType === 'main-cat') {
+                const cat = categories[cIdx];
+                mTitle.innerText = `編輯主類別：${cat.name}`;
+                stdGrid.style.display = 'none';
+                tagPanel.className = 'sheet-tag-action-panel show';
+                document.getElementById('tag-panel-label').innerText = '✏️ 修改主類別名稱：';
+                document.getElementById('modal-tag-name-input').value = cat.name;
+            } else if (targetType === 'group') {
+                const group = categories[cIdx].subGroups[gIdx];
+                mTitle.innerText = `編輯子群組：${group.title}`;
+                stdGrid.style.display = 'none';
+                tagPanel.className = 'sheet-tag-action-panel show';
+                document.getElementById('tag-panel-label').innerText = '✏️ 修改群組名稱：';
+                document.getElementById('modal-tag-name-input').value = group.title;
+                document.getElementById('tag-move-select-container').style.display = 'flex';
+                const sel = document.getElementById('modal-tag-move-select');
+                categories.forEach((c, index) => {
+                    const opt = document.createElement('option'); opt.value = index; opt.innerText = `移動至主類 ➔ ${c.name}`;
+                    if (index === cIdx) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            } else if (targetType === 'tag-item') {
+                const item = categories[cIdx].subGroups[gIdx].items[iIdx];
+                mTitle.innerText = `編輯標籤：${item}`;
+                stdGrid.style.display = 'none';
+                tagPanel.className = 'sheet-tag-action-panel show';
+                document.getElementById('tag-panel-label').innerText = '✏️ 修改標籤名稱：';
+                document.getElementById('modal-tag-name-input').value = item;
+                document.getElementById('tag-move-select-container').style.display = 'flex';
+                const sel = document.getElementById('modal-tag-move-select');
+                categories.forEach((c, cArrIdx) => {
+                    if(c.subGroups) {
+                        c.subGroups.forEach((g, gArrIdx) => {
+                            const opt = document.createElement('option');
+                            opt.value = `${cArrIdx}-${gArrIdx}`;
+                            opt.innerText = `移至 [${c.name}] ➔ ${g.title}`;
+                            if (cArrIdx === cIdx && gArrIdx === gIdx) opt.selected = true;
+                            sel.appendChild(opt);
+                        });
+                    }
+                });
+            }
+            actionModal.classList.add('show');
+        }
+
+        function closeActionModal() { document.getElementById('action-modal').classList.remove('show'); activeTargetEventId = null; }
+        function closeAllSheetPanels() {
+            document.getElementById('modal-edit-panel').classList.remove('show');
+            document.getElementById('modal-move-panel').classList.remove('show');
+            document.getElementById('modal-category-panel').classList.remove('show');
+            document.getElementById('modal-tag-action-panel').classList.remove('show');
+        }
+
+        document.getElementById('modal-tag-action-save').addEventListener('click', () => {
+            const { type, catIdx, groupIdx, itemIdx } = activeTagConfig;
+            const newName = document.getElementById('modal-tag-name-input').value.trim();
+            if(!newName) return alert('名稱不能為空！');
+            if (type === 'main-cat') {
+                const oldName = categories[catIdx].name; categories[catIdx].name = newName;
+                events.forEach(ev => { if(ev.mainCategoryName === oldName) ev.mainCategoryName = newName; });
+            } else if (type === 'group') {
+                const cat = categories[catIdx]; const group = cat.subGroups[groupIdx]; group.title = newName;
+                const targetCatIdx = parseInt(document.getElementById('modal-tag-move-select').value, 10);
+                if (targetCatIdx !== catIdx) { categories[targetCatIdx].subGroups.push(group); cat.subGroups.splice(groupIdx, 1); managementActiveCatId = categories[targetCatIdx].id; }
+            } else if (type === 'tag-item') {
+                const oldVal = categories[catIdx].subGroups[groupIdx].items[itemIdx];
+                const moveVal = document.getElementById('modal-tag-move-select').value;
+                const [targetC, targetG] = moveVal.split('-').map(Number);
+                if (targetC === catIdx && targetG === groupIdx) { categories[catIdx].subGroups[groupIdx].items[itemIdx] = newName; } 
+                else { categories[targetC].subGroups[targetG].items.push(newName); categories[catIdx].subGroups[groupIdx].items.splice(itemIdx, 1); managementActiveCatId = categories[targetC].id; }
+                events.forEach(ev => { if (ev.subCategories) ev.subCategories = ev.subCategories.map(s => s === oldVal ? newName : s); });
+            }
+            saveToStorage(); renderCategorySelectors(); renderManageTabs(); renderManagePanel(); renderTimeline(); closeActionModal();
+        });
+
+        document.getElementById('modal-tag-action-del').addEventListener('click', () => {
+            const { type, catIdx, groupIdx, itemIdx } = activeTagConfig;
+            if (type === 'main-cat') { if(confirm('確定要移除此主分類？')) { categories.splice(catIdx, 1); managementActiveCatId = categories[0]?.id || ""; } } 
+            else if (type === 'group') { if(confirm('確定要移除此子群組？')) categories[catIdx].subGroups.splice(groupIdx, 1); } 
+            else if (type === 'tag-item') { categories[catIdx].subGroups[groupIdx].items.splice(itemIdx, 1); }
+            saveToStorage(); renderCategorySelectors(); renderManageTabs(); renderManagePanel(); renderTimeline(); closeActionModal();
+        });
+
+        document.getElementById('modal-btn-edit').addEventListener('click', () => {
+            closeAllSheetPanels(); const evt = events.find(e => e.id === activeTargetEventId);
+            if (evt) {
+                document.getElementById('modal-edit-title-input').value = evt.title;
+                document.getElementById('modal-edit-color-input').value = evt.fontColor || '#000000';
+                document.getElementById('modal-edit-panel').classList.add('show');
+            }
+        });
+        document.getElementById('modal-edit-submit').addEventListener('click', () => {
+            const evt = events.find(e => e.id === activeTargetEventId); const nt = document.getElementById('modal-edit-title-input').value.trim();
+            if (evt && nt) { evt.title = nt; evt.fontColor = document.getElementById('modal-edit-color-input').value; saveToStorage(); renderTimeline(); closeActionModal(); }
+        });
+
+        document.getElementById('modal-btn-move').addEventListener('click', () => {
+            closeAllSheetPanels(); document.getElementById('modal-move-date-input').value = currentDate;
+            document.getElementById('modal-move-panel').classList.add('show');
+        });
+        document.getElementById('modal-move-submit').addEventListener('click', () => {
+            const evt = events.find(e => e.id === activeTargetEventId); const td = document.getElementById('modal-move-date-input').value;
+            if (evt && td) { evt.date = td; evt.orderIndex = events.filter(e => e.date === td).length; saveToStorage(); renderTimeline(); closeActionModal(); }
+        });
+
+        document.getElementById('modal-btn-copy').addEventListener('click', () => {
+            const evt = events.find(e => e.id === activeTargetEventId);
+            if (evt) { events.push({...evt, id: 'evt-'+Date.now(), orderIndex: events.filter(e => e.date === currentDate).length}); saveToStorage(); renderTimeline(); closeActionModal(); }
+        });
+
+        document.getElementById('modal-btn-category').addEventListener('click', () => { closeAllSheetPanels(); renderModalCategoryGrid(); document.getElementById('modal-category-panel').classList.add('show'); });
+        
+        function renderModalCategoryGrid() {
+            const container = document.getElementById('modal-category-selection-list'); container.innerHTML = '';
+            const evt = events.find(e => e.id === activeTargetEventId); if (!evt) return;
+            categories.forEach(cat => {
+                const wrap = document.createElement('div'); wrap.className = 'sheet-category-item-wrapper';
+                const mr = document.createElement('div'); mr.className = 'sheet-cat-main-row';
+                const isSelected = evt.mainCategoryName === cat.name;
+                mr.style.backgroundColor = isSelected ? cat.color : 'transparent';
+                mr.style.color = isSelected ? getContrastColor(cat.color) : 'var(--text-main)';
+                mr.innerHTML = `<div class="dot" style="background:${cat.color}; border:1px solid #cbd5e1;"></div><span>${cat.name}${isSelected?' (已選)':''}</span>`;
+                mr.onclick = () => { evt.mainCategoryName = cat.name; evt.mainCategoryColor = cat.color; evt.subCategories = []; renderModalCategoryGrid(); };
+                wrap.appendChild(mr);
+                if (cat.subGroups) {
+                    cat.subGroups.forEach(g => {
+                        const sb = document.createElement('div'); sb.className = 'sheet-sub-group-block';
+                        sb.innerHTML = `<div class="sheet-sub-group-title">${g.title}</div>`;
+                        const gr = document.createElement('div'); gr.className = 'sheet-sub-grid-row';
+                        g.items.forEach(it => {
+                            const isA = evt.subCategories && evt.subCategories.includes(it);
+                            const pb = document.createElement('button'); pb.className = `sheet-sub-pill-btn ${isA?'active':''}`; pb.innerText = it;
+                            pb.onclick = () => { if(!evt.subCategories) evt.subCategories = []; if(evt.subCategories.includes(it)) evt.subCategories = evt.subCategories.filter(i => i!==it); else evt.subCategories.push(it); renderModalCategoryGrid(); };
+                            gr.appendChild(pb);
+                        });
+                        sb.appendChild(gr); wrap.appendChild(sb);
                     });
                 }
+                container.appendChild(wrap);
+            });
+        }
+        document.getElementById('modal-category-submit').addEventListener('click', () => { saveToStorage(); renderTimeline(); closeActionModal(); });
+        document.getElementById('modal-btn-delete').addEventListener('click', () => {
+            if(confirm('確定移除此行程？')) { events = events.filter(e => e.id !== activeTargetEventId); saveToStorage(); renderTimeline(); closeActionModal(); }
+        });
+
+        let oMain = "", oSub = "";
+        document.getElementById('btn-cat-overview').addEventListener('click', () => { oMain = categories[0]?.name || ""; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); document.getElementById('overview-modal').classList.add('show'); });
+        function closeOverviewModal() { document.getElementById('overview-modal').classList.remove('show'); }
+        
+        function renderOverviewFilters() {
+            const mr = document.getElementById('overview-main-cat-tabs'); mr.innerHTML = '<strong>主：</strong>';
+            categories.forEach(c => { const b = document.createElement('button'); b.className = `overview-sub-filter-btn ${oMain===c.name?'active':''}`; b.innerText = c.name; b.onclick = () => { oMain = c.name; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); }; mr.appendChild(b); });
+            const sr = document.getElementById('overview-sub-cat-tabs'); sr.innerHTML = '<strong>子：</strong>';
+            const cc = categories.find(c => c.name === oMain);
+            if(cc && cc.subGroups) {
+                const ba = document.createElement('button'); ba.className = `overview-sub-filter-btn ${oSub===""?'active':''}`; ba.innerText="全部"; ba.onclick = () => { oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); }; sr.appendChild(ba);
+                let items = []; cc.subGroups.forEach(g => items.push(...g.items));
+                items.forEach(it => {
+                    const b = document.createElement('button');
+                    b.className = `overview-sub-filter-btn ${oSub===it?'active':''}`;
+                    b.innerText = it;
+                    b.onclick = () => { oSub = it; renderOverviewFilters(); renderOverviewTimeline(); };
+                    sr.appendChild(b);
+                });
             }
         }
 
-        function renderOverviewResult() {
-            const container = document.getElementById('overview-result-timeline');
-            container.innerHTML = '';
-
-            let filteredEvents = events.filter(e => {
-                let matchCat = (overviewSelectedCat === 'all' || e.mainCategoryName === overviewSelectedCat);
-                let matchSub = (overviewSelectedSubCat === 'all' || (e.subCategories && e.subCategories.includes(overviewSelectedSubCat)));
-                return matchCat && matchSub;
-            });
-
-            if (filteredEvents.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.85rem;">此條件下查無任何行程。</div>';
+        function renderOverviewTimeline() {
+            const resContainer = document.getElementById('overview-result-timeline');
+            resContainer.innerHTML = '';
+            
+            let filtered = events.filter(e => e.mainCategoryName === oMain);
+            if (oSub) {
+                filtered = filtered.filter(e => e.subCategories && e.subCategories.includes(oSub));
+            }
+            
+            if (filtered.length === 0) {
+                resContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.85rem;">無符合條件的行程記錄</div>';
                 return;
             }
 
-            // 按日期分類呈現
-            const groupedByDate = {};
-            filteredEvents.forEach(evt => {
-                if (!groupedByDate[evt.date]) groupedByDate[evt.date] = [];
-                groupedByDate[evt.date].push(evt);
+            const groups = {};
+            filtered.forEach(e => {
+                if (!groups[e.date]) groups[e.date] = [];
+                groups[e.date].push(e);
             });
 
-            const sortedDates = Object.keys(groupedByDate).sort();
-
-            sortedDates.forEach(dateStr => {
-                const groupSection = document.createElement('div');
-                groupSection.className = 'cat-group-section';
-
-                const dateLabel = document.createElement('span');
-                dateLabel.className = 'cat-group-date-label';
-                dateLabel.innerText = `📅 ${dateStr}`;
-                groupSection.appendChild(dateLabel);
-
-                groupedByDate[dateStr].forEach(evt => {
+            const dates = Object.keys(groups).sort().reverse();
+            dates.forEach(d => {
+                const sec = document.createElement('div');
+                sec.className = 'cat-group-section';
+                sec.innerHTML = `<span class="cat-group-date-label">📅 ${d}</span>`;
+                
+                groups[d].forEach(evt => {
                     const card = document.createElement('div');
                     card.className = 'cat-group-mini-card';
-                    
-                    const titleRow = document.createElement('div');
-                    titleRow.className = 'cat-group-mini-title-row';
-
-                    const mainBadge = evt.mainCategoryName ? `<span style="color:${evt.mainCategoryColor || 'var(--primary)'}; font-weight:900;">[${evt.mainCategoryName}]</span> ` : '';
-                    const subText = (evt.subCategories && evt.subCategories.length > 0) ? `<div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">🏷️ ${evt.subCategories.join('/')}</div>` : '';
-
-                    titleRow.innerHTML = `<p class="cat-group-mini-title" style="color:${evt.fontColor || 'var(--text-main)'};">${mainBadge}${evt.title}</p>`;
-                    card.appendChild(titleRow);
-                    if (subText) card.innerHTML += subText;
-
-                    card.onclick = () => {
-                        currentDate = evt.date;
-                        initDateConfig();
-                        renderTimeline();
-                        closeOverviewModal();
-                        setTimeout(() => jumpToEventCard(evt.id), 200);
-                    };
-
-                    groupSection.appendChild(card);
+                    let subText = (evt.subCategories && evt.subCategories.length > 0) ? `<span style="font-size:0.72rem; color:var(--text-muted);">${evt.subCategories.join('/')}</span>` : '';
+                    card.innerHTML = `
+                        <div class="cat-group-mini-title-row">
+                            <p class="cat-group-mini-title" style="color: ${evt.fontColor || 'inherit'};">${evt.title}</p>
+                        </div>
+                        ${subText}
+                    `;
+                    sec.appendChild(card);
                 });
-
-                container.appendChild(groupSection);
+                resContainer.appendChild(sec);
             });
         }
     </script>
 </body>
 </html>
+
