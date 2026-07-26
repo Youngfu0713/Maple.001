@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>個人日程管理系統 - 優化版</title>
+    <title>個人日程管理系統 - 標籤管理優化版</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -15,54 +15,112 @@
         }
 
         :root {
-            --primary: #5151e5; --primary-hover: #3d3dbd; --primary-light: #eef2ff;
-            --bg-main: #fcfbfa; --bg-card: #ffffff;
-            --text-main: #1e293b; --text-muted: #64748b;
-            --border: #f1f5f9; --border-hover: #cbd5e1;
+            --primary: #5151e5;
+            --primary-hover: #3d3dbd;
+            --primary-light: #eef2ff;
+            --bg-main: #fcfbfa; 
+            --bg-card: #ffffff;
+            --text-main: #1e293b; 
+            --text-muted: #64748b;
+            --border: #f1f5f9;
+            --border-hover: #cbd5e1;
             --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
             --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
             --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
         }
 
-        /* --- 6種主題定義 --- */
-        body[data-theme="default"] { --primary: #5151e5; --bg-main: #fcfbfa; }
-        body[data-theme="macaron"] { --primary: #f07b95; --primary-light: #fff0f3; --bg-main: #faf6f0; --text-main: #4a3e3d; --text-muted: #8c7a78; --border: #f3e5df; }
-        body[data-theme="dark"] { --primary: #818cf8; --primary-light: #1e1b4b; --bg-main: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155; }
-        body[data-theme="nordic"] { --primary: #0d9488; --primary-light: #ccfbf1; --bg-main: #f4f7f6; --text-main: #132a2f; --text-muted: #52796f; --border: #e0e7e5; }
-        body[data-theme="sunshine"] { --primary: #f59e0b; --primary-light: #fef3c7; --bg-main: #fffbeb; --text-main: #92400e; --text-muted: #b45309; --border: #fde68a; }
-        body[data-theme="violet"] { --primary: #8b5cf6; --primary-light: #ede9fe; --bg-main: #faf5ff; --text-main: #5b21b6; --text-muted: #7c3aed; --border: #ddd6fe; }
+        /* --- 風格主題定義 --- */
+        body[data-theme="macaron"] {
+            --primary: #f07b95;
+            --primary-hover: #d85c78;
+            --primary-light: #fff0f3;
+            --bg-main: #faf6f0;
+            --bg-card: #ffffff;
+            --text-main: #4a3e3d;
+            --text-muted: #8c7a78;
+            --border: #f3e5df;
+            --border-hover: #e6c2b8;
+        }
 
-        body { font-family: "MiaoFont", sans-serif; background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; transition: background-color 0.2s, color 0.2s; }
-        
-        .calendar-container { width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh; margin: auto; box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
-        
-        /* ... (保留原本的 CSS，並新增主題彈窗樣式) ... */
-        .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-        .theme-btn { padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); font-weight: 800; cursor: pointer; text-align: center; }
-        .theme-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+        body[data-theme="dark"] {
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+            --primary-light: #1e1b4b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --border-hover: #475569;
+        }
+
+        body[data-theme="nordic"] {
+            --primary: #0d9488;
+            --primary-hover: #0f766e;
+            --primary-light: #ccfbf1;
+            --bg-main: #f4f7f6;
+            --bg-card: #ffffff;
+            --text-main: #132a2f;
+            --text-muted: #52796f;
+            --border: #e0e7e5;
+            --border-hover: #b2c9c2;
+        }
+
+        body {
+            font-family: "MiaoFont", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0;
+            display: flex; justify-content: center; overscroll-behavior-y: contain; -webkit-font-smoothing: antialiased;
+            transition: background-color 0.25s, color 0.25s;
+        }
+
+        .calendar-container {
+            width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh;
+            box-shadow: var(--shadow-md); display: flex; flex-direction: column; position: relative;
+        }
 
         .calendar-header { padding: 16px 20px 10px 20px; background: var(--bg-card); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
         .calendar-header h1 { margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 800; text-align: center; }
+        .quick-nav { display: flex; gap: 6px; margin-bottom: 8px; }
+        .nav-btn { font-family: inherit; padding: 8px 10px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; text-align: center; -webkit-tap-highlight-color: transparent; }
+        #btn-today { flex: 1.1; background: var(--primary); color: white; border: none; font-weight: 800; }
+        #btn-month { flex: 1.2; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); font-weight: 800; }
+
+        .date-picker-row { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 2px 0; margin-bottom: 8px; }
+        .date-picker-label-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 0.78rem; color: var(--text-muted); }
+        .date-picker-row input[type="date"] { font-family: inherit; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted); background: var(--bg-main); }
+
+        .font-color-picker-container { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.9rem; font-weight: 700; color: var(--text-muted); background: var(--bg-main); }
+        .font-color-picker-container input[type="color"] { border: none; width: 22px; height: 22px; background: none; padding: 0; cursor: pointer; }
+
+        .quick-jump-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; width: 100%; min-width: 0; }
+        .quick-jump-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+        .quick-jump-list { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; flex-grow: 1; }
+        .quick-jump-btn { font-family: inherit; font-size: 0.73rem; font-weight: 700; padding: 3px 8px; border-radius: 14px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-main); white-space: nowrap; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .jump-to-input-btn { background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); font-weight: 800; }
+
+        .event-form { padding: 14px 20px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        .form-row { display: flex; gap: 8px; }
+        .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: var(--bg-main); color: var(--text-main); outline: none; }
+        .quick-time-btn { font-family: inherit; padding: 10px 14px; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; }
+        .submit-btn { font-family: inherit; background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+
+        .utility-control-bar { padding: 12px 20px 10px 20px; background: var(--bg-main); display: flex; flex-direction: column; gap: 8px; }
+        .utility-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .sort-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
+        .sort-select-wrapper { display: flex; gap: 4px; }
+        .sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 800; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); cursor: pointer; }
+        .sort-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
         
-        /* 統一按鈕與佈局 */
-        .quick-nav { display: flex; gap: 6px; margin-bottom: 10px; }
-        .nav-btn { font-family: inherit; padding: 8px 10px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; }
+        /* 其他既有樣式... */
+        .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; background: var(--bg-main); }
+        .event-card { border: 1px solid transparent; border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); background: var(--bg-card); }
+        .event-text-line { font-size: 0.92rem; font-weight: 700; }
         
-        /* Modal 通用 */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.4); z-index: 999; display: none; align-items: flex-end; justify-content: center; }
-        .modal-overlay.show { display: flex; }
-        .action-sheet { width: 100%; max-width: 550px; background: var(--bg-card); border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; transform: translateY(100%); transition: transform 0.3s; }
-        .modal-overlay.show .action-sheet { transform: translateY(0); }
-        .sheet-close-btn { width: 100%; padding: 12px; background: var(--bg-main); border: none; border-radius: 10px; margin-top: 10px; font-weight: 800; }
-        
-        /* 補充原樣式... */
-        .date-picker-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .quick-jump-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-        .event-form { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
-        .timeline { padding: 10px 20px; flex-grow: 1; }
-        .event-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
-        .font-color-picker-container { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
-        .font-color-picker-container input[type="color"] { border: none; width: 22px; height: 22px; background: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.45); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .action-sheet { width: 100%; max-width: 550px; background: var(--bg-card); border-radius: 20px 20px 0 0; padding: 24px 20px; }
+        .card-highlight { animation: pulse-highlight 1.2s ease-in-out; }
+        @keyframes pulse-highlight { 0% { transform: scale(1); } 50% { transform: scale(1.02); border: 2px solid var(--primary); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -77,80 +135,107 @@
                 <button class="nav-btn" id="btn-next">後一天 ▶</button>
             </div>
             
-            <!-- 新的風格切換按鈕 -->
-            <button class="nav-btn" id="btn-open-theme" style="width: 100%; margin-bottom: 8px; border: 1px dashed var(--primary); color: var(--primary);">🎨 切換風格主題 (目前: <span id="theme-name">經典藍</span>)</button>
+            <!-- 修改後的主題選擇器 -->
+            <div class="utility-row" style="margin-bottom: 8px;">
+                <span class="sort-label">🎨 風格主題：</span>
+                <select id="theme-selector" style="font-family: inherit; font-size: 0.75rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); cursor: pointer; outline: none; transition: all 0.2s;">
+                    <option value="default">經典藍</option>
+                    <option value="macaron">馬卡龍</option>
+                    <option value="dark">深色夜間</option>
+                    <option value="nordic">清新薄荷</option>
+                </select>
+            </div>
 
             <div class="date-picker-row">
-                <input type="date" id="date-select">
+                <div class="date-picker-label-group">
+                    <label for="date-select">跳轉日期：</label>
+                    <input type="date" id="date-select">
+                </div>
                 <div class="font-color-picker-container">
                     <label for="evt-font-color">🪄</label>
                     <input type="color" id="evt-font-color" value="#000000">
                 </div>
+                <button class="quick-jump-btn" id="btn-toggle-emoji-modal" style="margin-left: auto; border-color: var(--primary); color: var(--primary);">😃</button>
             </div>
 
             <div class="quick-jump-bar" id="quick-jump-bar">
                 <span class="quick-jump-title">📍 跳轉：</span>
-                <button class="quick-jump-btn" id="btn-jump-to-input">📍</button>
-                <div class="quick-jump-list" id="quick-jump-list" style="display:flex; gap:5px; overflow-x:auto;"></div>
+                <button class="quick-jump-btn jump-to-input-btn" id="btn-jump-to-input">📍</button>
+                <div class="quick-jump-list" id="quick-jump-list"></div>
+                <button class="quick-jump-btn" id="btn-jump-to-sort" style="margin-left: auto;">⚡️</button>
             </div>
         </div>
 
         <div class="event-form">
-            <input type="text" id="evt-title" placeholder="請輸入重要事項..." style="padding:10px; border:1px solid var(--border); border-radius:6px;">
-            <button class="submit-btn" id="add-evt-btn" style="background:var(--primary); color:white; border:none; padding:10px; border-radius:6px; cursor:pointer;">安排至行程表</button>
+            <div class="form-row">
+                <input type="text" id="evt-title" placeholder="請輸入重要事項..." required>
+                <button class="quick-time-btn" id="btn-quick-time">⚡ 快速記時</button>
+            </div>
+            <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
+        </div>
+
+        <div class="utility-control-bar" id="sort-order-section">
+            <div class="utility-row">
+                <span class="sort-label">排列順序：</span>
+                <div class="sort-select-wrapper">
+                    <button class="sort-btn" id="sort-btn-manual">✍️ 手動</button>
+                    <button class="sort-btn" id="sort-btn-az">🔤 A-Z</button>
+                    <button class="sort-btn" id="sort-btn-za">🔤 Z-A</button>
+                </div>
+            </div>
         </div>
 
         <div class="timeline" id="timeline-list"></div>
     </div>
 
-    <!-- 主題風格 Modal -->
-    <div class="modal-overlay" id="theme-modal" onclick="closeThemeModal()">
-        <div class="action-sheet" onclick="event.stopPropagation()">
-            <div style="text-align: center; font-weight: 800; margin-bottom: 10px;">選擇風格主題</div>
-            <div class="theme-grid">
-                <button class="theme-btn" data-theme="default">經典藍</button>
-                <button class="theme-btn" data-theme="macaron">馬卡龍</button>
-                <button class="theme-btn" data-theme="dark">深色夜間</button>
-                <button class="theme-btn" data-theme="nordic">清新薄荷</button>
-                <button class="theme-btn" data-theme="sunshine">暖陽黃</button>
-                <button class="theme-btn" data-theme="violet">紫羅蘭</button>
-            </div>
-            <button class="sheet-close-btn" onclick="closeThemeModal()">關閉</button>
-        </div>
-    </div>
-
     <script>
-        // 核心邏輯保留
-        let currentTheme = localStorage.getItem('calendar_theme') || 'default';
-        
-        // 主題設置函式
-        function setTheme(theme) {
-            currentTheme = theme;
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('calendar_theme', theme);
-            document.getElementById('theme-name').innerText = document.querySelector(`[data-theme="${theme}"]`).innerText;
-            
-            // 更新 UI 按鈕狀態
-            document.querySelectorAll('.theme-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
-            });
+        function getLocalTodayString() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
-        function openThemeModal() { document.getElementById('theme-modal').classList.add('show'); }
-        function closeThemeModal() { document.getElementById('theme-modal').classList.remove('show'); }
+        let currentDate = getLocalTodayString();
+        let events = JSON.parse(localStorage.getItem('calendar_events')) || [];
+        let sortMode = localStorage.getItem('calendar_sort_mode') || 'manual';
+        let currentTheme = localStorage.getItem('calendar_theme') || 'default';
 
         window.addEventListener('DOMContentLoaded', () => {
             setTheme(currentTheme);
-            document.getElementById('btn-open-theme').addEventListener('click', openThemeModal);
-            document.querySelectorAll('.theme-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    setTheme(btn.getAttribute('data-theme'));
-                    closeThemeModal();
-                });
-            });
-            // ... 其餘您的原始邏輯 (init, renderTimeline 等) ...
+            initDateConfig();
+            renderTimeline();
+            setupEventListeners();
         });
+
+        function setupEventListeners() {
+            // 主題選擇器監聽
+            document.getElementById('theme-selector').addEventListener('change', (e) => setTheme(e.target.value));
+            
+            document.getElementById('btn-prev').addEventListener('click', () => changeDate(-1));
+            document.getElementById('btn-next').addEventListener('click', () => changeDate(1));
+            document.getElementById('btn-today').addEventListener('click', () => { currentDate = getLocalTodayString(); initDateConfig(); renderTimeline(); });
+            // 其他既有邏輯...
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme; 
+            document.body.setAttribute('data-theme', theme); 
+            localStorage.setItem('calendar_theme', theme);
+            
+            // 更新下拉選單選中狀態
+            const selector = document.getElementById('theme-selector');
+            if (selector) {
+                selector.value = theme;
+            }
+        }
+
+        function initDateConfig() { document.getElementById('date-select').value = currentDate; }
+        function renderTimeline() { /* 既有繪製邏輯 */ }
+        function changeDate(offset) { /* 既有日期切換邏輯 */ }
+        
+        // ... (其餘原本的 JS 邏輯)
     </script>
 </body>
 </html>
-
