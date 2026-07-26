@@ -657,6 +657,113 @@
             renderEmojiGrid();
         });
 
+        /* --- 事件監聽器整合設定 --- */
+        function setupEventListeners() {
+            document.getElementById('btn-prev').addEventListener('click', () => changeDate(-1));
+            document.getElementById('btn-next').addEventListener('click', () => changeDate(1));
+            document.getElementById('btn-today').addEventListener('click', () => {
+                currentDate = getLocalTodayString();
+                initDateConfig();
+                renderTimeline();
+            });
+            document.getElementById('btn-month').addEventListener('click', openMonthModal);
+            document.getElementById('date-select').addEventListener('change', (e) => {
+                if (e.target.value) {
+                    currentDate = e.target.value;
+                    updateDateDisplay();
+                    renderTimeline();
+                }
+            });
+
+            document.getElementById('btn-jump-to-input').addEventListener('click', jumpToInputTitle);
+            document.getElementById('btn-toggle-emoji-modal').addEventListener('click', openEmojiModal);
+            document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
+            document.getElementById('color-toggle-btn').addEventListener('click', openManageModal);
+            document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
+
+            // 主題按鈕事件綁定
+            document.querySelectorAll('#theme-btn-group .sort-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = btn.getAttribute('data-theme');
+                    setTheme(theme);
+                });
+            });
+
+            // 排序按鈕事件綁定
+            document.getElementById('sort-btn-manual').addEventListener('click', () => setSortMode('manual'));
+            document.getElementById('sort-btn-az').addEventListener('click', () => setSortMode('az'));
+            document.getElementById('sort-btn-za').addEventListener('click', () => setSortMode('za'));
+
+            // 月視圖切換按鈕
+            document.getElementById('btn-month-prev').addEventListener('click', () => {
+                viewMonth--;
+                if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+                renderMonthCalendar();
+            });
+            document.getElementById('btn-month-next').addEventListener('click', () => {
+                viewMonth++;
+                if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+                renderMonthCalendar();
+            });
+
+            // PDF 與圖片導出
+            document.getElementById('btn-export-pdf').addEventListener('click', () => {
+                document.getElementById('print-timestamp').innerText = new Date().toLocaleString('zh-TW');
+                window.print();
+            });
+
+            document.getElementById('btn-export-img').addEventListener('click', exportAsImage);
+        }
+
+        function changeDate(offset) {
+            const parts = currentDate.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            d.setDate(d.getDate() + offset);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            currentDate = `${year}-${month}-${day}`;
+            initDateConfig();
+            renderTimeline();
+        }
+
+        function setSortMode(mode) {
+            sortMode = mode;
+            saveToStorage();
+            updateSortBtnUI();
+            renderTimeline();
+        }
+
+        function updateSortBtnUI() {
+            ['manual', 'az', 'za'].forEach(mode => {
+                const btn = document.getElementById(`sort-btn-${mode}`);
+                if (btn) {
+                    if (sortMode === mode) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+        }
+
+        function exportAsImage() {
+            const container = document.querySelector('.calendar-container');
+            if (!container || typeof html2canvas === 'undefined') {
+                return alert('圖片匯出模組載入失敗！');
+            }
+            
+            html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-main')
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `日程表_${currentDate}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                alert('圖片匯出失敗：' + err.message);
+            });
+        }
+
         /* --- 風格主題切換邏輯 --- */
         function setTheme(theme) {
             currentTheme = theme;
@@ -682,7 +789,8 @@
 
         function updateDateDisplay() {
             const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            const d = new Date(currentDate);
+            const parts = currentDate.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
             document.getElementById('current-day').innerText = `${currentDate} (${days[d.getDay()]})`;
             document.getElementById('print-date-title').innerText = `${currentDate} 日程安排表`;
         }
@@ -729,15 +837,11 @@
 
             input.value = currentVal.substring(0, start) + emoji + currentVal.substring(end);
             
-            // 重新定位游標於新增圖示之後
             const newPos = start + emoji.length;
             input.focus();
             input.setSelectionRange(newPos, newPos);
 
-            // 滾動並突顯輸入框
             jumpToInputTitle();
-
-            // 點選符號後自動關閉彈出視窗
             closeEmojiModal();
         }
 
@@ -1001,7 +1105,6 @@
             const container = document.getElementById('timeline-list'); container.innerHTML = '';
             let dayEvents = events.filter(e => e.date === currentDate);
 
-            // 渲染快速跳轉按鈕
             renderQuickJumpButtons(dayEvents);
 
             if (dayEvents.length === 0) { container.innerHTML = '<div class="no-events">今日尚無安排行程。</div>'; return; }
@@ -1304,6 +1407,7 @@
         let oMain = "", oSub = "";
         document.getElementById('btn-cat-overview').addEventListener('click', () => { oMain = categories[0]?.name || ""; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); document.getElementById('overview-modal').classList.add('show'); });
         function closeOverviewModal() { document.getElementById('overview-modal').classList.remove('show'); }
+        
         function renderOverviewFilters() {
             const mr = document.getElementById('overview-main-cat-tabs'); mr.innerHTML = '<strong>主：</strong>';
             categories.forEach(c => { const b = document.createElement('button'); b.className = `overview-sub-filter-btn ${oMain===c.name?'active':''}`; b.innerText = c.name; b.onclick = () => { oMain = c.name; oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); }; mr.appendChild(b); });
@@ -1312,84 +1416,56 @@
             if(cc && cc.subGroups) {
                 const ba = document.createElement('button'); ba.className = `overview-sub-filter-btn ${oSub===""?'active':''}`; ba.innerText="全部"; ba.onclick = () => { oSub = ""; renderOverviewFilters(); renderOverviewTimeline(); }; sr.appendChild(ba);
                 let items = []; cc.subGroups.forEach(g => items.push(...g.items));
-                items.forEach(it => { const b = document.createElement('button'); b.className = `overview-sub-filter-btn ${oSub===it?'active':''}`; b.innerText = it; b.onclick = () => { oSub = it; renderOverviewFilters(); renderOverviewTimeline(); }; sr.appendChild(b); });
+                items.forEach(it => {
+                    const b = document.createElement('button');
+                    b.className = `overview-sub-filter-btn ${oSub===it?'active':''}`;
+                    b.innerText = it;
+                    b.onclick = () => { oSub = it; renderOverviewFilters(); renderOverviewTimeline(); };
+                    sr.appendChild(b);
+                });
             }
         }
+
         function renderOverviewTimeline() {
-            const c = document.getElementById('overview-result-timeline'); c.innerHTML = '';
-            let mt = events.filter(e => e.mainCategoryName === oMain);
-            if(oSub) mt = mt.filter(e => e.subCategories && e.subCategories.includes(oSub));
-            if(mt.length === 0) { c.innerHTML = '<div class="no-events">無符合篩選的歷史日程。</div>'; return; }
-            mt.sort((a,b) => b.date.localeCompare(a.date));
-            let cd = "", gd = null;
-            mt.forEach(evt => {
-                if(evt.date !== cd) { cd = evt.date; gd = document.createElement('div'); gd.className = 'cat-group-section'; gd.innerHTML = `<span class="cat-group-date-label">${cd}</span>`; c.appendChild(gd); }
-                const mi = document.createElement('div'); mi.className = 'cat-group-mini-card';
-                let sHtml = ''; if(evt.subCategories) evt.subCategories.forEach(s => sHtml += `<span class="subcategory-badge" style="background:#64748b;">${s}</span>`);
-                mi.innerHTML = `<div class="cat-group-mini-title-row">${sHtml}<p class="cat-group-mini-title" style="color:${evt.fontColor}">${evt.title}</p></div>`;
-                if(gd) gd.appendChild(mi);
-            });
-        }
-
-        function changeSortMode(mode) { sortMode = mode; saveToStorage(); updateSortBtnUI(); renderTimeline(); }
-        function updateSortBtnUI() { ['manual', 'az', 'za'].forEach(m => { const b = document.getElementById(`sort-btn-${m}`); if(sortMode===m) b.classList.add('active'); else b.classList.remove('active'); }); }
-        
-        function setupEventListeners() {
-            document.getElementById('btn-prev').addEventListener('click', () => changeDateOffset(-1));
-            document.getElementById('btn-next').addEventListener('click', () => changeDateOffset(1));
-            document.getElementById('btn-today').addEventListener('click', () => { currentDate = getLocalTodayString(); initDateConfig(); renderTimeline(); });
+            const resContainer = document.getElementById('overview-result-timeline');
+            resContainer.innerHTML = '';
             
-            document.getElementById('btn-month').addEventListener('click', openMonthModal);
-            document.getElementById('btn-month-prev').addEventListener('click', () => {
-                viewMonth--;
-                if (viewMonth < 0) { viewMonth = 11; viewYear--; }
-                renderMonthCalendar();
-            });
-            document.getElementById('btn-month-next').addEventListener('click', () => {
-                viewMonth++;
-                if (viewMonth > 11) { viewMonth = 0; viewYear++; }
-                renderMonthCalendar();
+            let filtered = events.filter(e => e.mainCategoryName === oMain);
+            if (oSub) {
+                filtered = filtered.filter(e => e.subCategories && e.subCategories.includes(oSub));
+            }
+            
+            if (filtered.length === 0) {
+                resContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.85rem;">無符合條件的行程記錄</div>';
+                return;
+            }
+
+            const groups = {};
+            filtered.forEach(e => {
+                if (!groups[e.date]) groups[e.date] = [];
+                groups[e.date].push(e);
             });
 
-            document.getElementById('date-select').addEventListener('change', (e) => { currentDate = e.target.value; updateDateDisplay(); renderTimeline(); });
-            document.getElementById('sort-btn-manual').addEventListener('click', () => changeSortMode('manual'));
-            document.getElementById('sort-btn-az').addEventListener('click', () => changeSortMode('az'));
-            document.getElementById('sort-btn-za').addEventListener('click', () => changeSortMode('za'));
-            
-            /* 綁定主題切換按鈕事件 */
-            document.querySelectorAll('#theme-btn-group .sort-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const theme = btn.getAttribute('data-theme');
-                    setTheme(theme);
+            const dates = Object.keys(groups).sort().reverse();
+            dates.forEach(d => {
+                const sec = document.createElement('div');
+                sec.className = 'cat-group-section';
+                sec.innerHTML = `<span class="cat-group-date-label">📅 ${d}</span>`;
+                
+                groups[d].forEach(evt => {
+                    const card = document.createElement('div');
+                    card.className = 'cat-group-mini-card';
+                    let subText = (evt.subCategories && evt.subCategories.length > 0) ? `<span style="font-size:0.72rem; color:var(--text-muted);">${evt.subCategories.join('/')}</span>` : '';
+                    card.innerHTML = `
+                        <div class="cat-group-mini-title-row">
+                            <p class="cat-group-mini-title" style="color: ${evt.fontColor || 'inherit'};">${evt.title}</p>
+                        </div>
+                        ${subText}
+                    `;
+                    sec.appendChild(card);
                 });
+                resContainer.appendChild(sec);
             });
-
-            document.getElementById('btn-export-pdf').addEventListener('click', () => { document.getElementById('print-timestamp').innerText = new Date().toLocaleString(); window.print(); });
-            document.getElementById('btn-export-img').addEventListener('click', doExportImage);
-            document.getElementById('add-evt-btn').addEventListener('click', submitEventForm);
-            document.getElementById('evt-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitEventForm(); } });
-            
-            /* 綁定跳轉至輸入框事件 */
-            document.getElementById('btn-jump-to-input').addEventListener('click', jumpToInputTitle);
-
-            /* 綁定開啟 Emoji 彈出窗事件 */
-            document.getElementById('btn-toggle-emoji-modal').addEventListener('click', openEmojiModal);
-
-            document.getElementById('color-toggle-btn').addEventListener('click', openManageModal);
-            document.getElementById('add-new-cat-btn').addEventListener('click', submitNewMainCategory);
-            document.getElementById('new-cat-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitNewMainCategory(); } });
-        }
-        function changeDateOffset(o) { const d = new Date(currentDate); d.setDate(d.getDate() + o); currentDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; initDateConfig(); renderTimeline(); }
-        
-        function doExportImage() {
-            const ph = document.getElementById('print-header-area'); const od = ph.style.display; ph.style.display = 'block';
-            document.getElementById('print-timestamp').innerText = new Date().toLocaleString();
-            html2canvas(document.querySelector('.calendar-container'), {
-                useCORS: true, scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-main').trim() || '#fcfbfa',
-                ignoreElements: (el) => el.classList.contains('calendar-header') || el.classList.contains('event-form') || el.classList.contains('utility-control-bar') || el.classList.contains('manual-move-actions') || el.classList.contains('modal-overlay')
-            }).then(canvas => {
-                ph.style.display = od; const link = document.createElement('a'); link.download = `日程安排_${currentDate}.png`; link.href = canvas.toDataURL('image/png'); link.click();
-            }).catch(err => { ph.style.display = od; console.error(err); });
         }
     </script>
 </body>
