@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant-TW">
 <head>
@@ -7,6 +6,14 @@
     <title>個人日程管理系統</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* 1. 加入字體設定 */
+        @font-face {
+            font-family: 'MiaoFont';
+            src: url('Miao.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         :root {
             --primary: #5151e5; --primary-hover: #3d3dbd; --primary-light: #eef2ff;
             --bg-main: #fcfbfa; --bg-card: #ffffff; --text-main: #1e293b; --text-muted: #64748b;
@@ -17,7 +24,10 @@
         body[data-theme="macaron"] { --primary: #f07b95; --primary-hover: #d85c78; --primary-light: #fff0f3; --bg-main: #faf6f0; --bg-card: #fff; --text-main: #4a3e3d; --text-muted: #8c7a78; --border: #f3e5df; --border-hover: #e6c2b8; }
         body[data-theme="dark"] { --primary: #818cf8; --primary-hover: #6366f1; --primary-light: #1e1b4b; --bg-main: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155; --border-hover: #475569; }
         body[data-theme="nordic"] { --primary: #0d9488; --primary-hover: #0f766e; --primary-light: #ccfbf1; --bg-main: #f4f7f6; --bg-card: #fff; --text-main: #132a2f; --text-muted: #52796f; --border: #e0e7e5; --border-hover: #b2c9c2; }
-        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; display: flex; justify-content: center; -webkit-font-smoothing: antialiased; transition: background 0.25s, color 0.25s; }
+        
+        /* 2. 更新 body 字體設定 */
+        body { font-family: 'MiaoFont', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; display: flex; justify-content: center; -webkit-font-smoothing: antialiased; transition: background 0.25s, color 0.25s; }
+        
         .calendar-container { width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh; box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
         .calendar-header { padding: 14px 18px 8px; background: var(--bg-card); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
         .calendar-header h1 { margin: 0 0 8px; font-size: 1.1rem; font-weight: 800; text-align: center; }
@@ -399,7 +409,7 @@ function showCatPanel(evt){hideAllSubPanels();document.getElementById('modal-cat
 function renderModalCatGrid(evt){const grid=document.getElementById('modal-category-grid');let tmc=evt.mainCategoryId||'',tsi=[...(evt.subCategories||[])];function rf(){grid.innerHTML='';categories.forEach(cat=>{const w=document.createElement('div');w.className='sheet-category-item-wrapper';const mr=document.createElement('div');mr.className='sheet-cat-main-row';mr.style.background=cat.id===tmc?cat.color+'20':'';mr.innerHTML='<span class="dot" style="background:'+cat.color+';"></span><span style="flex:1;">'+cat.name+'</span>'+(cat.id===tmc?'<span style="color:var(--primary);font-size:0.75rem;">✓</span>':'');mr.onclick=()=>{tmc=cat.id;tsi=[];rf()};w.appendChild(mr);if(cat.id===tmc&&cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach(g=>{const sb=document.createElement('div');sb.className='sheet-sub-group-block';sb.innerHTML='<div class="sheet-sub-group-title">'+g.title+'</div>';const sr=document.createElement('div');sr.className='sheet-sub-grid-row';g.items.forEach(item=>{const p=document.createElement('button');p.className='sheet-sub-pill-btn';p.innerText=item;if(tsi.includes(item))p.classList.add('active');p.onclick=()=>{const i=tsi.indexOf(item);if(i>=0)tsi.splice(i,1);else tsi.push(item);rf()};sr.appendChild(p)});sb.appendChild(sr);w.appendChild(sb)});grid.appendChild(w)})}rf();document.getElementById('modal-category-submit').onclick=()=>{const mc=categories.find(c=>c.id===tmc);evt.mainCategoryId=tmc;evt.mainCategoryName=mc?mc.name:'';evt.mainCategoryColor=mc?mc.color:'';evt.subCategories=[...tsi];saveToStorage();renderTimeline();closeActionModal()}}
 
 function deleteFromModal(evt){if(confirm('確定要刪除「'+evt.title+'」嗎？')){events=events.filter(e=>e.id!==evt.id);saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}}
-function deleteEventDirect(id){const evt=events.find(e=>e.id===id);if(!evt||!confirm('確定要刪除「'+evt.title+'」嗎？'))return;events=events.filter(e=>e.id!==id);saveToStorage();renderTimeline();renderQuickJumpBar()}
+function deleteEventDirect(id){const evt=events.find(e=>e.id!==id);if(!evt||!confirm('確定要刪除「'+evt.title+'」嗎？'))return;events=events.filter(e=>e.id!==id);saveToStorage();renderTimeline();renderQuickJumpBar()}
 
 /* ===== Month Calendar ===== */
 function openMonthModal(){const p=currentDate.split('-').map(Number);viewYear=p[0];viewMonth=p[1]-1;renderMonthCalendar();document.getElementById('month-modal').classList.add('show')}
