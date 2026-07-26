@@ -6,13 +6,7 @@
     <title>個人日程管理系統</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 1. 加入字體設定 */
-        @font-face {
-            font-family: 'MiaoFont';
-            src: url('Miao.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
+        @font-face { font-family: 'MiaoFont'; src: url('Miao.ttf') format('truetype'); font-weight: normal; font-style: normal; }
 
         :root {
             --primary: #5151e5; --primary-hover: #3d3dbd; --primary-light: #eef2ff;
@@ -21,20 +15,30 @@
             --shadow-sm: 0 2px 8px rgba(15,23,42,0.04); --shadow-md: 0 10px 30px -10px rgba(15,23,42,0.08);
             --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
         }
+        /* 風格定義 */
         body[data-theme="macaron"] { --primary: #f07b95; --primary-hover: #d85c78; --primary-light: #fff0f3; --bg-main: #faf6f0; --bg-card: #fff; --text-main: #4a3e3d; --text-muted: #8c7a78; --border: #f3e5df; --border-hover: #e6c2b8; }
         body[data-theme="dark"] { --primary: #818cf8; --primary-hover: #6366f1; --primary-light: #1e1b4b; --bg-main: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155; --border-hover: #475569; }
         body[data-theme="nordic"] { --primary: #0d9488; --primary-hover: #0f766e; --primary-light: #ccfbf1; --bg-main: #f4f7f6; --bg-card: #fff; --text-main: #132a2f; --text-muted: #52796f; --border: #e0e7e5; --border-hover: #b2c9c2; }
+        body[data-theme="forest"] { --primary: #15803d; --primary-hover: #166534; --primary-light: #dcfce7; --bg-main: #f0fdf4; --bg-card: #fff; --text-main: #064e3b; --text-muted: #315e4f; --border: #bbf7d0; --border-hover: #86efac; }
+        body[data-theme="sunset"] { --primary: #ea580c; --primary-hover: #c2410c; --primary-light: #ffedd5; --bg-main: #fff7ed; --bg-card: #fff; --text-main: #7c2d12; --text-muted: #9a3412; --border: #fed7aa; --border-hover: #fdba74; }
+        body[data-theme="royal"] { --primary: #7e22ce; --primary-hover: #6b21a8; --primary-light: #f3e8ff; --bg-main: #faf5ff; --bg-card: #fff; --text-main: #581c87; --text-muted: #7e22ce; --border: #e9d5ff; --border-hover: #d8b4fe; }
+        body[data-theme="lavender"] { --primary: #94a3b8; --primary-hover: #64748b; --primary-light: #f1f5f9; --bg-main: #f8fafc; --bg-card: #fff; --text-main: #334155; --text-muted: #64748b; --border: #cbd5e1; --border-hover: #94a3b8; }
+        body[data-theme="coffee"] { --primary: #78350f; --primary-hover: #5d280a; --primary-light: #fef3c7; --bg-main: #fefce8; --bg-card: #fff; --text-main: #451a03; --text-muted: #854d0e; --border: #fde68a; --border-hover: #fcd34d; }
+        body[data-theme="cyberpunk"] { --primary: #e11d48; --primary-hover: #be123c; --primary-light: #111827; --bg-main: #000000; --bg-card: #111827; --text-main: #f97316; --text-muted: #a78bfa; --border: #1f2937; --border-hover: #374151; }
         
-        /* 2. 更新 body 字體設定 */
-        body { font-family: 'MiaoFont', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; display: flex; justify-content: center; -webkit-font-smoothing: antialiased; transition: background 0.25s, color 0.25s; }
-        
+        body { font-family: 'MiaoFont', sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; display: flex; justify-content: center; transition: background 0.25s, color 0.25s; }
         .calendar-container { width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh; box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
-        .calendar-header { padding: 14px 18px 8px; background: var(--bg-card); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
+        .calendar-header { padding: 14px 18px 8px; background: var(--bg-card); border-bottom: 1px solid var(--border); }
         .calendar-header h1 { margin: 0 0 8px; font-size: 1.1rem; font-weight: 800; text-align: center; }
         .quick-nav { display: flex; gap: 5px; margin-bottom: 6px; }
-        .nav-btn { font-family: inherit; padding: 7px 8px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; text-align: center; }
+        .nav-btn { font-family: inherit; padding: 7px 8px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; }
         #btn-today { flex: 1.1; background: var(--primary); color: #fff; border: none; }
         #btn-month { flex: 1.2; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); }
+        
+        /* 下拉選單樣式 */
+        .theme-select-wrapper { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+        .theme-select-dropdown { font-family: inherit; padding: 5px 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 0.78rem; font-weight: 700; flex-grow: 1; cursor: pointer; }
+        
         .date-picker-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
         .date-picker-label-group { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0; }
         .date-picker-row input[type="date"] { font-family: inherit; padding: 4px 6px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--text-muted); background: var(--bg-main); }
@@ -45,9 +49,7 @@
         .quick-jump-list { display: flex; gap: 4px; overflow-x: auto; flex-grow: 1; }
         .quick-jump-list::-webkit-scrollbar { display: none; }
         .quick-jump-btn { font-family: inherit; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 14px; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-main); white-space: nowrap; cursor: pointer; flex-shrink: 0; }
-        .jump-to-input-btn { background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); font-weight: 800; flex-shrink: 0; font-size: 0.85rem !important; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 8px 0; max-height: 45vh; overflow-y: auto; }
-        .emoji-item-btn { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: var(--radius-sm); cursor: pointer; }
+        
         .event-form { padding: 12px 18px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
         .form-row { display: flex; gap: 6px; }
         .event-form input[type="text"] { font-family: inherit; flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.88rem; background: var(--bg-main); color: var(--text-main); outline: none; }
@@ -61,10 +63,10 @@
         .sub-cat-container-box.active { display: block; }
         .sub-cat-group-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; border-bottom: 1px dashed var(--border-hover); padding-bottom: 6px; }
         .sub-cat-group-title { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); }
-        .sub-cat-group-title::before { content: ''; display: inline-block; width: 4px; height: 8px; background: var(--text-muted); border-radius: 2px; margin-right: 4px; }
         .sub-cat-pills-list { display: flex; gap: 4px; flex-wrap: wrap; }
         .sub-cat-tag-btn { font-family: inherit; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); cursor: pointer; }
         .sub-cat-tag-btn.active { background: var(--text-main); color: var(--bg-card); border-color: var(--text-main); }
+        
         .manage-tabs-row { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; border-bottom: 2px solid var(--border); margin-bottom: 8px; }
         .manage-tab-item { font-family: inherit; padding: 5px 10px; font-size: 0.78rem; font-weight: 800; border-radius: 6px 6px 0 0; border: 1px solid transparent; background: var(--bg-main); color: var(--text-muted); cursor: pointer; white-space: nowrap; }
         .manage-tab-item.active { background: var(--bg-card); border-color: var(--border) var(--border) transparent; color: var(--text-main); }
@@ -89,6 +91,7 @@
         .add-new-cat-row input[type="text"] { font-family: inherit; flex: 1; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.75rem; background: var(--bg-main); color: var(--text-main); }
         .add-new-cat-row input[type="color"] { border: none; width: 28px; height: 28px; background: none; padding: 0; cursor: pointer; }
         .add-cat-submit-btn { font-family: inherit; background: var(--text-main); color: var(--bg-card); border: none; padding: 7px 10px; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        
         .quick-time-btn { font-family: inherit; padding: 9px 12px; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
         .submit-btn { font-family: inherit; background: var(--primary); color: #fff; border: none; padding: 10px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.88rem; cursor: pointer; }
         .utility-control-bar { padding: 10px 18px; background: var(--bg-main); display: flex; flex-direction: column; gap: 6px; }
@@ -101,6 +104,7 @@
         .pdf-export-btn, .img-export-btn { font-family: inherit; padding: 7px 10px; border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .pdf-export-btn { background: var(--bg-card); color: #ef4444; border: 1px solid #fca5a5; }
         .img-export-btn { background: var(--bg-card); color: #10b981; border: 1px solid #a7f3d0; }
+        
         .timeline { padding: 8px 18px 18px; flex-grow: 1; background: var(--bg-main); min-height: 200px; }
         .no-events { text-align: center; color: var(--text-muted); padding: 40px 18px; font-size: 0.82rem; font-weight: 600; }
         .event-card { border: 1px solid transparent; border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); cursor: pointer; background: var(--bg-card); transition: transform 0.2s; }
@@ -168,14 +172,20 @@
             <button class="nav-btn" id="btn-month">📅 月</button>
             <button class="nav-btn" id="btn-next">後一天 ▶</button>
         </div>
-        <div class="utility-row" style="margin-bottom:6px;">
+        <div class="theme-select-wrapper">
             <span class="sort-label">🎨 風格：</span>
-            <div class="sort-select-wrapper" id="theme-btn-group">
-                <button class="sort-btn" data-theme="default">經典藍</button>
-                <button class="sort-btn" data-theme="macaron">馬卡龍</button>
-                <button class="sort-btn" data-theme="dark">深色</button>
-                <button class="sort-btn" data-theme="nordic">薄荷</button>
-            </div>
+            <select id="theme-select" class="theme-select-dropdown">
+                <option value="default">經典藍</option>
+                <option value="macaron">馬卡龍</option>
+                <option value="dark">深色</option>
+                <option value="nordic">薄荷</option>
+                <option value="forest">森林綠</option>
+                <option value="sunset">夕陽暖</option>
+                <option value="royal">皇家金</option>
+                <option value="lavender">薰衣草</option>
+                <option value="coffee">摩卡咖啡</option>
+                <option value="cyberpunk">賽博龐克</option>
+            </select>
         </div>
         <div class="date-picker-row">
             <div class="date-picker-label-group"><label for="date-select">跳轉：</label><input type="date" id="date-select"></div>
@@ -221,7 +231,7 @@
     <div class="timeline" id="timeline-list"></div>
 </div>
 
-<!-- Emoji Modal -->
+<!-- Modal 區塊 (保持不變) -->
 <div class="modal-overlay" id="emoji-modal" onclick="closeEmojiModal()">
     <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius:18px;max-height:75vh;margin:auto 12px;">
         <div class="sheet-header"><span class="sheet-title-desc">😀 常用圖示</span></div>
@@ -229,8 +239,6 @@
         <button class="sheet-close-btn" onclick="closeEmojiModal()">關閉</button>
     </div>
 </div>
-
-<!-- Month Modal -->
 <div class="modal-overlay" id="month-modal" onclick="closeMonthModal()">
     <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius:18px;max-height:82vh;margin:auto 12px;">
         <div class="sheet-header">
@@ -245,8 +253,6 @@
         <button class="sheet-close-btn" onclick="closeMonthModal()">關閉</button>
     </div>
 </div>
-
-<!-- Manage Modal -->
 <div class="modal-overlay" id="manage-modal" onclick="closeManageModal()">
     <div class="action-sheet" onclick="event.stopPropagation()">
         <div class="sheet-drag-indicator"></div>
@@ -263,8 +269,6 @@
         <button class="sheet-close-btn" onclick="closeManageModal()">完成</button>
     </div>
 </div>
-
-<!-- Action Modal -->
 <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
     <div class="action-sheet" onclick="event.stopPropagation()">
         <div class="sheet-drag-indicator"></div>
@@ -308,158 +312,168 @@
 </div>
 
 <script>
-function getLocalTodayString(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function genId(){return 'evt-'+Date.now()+'-'+Math.random().toString(36).substr(2,6)}
-let currentDate=getLocalTodayString();
-let events=JSON.parse(localStorage.getItem('calendar_events'))||[];
-let sortMode=localStorage.getItem('calendar_sort_mode')||'manual';
-let currentTheme=localStorage.getItem('calendar_theme')||'default';
-let categories=JSON.parse(localStorage.getItem('calendar_categories'))||[
-    {id:"cat_work",name:"工作公務",color:"#5151e5",subGroups:[{id:"g1",title:"專案A組",items:["開發","測試","上線"]},{id:"g2",title:"客戶聯絡群",items:["緊急","待審核"]}]},
-    {id:"cat_life",name:"日常生活",color:"#10b981",subGroups:[{id:"g3",title:"家庭事務",items:["吃飯","購物清單","娛樂"]},{id:"g4",title:"健身運動",items:["日常","健康"]}]}
-];
-const EMOJIS=['✅','✔️','☑️','🔘','⚪','➕','➖','⭕','❌','🙆‍♀️','🙅‍♀️','🙆‍♂️','🙅‍♂️','☒','☐','■','□','✕','✓','✔','✖','✗','✘','×','●','○','ⓧ','★','☆'];
-let selectedMainCatId=categories[0]?.id||"",selectedSubItems=[],activeTargetEventId=null,managementActiveCatId=categories[0]?.id||"";
-let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth();
+    function getLocalTodayString(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+    function genId(){return 'evt-'+Date.now()+'-'+Math.random().toString(36).substr(2,6)}
+    let currentDate=getLocalTodayString();
+    let events=JSON.parse(localStorage.getItem('calendar_events'))||[];
+    let sortMode=localStorage.getItem('calendar_sort_mode')||'manual';
+    let currentTheme=localStorage.getItem('calendar_theme')||'default';
+    let categories=JSON.parse(localStorage.getItem('calendar_categories'))||[
+        {id:"cat_work",name:"工作公務",color:"#5151e5",subGroups:[{id:"g1",title:"專案A組",items:["開發","測試","上線"]},{id:"g2",title:"客戶聯絡群",items:["緊急","待審核"]}]},
+        {id:"cat_life",name:"日常生活",color:"#10b981",subGroups:[{id:"g3",title:"家庭事務",items:["吃飯","購物清單","娛樂"]},{id:"g4",title:"健身運動",items:["日常","健康"]}]}
+    ];
+    const EMOJIS=['✅','✔️','☑️','🔘','⚪','➕','➖','⭕','❌','🙆‍♀️','🙅‍♀️','🙆‍♂️','🙅‍♂️','☒','☐','■','□','✕','✓','✔','✖','✗','✘','×','●','○','ⓧ','★','☆'];
+    let selectedMainCatId=categories[0]?.id||"",selectedSubItems=[],activeTargetEventId=null,managementActiveCatId=categories[0]?.id||"";
+    let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth();
 
-window.addEventListener('DOMContentLoaded',()=>{
-    setTheme(currentTheme);initDateConfig();renderCategorySelectors();renderTimeline();renderQuickJumpBar();
-    setupEventListeners();updateSortBtnUI();renderEmojiGrid();
-});
+    window.addEventListener('DOMContentLoaded',()=>{
+        // 初始化風格設定
+        const themeSelect = document.getElementById('theme-select');
+        themeSelect.value = currentTheme;
+        setTheme(currentTheme);
+        
+        initDateConfig();renderCategorySelectors();renderTimeline();renderQuickJumpBar();
+        setupEventListeners();updateSortBtnUI();renderEmojiGrid();
+    });
 
-function saveToStorage(){localStorage.setItem('calendar_events',JSON.stringify(events));localStorage.setItem('calendar_categories',JSON.stringify(categories));localStorage.setItem('calendar_sort_mode',sortMode);localStorage.setItem('calendar_theme',currentTheme)}
-function setTheme(t){currentTheme=t;document.body.setAttribute('data-theme',t);localStorage.setItem('calendar_theme',t);document.querySelectorAll('#theme-btn-group .sort-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-theme')===t))}
-function initDateConfig(){document.getElementById('date-select').value=currentDate;updateDateDisplay()}
-function updateDateDisplay(){const days=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];const p=currentDate.split('-').map(Number);const d=new Date(p[0],p[1]-1,p[2]);document.getElementById('current-day').innerText=currentDate+' ('+days[d.getDay()]+')';document.getElementById('print-date-title').innerText=currentDate+' 日程安排表'}
-function changeDate(o){const p=currentDate.split('-').map(Number);const d=new Date(p[0],p[1]-1,p[2]);d.setDate(d.getDate()+o);currentDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');initDateConfig();renderTimeline();renderQuickJumpBar()}
-function setSortMode(m){sortMode=m;saveToStorage();updateSortBtnUI();renderTimeline()}
-function updateSortBtnUI(){['manual','az','za'].forEach(m=>{const b=document.getElementById('sort-btn-'+m);if(b)b.classList.toggle('active',sortMode===m)})}
+    function saveToStorage(){localStorage.setItem('calendar_events',JSON.stringify(events));localStorage.setItem('calendar_categories',JSON.stringify(categories));localStorage.setItem('calendar_sort_mode',sortMode);localStorage.setItem('calendar_theme',currentTheme)}
+    
+    function setTheme(t){
+        currentTheme=t;
+        document.body.setAttribute('data-theme',t);
+        localStorage.setItem('calendar_theme',t);
+        const s = document.getElementById('theme-select');
+        if(s) s.value = t;
+    }
 
-function renderCategorySelectors(){
-    const c=document.getElementById('category-buttons-list');c.innerHTML='';
-    if(categories.length===0){c.innerHTML='<span style="font-size:0.72rem;color:var(--text-muted);">尚無類別，點 ⚙️ 新增</span>';document.getElementById('sub-category-container').classList.remove('active');return}
-    if(!categories.find(x=>x.id===selectedMainCatId))selectedMainCatId=categories[0].id;
-    categories.forEach(cat=>{
-        const b=document.createElement('button');b.className='cat-tag-btn';b.style.backgroundColor=cat.color+'20';b.style.color=cat.color;b.innerText=cat.name;
-        if(cat.id===selectedMainCatId)b.classList.add('active');
-        b.onclick=()=>{selectedMainCatId=cat.id;selectedSubItems=[];renderCategorySelectors()};c.appendChild(b)
-    });renderSubCategories()
-}
-function renderSubCategories(){
-    const c=document.getElementById('sub-category-container');const cat=categories.find(x=>x.id===selectedMainCatId);
-    if(!cat||!cat.subGroups||cat.subGroups.length===0){c.classList.remove('active');return}
-    c.classList.add('active');c.innerHTML='';
-    cat.subGroups.forEach(g=>{
-        const d=document.createElement('div');d.className='sub-cat-group-row';d.innerHTML='<div class="sub-cat-group-title">'+g.title+'</div>';
-        const p=document.createElement('div');p.className='sub-cat-pills-list';
-        g.items.forEach(item=>{
-            const b=document.createElement('button');b.className='sub-cat-tag-btn';b.innerText=item;
-            if(selectedSubItems.includes(item))b.classList.add('active');
-            b.onclick=()=>toggleSubItem(item);p.appendChild(b)
-        });d.appendChild(p);c.appendChild(d)
-    })
-}
-function toggleSubItem(item){const i=selectedSubItems.indexOf(item);if(i>=0)selectedSubItems.splice(i,1);else selectedSubItems.push(item);renderSubCategories()}
+    function initDateConfig(){document.getElementById('date-select').value=currentDate;updateDateDisplay()}
+    function updateDateDisplay(){const days=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];const p=currentDate.split('-').map(Number);const d=new Date(p[0],p[1]-1,p[2]);document.getElementById('current-day').innerText=currentDate+' ('+days[d.getDay()]+')';document.getElementById('print-date-title').innerText=currentDate+' 日程安排表'}
+    function changeDate(o){const p=currentDate.split('-').map(Number);const d=new Date(p[0],p[1]-1,p[2]);d.setDate(d.getDate()+o);currentDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');initDateConfig();renderTimeline();renderQuickJumpBar()}
+    function setSortMode(m){sortMode=m;saveToStorage();updateSortBtnUI();renderTimeline()}
+    function updateSortBtnUI(){['manual','az','za'].forEach(m=>{const b=document.getElementById('sort-btn-'+m);if(b)b.classList.toggle('active',sortMode===m)})}
 
-function submitEventForm(){
-    const inp=document.getElementById('evt-title'),title=inp.value.trim();if(!title)return;
-    const fc=document.getElementById('evt-font-color').value,mc=categories.find(c=>c.id===selectedMainCatId);
-    const evt={id:genId(),date:currentDate,title,fontColor:fc,mainCategoryId:selectedMainCatId||'',mainCategoryName:mc?mc.name:'',mainCategoryColor:mc?mc.color:'',subCategories:[...selectedSubItems],orderIndex:events.length};
-    events.push(evt);saveToStorage();inp.value='';selectedSubItems=[];renderCategorySelectors();renderTimeline();renderQuickJumpBar()
-}
-function insertQuickTime(){
-    const inp=document.getElementById('evt-title'),now=new Date(),ts='['+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+'] ';
-    const s=inp.selectionStart||0;inp.value=inp.value.substring(0,s)+ts+inp.value.substring(inp.selectionEnd||s);inp.focus();inp.setSelectionRange(s+ts.length,s+ts.length)
-}
+    function renderCategorySelectors(){
+        const c=document.getElementById('category-buttons-list');c.innerHTML='';
+        if(categories.length===0){c.innerHTML='<span style="font-size:0.72rem;color:var(--text-muted);">尚無類別，點 ⚙️ 新增</span>';document.getElementById('sub-category-container').classList.remove('active');return}
+        if(!categories.find(x=>x.id===selectedMainCatId))selectedMainCatId=categories[0].id;
+        categories.forEach(cat=>{
+            const b=document.createElement('button');b.className='cat-tag-btn';b.style.backgroundColor=cat.color+'20';b.style.color=cat.color;b.innerText=cat.name;
+            if(cat.id===selectedMainCatId)b.classList.add('active');
+            b.onclick=()=>{selectedMainCatId=cat.id;selectedSubItems=[];renderCategorySelectors()};c.appendChild(b)
+        });renderSubCategories()
+    }
+    function renderSubCategories(){
+        const c=document.getElementById('sub-category-container');const cat=categories.find(x=>x.id===selectedMainCatId);
+        if(!cat||!cat.subGroups||cat.subGroups.length===0){c.classList.remove('active');return}
+        c.classList.add('active');c.innerHTML='';
+        cat.subGroups.forEach(g=>{
+            const d=document.createElement('div');d.className='sub-cat-group-row';d.innerHTML='<div class="sub-cat-group-title">'+g.title+'</div>';
+            const p=document.createElement('div');p.className='sub-cat-pills-list';
+            g.items.forEach(item=>{
+                const b=document.createElement('button');b.className='sub-cat-tag-btn';b.innerText=item;
+                if(selectedSubItems.includes(item))b.classList.add('active');
+                b.onclick=()=>toggleSubItem(item);p.appendChild(b)
+            });d.appendChild(p);c.appendChild(d)
+        })
+    }
+    function toggleSubItem(item){const i=selectedSubItems.indexOf(item);if(i>=0)selectedSubItems.splice(i,1);else selectedSubItems.push(item);renderSubCategories()}
 
-function renderTimeline(){
-    const c=document.getElementById('timeline-list');c.innerHTML='';let dayEvents=events.filter(e=>e.date===currentDate);
-    if(dayEvents.length===0){c.innerHTML='<div class="no-events">今日尚無安排行程。</div>';return}
-    if(sortMode==='az')dayEvents.sort((a,b)=>a.title.localeCompare(b.title,'zh-Hant'));
-    else if(sortMode==='za')dayEvents.sort((a,b)=>b.title.localeCompare(a.title,'zh-Hant'));
-    else dayEvents.sort((a,b)=>(a.orderIndex||0)-(b.orderIndex||0));
-    dayEvents.forEach((evt,idx)=>{
-        const card=document.createElement('div');card.className='event-card';card.id='event-card-'+evt.id;card.onclick=()=>openActionModal(evt.id);
-        const tm=evt.title.match(/^\[(\d{2}:\d{2})\]/),dt=tm?evt.title.replace(/^\[\d{2}:\d{2}\]\s*/,''):evt.title;
-        card.innerHTML='<div class="event-info"><p class="event-text-line" style="color:'+(evt.fontColor||'#000')+'">'+(evt.mainCategoryName?'<span class="prefix-badge-main" style="color:'+evt.mainCategoryColor+'">['+evt.mainCategoryName+']</span>':'')+(tm?'<span class="prefix-badge-time">['+tm[1]+']</span>':'')+dt+'</p>'+(evt.subCategories&&evt.subCategories.length?'<div class="sub-pills-text-row">'+evt.subCategories.join(' / ')+'</div>':'')+'</div>';
-        const ac=document.createElement('div');ac.style.display='flex';ac.style.alignItems='center';
-        if(sortMode==='manual'){const ma=document.createElement('div');ma.className='manual-move-actions';ma.onclick=e=>e.stopPropagation();const ub=document.createElement('button');ub.className='move-step-btn';ub.innerText='▲';ub.disabled=idx===0;ub.onclick=()=>moveOrderStep(evt.id,-1);const db=document.createElement('button');db.className='move-step-btn';db.innerText='▼';db.disabled=idx===dayEvents.length-1;db.onclick=()=>moveOrderStep(evt.id,1);ma.appendChild(ub);ma.appendChild(db);ac.appendChild(ma)}
-        const ia=document.createElement('div');ia.className='event-inline-actions';ia.innerHTML='<span onclick="event.stopPropagation();openActionModal(\''+evt.id+'\')">編輯</span><span onclick="event.stopPropagation();deleteEventDirect(\''+evt.id+'\')">刪除</span>';ac.appendChild(ia);card.appendChild(ac);c.appendChild(card)
-    })
-}
-function moveOrderStep(eid,dir){let de=events.filter(e=>e.date===currentDate).sort((a,b)=>(a.orderIndex||0)-(b.orderIndex||0));const i=de.findIndex(e=>e.id===eid);if(i===-1)return;const s=i+dir;if(s<0||s>=de.length)return;const t=de[i].orderIndex;de[i].orderIndex=de[s].orderIndex;de[s].orderIndex=t;saveToStorage();renderTimeline()}
+    function submitEventForm(){
+        const inp=document.getElementById('evt-title'),title=inp.value.trim();if(!title)return;
+        const fc=document.getElementById('evt-font-color').value,mc=categories.find(c=>c.id===selectedMainCatId);
+        const evt={id:genId(),date:currentDate,title,fontColor:fc,mainCategoryId:selectedMainCatId||'',mainCategoryName:mc?mc.name:'',mainCategoryColor:mc?mc.color:'',subCategories:[...selectedSubItems],orderIndex:events.length};
+        events.push(evt);saveToStorage();inp.value='';selectedSubItems=[];renderCategorySelectors();renderTimeline();renderQuickJumpBar()
+    }
+    function insertQuickTime(){
+        const inp=document.getElementById('evt-title'),now=new Date(),ts='['+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+'] ';
+        const s=inp.selectionStart||0;inp.value=inp.value.substring(0,s)+ts+inp.value.substring(inp.selectionEnd||s);inp.focus();inp.setSelectionRange(s+ts.length,s+ts.length)
+    }
 
-function renderQuickJumpBar(){const l=document.getElementById('quick-jump-list');l.innerHTML='';const ds=new Set(events.map(e=>e.date)),sd=[...ds].sort();if(sd.length===0)return;sd.slice(-12).forEach(d=>{const b=document.createElement('button');b.className='quick-jump-btn';const p=d.split('-');b.innerText=parseInt(p[1])+'/'+parseInt(p[2]);b.onclick=()=>{currentDate=d;initDateConfig();renderTimeline();renderQuickJumpBar()};l.appendChild(b)})}
+    function renderTimeline(){
+        const c=document.getElementById('timeline-list');c.innerHTML='';let dayEvents=events.filter(e=>e.date===currentDate);
+        if(dayEvents.length===0){c.innerHTML='<div class="no-events">今日尚無安排行程。</div>';return}
+        if(sortMode==='az')dayEvents.sort((a,b)=>a.title.localeCompare(b.title,'zh-Hant'));
+        else if(sortMode==='za')dayEvents.sort((a,b)=>b.title.localeCompare(a.title,'zh-Hant'));
+        else dayEvents.sort((a,b)=>(a.orderIndex||0)-(b.orderIndex||0));
+        dayEvents.forEach((evt,idx)=>{
+            const card=document.createElement('div');card.className='event-card';card.id='event-card-'+evt.id;card.onclick=()=>openActionModal(evt.id);
+            const tm=evt.title.match(/^\[(\d{2}:\d{2})\]/),dt=tm?evt.title.replace(/^\[\d{2}:\d{2}\]\s*/,''):evt.title;
+            card.innerHTML='<div class="event-info"><p class="event-text-line" style="color:'+(evt.fontColor||'#000')+'">'+(evt.mainCategoryName?'<span class="prefix-badge-main" style="color:'+evt.mainCategoryColor+'">['+evt.mainCategoryName+']</span>':'')+(tm?'<span class="prefix-badge-time">['+tm[1]+']</span>':'')+dt+'</p>'+(evt.subCategories&&evt.subCategories.length?'<div class="sub-pills-text-row">'+evt.subCategories.join(' / ')+'</div>':'')+'</div>';
+            const ac=document.createElement('div');ac.style.display='flex';ac.style.alignItems='center';
+            if(sortMode==='manual'){const ma=document.createElement('div');ma.className='manual-move-actions';ma.onclick=e=>e.stopPropagation();const ub=document.createElement('button');ub.className='move-step-btn';ub.innerText='▲';ub.disabled=idx===0;ub.onclick=()=>moveOrderStep(evt.id,-1);const db=document.createElement('button');db.className='move-step-btn';db.innerText='▼';db.disabled=idx===dayEvents.length-1;db.onclick=()=>moveOrderStep(evt.id,1);ma.appendChild(ub);ma.appendChild(db);ac.appendChild(ma)}
+            const ia=document.createElement('div');ia.className='event-inline-actions';ia.innerHTML='<span onclick="event.stopPropagation();openActionModal(\''+evt.id+'\')">編輯</span><span onclick="event.stopPropagation();deleteEventDirect(\''+evt.id+'\')">刪除</span>';ac.appendChild(ia);card.appendChild(ac);c.appendChild(card)
+        })
+    }
+    function moveOrderStep(eid,dir){let de=events.filter(e=>e.date===currentDate).sort((a,b)=>(a.orderIndex||0)-(b.orderIndex||0));const i=de.findIndex(e=>e.id===eid);if(i===-1)return;const s=i+dir;if(s<0||s>=de.length)return;const t=de[i].orderIndex;de[i].orderIndex=de[s].orderIndex;de[s].orderIndex=t;saveToStorage();renderTimeline()}
 
-/* ===== Action Modal ===== */
-function openActionModal(eid){activeTargetEventId=eid;const evt=events.find(e=>e.id===eid);if(!evt)return;document.getElementById('modal-event-title').innerText=evt.title;hideAllSubPanels();document.getElementById('standard-action-grid').style.display='grid';document.getElementById('modal-btn-edit').onclick=()=>showEditPanel(evt);document.getElementById('modal-btn-move').onclick=()=>showMovePanel(evt);document.getElementById('modal-btn-copy').onclick=()=>copyEvent(evt);document.getElementById('modal-btn-category').onclick=()=>showCatPanel(evt);document.getElementById('modal-btn-delete').onclick=()=>deleteFromModal(evt);document.getElementById('modal-edit-back').onclick=resetToGrid;document.getElementById('modal-edit-submit').onclick=()=>submitEdit(evt);document.getElementById('modal-move-back').onclick=resetToGrid;document.getElementById('modal-move-submit').onclick=()=>submitMove(evt);document.getElementById('modal-category-back').onclick=resetToGrid;document.getElementById('action-modal').classList.add('show')}
-function hideAllSubPanels(){document.getElementById('standard-action-grid').style.display='none';['modal-edit-panel','modal-move-panel','modal-category-panel'].forEach(id=>document.getElementById(id).classList.remove('show'))}
-function resetToGrid(){hideAllSubPanels();document.getElementById('standard-action-grid').style.display='grid'}
-function closeActionModal(){document.getElementById('action-modal').classList.remove('show');activeTargetEventId=null;hideAllSubPanels()}
+    function renderQuickJumpBar(){const l=document.getElementById('quick-jump-list');l.innerHTML='';const ds=new Set(events.map(e=>e.date)),sd=[...ds].sort();if(sd.length===0)return;sd.slice(-12).forEach(d=>{const b=document.createElement('button');b.className='quick-jump-btn';const p=d.split('-');b.innerText=parseInt(p[1])+'/'+parseInt(p[2]);b.onclick=()=>{currentDate=d;initDateConfig();renderTimeline();renderQuickJumpBar()};l.appendChild(b)})}
 
-function showEditPanel(evt){hideAllSubPanels();document.getElementById('modal-edit-title-input').value=evt.title;document.getElementById('modal-edit-panel').classList.add('show')}
-function submitEdit(evt){const t=document.getElementById('modal-edit-title-input').value.trim();if(!t)return;evt.title=t;saveToStorage();renderTimeline();closeActionModal()}
+    function openActionModal(eid){activeTargetEventId=eid;const evt=events.find(e=>e.id===eid);if(!evt)return;document.getElementById('modal-event-title').innerText=evt.title;hideAllSubPanels();document.getElementById('standard-action-grid').style.display='grid';document.getElementById('modal-btn-edit').onclick=()=>showEditPanel(evt);document.getElementById('modal-btn-move').onclick=()=>showMovePanel(evt);document.getElementById('modal-btn-copy').onclick=()=>copyEvent(evt);document.getElementById('modal-btn-category').onclick=()=>showCatPanel(evt);document.getElementById('modal-btn-delete').onclick=()=>deleteFromModal(evt);document.getElementById('modal-edit-back').onclick=resetToGrid;document.getElementById('modal-edit-submit').onclick=()=>submitEdit(evt);document.getElementById('modal-move-back').onclick=resetToGrid;document.getElementById('modal-move-submit').onclick=()=>submitMove(evt);document.getElementById('modal-category-back').onclick=resetToGrid;document.getElementById('action-modal').classList.add('show')}
+    function hideAllSubPanels(){document.getElementById('standard-action-grid').style.display='none';['modal-edit-panel','modal-move-panel','modal-category-panel'].forEach(id=>document.getElementById(id).classList.remove('show'))}
+    function resetToGrid(){hideAllSubPanels();document.getElementById('standard-action-grid').style.display='grid'}
+    function closeActionModal(){document.getElementById('action-modal').classList.remove('show');activeTargetEventId=null;hideAllSubPanels()}
 
-function showMovePanel(evt){hideAllSubPanels();document.getElementById('modal-move-date-input').value=evt.date;document.getElementById('modal-move-panel').classList.add('show')}
-function submitMove(evt){const d=document.getElementById('modal-move-date-input').value;if(!d)return;evt.date=d;saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}
+    function showEditPanel(evt){hideAllSubPanels();document.getElementById('modal-edit-title-input').value=evt.title;document.getElementById('modal-edit-panel').classList.add('show')}
+    function submitEdit(evt){const t=document.getElementById('modal-edit-title-input').value.trim();if(!t)return;evt.title=t;saveToStorage();renderTimeline();closeActionModal()}
 
-function copyEvent(evt){const n={...evt,id:genId(),orderIndex:events.length};n.subCategories=[...(evt.subCategories||[])];events.push(n);saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}
+    function showMovePanel(evt){hideAllSubPanels();document.getElementById('modal-move-date-input').value=evt.date;document.getElementById('modal-move-panel').classList.add('show')}
+    function submitMove(evt){const d=document.getElementById('modal-move-date-input').value;if(!d)return;evt.date=d;saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}
 
-function showCatPanel(evt){hideAllSubPanels();document.getElementById('modal-category-panel').classList.add('show');renderModalCatGrid(evt)}
-function renderModalCatGrid(evt){const grid=document.getElementById('modal-category-grid');let tmc=evt.mainCategoryId||'',tsi=[...(evt.subCategories||[])];function rf(){grid.innerHTML='';categories.forEach(cat=>{const w=document.createElement('div');w.className='sheet-category-item-wrapper';const mr=document.createElement('div');mr.className='sheet-cat-main-row';mr.style.background=cat.id===tmc?cat.color+'20':'';mr.innerHTML='<span class="dot" style="background:'+cat.color+';"></span><span style="flex:1;">'+cat.name+'</span>'+(cat.id===tmc?'<span style="color:var(--primary);font-size:0.75rem;">✓</span>':'');mr.onclick=()=>{tmc=cat.id;tsi=[];rf()};w.appendChild(mr);if(cat.id===tmc&&cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach(g=>{const sb=document.createElement('div');sb.className='sheet-sub-group-block';sb.innerHTML='<div class="sheet-sub-group-title">'+g.title+'</div>';const sr=document.createElement('div');sr.className='sheet-sub-grid-row';g.items.forEach(item=>{const p=document.createElement('button');p.className='sheet-sub-pill-btn';p.innerText=item;if(tsi.includes(item))p.classList.add('active');p.onclick=()=>{const i=tsi.indexOf(item);if(i>=0)tsi.splice(i,1);else tsi.push(item);rf()};sr.appendChild(p)});sb.appendChild(sr);w.appendChild(sb)});grid.appendChild(w)})}rf();document.getElementById('modal-category-submit').onclick=()=>{const mc=categories.find(c=>c.id===tmc);evt.mainCategoryId=tmc;evt.mainCategoryName=mc?mc.name:'';evt.mainCategoryColor=mc?mc.color:'';evt.subCategories=[...tsi];saveToStorage();renderTimeline();closeActionModal()}}
+    function copyEvent(evt){const n={...evt,id:genId(),orderIndex:events.length};n.subCategories=[...(evt.subCategories||[])];events.push(n);saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}
 
-function deleteFromModal(evt){if(confirm('確定要刪除「'+evt.title+'」嗎？')){events=events.filter(e=>e.id!==evt.id);saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}}
-function deleteEventDirect(id){const evt=events.find(e=>e.id!==id);if(!evt||!confirm('確定要刪除「'+evt.title+'」嗎？'))return;events=events.filter(e=>e.id!==id);saveToStorage();renderTimeline();renderQuickJumpBar()}
+    function showCatPanel(evt){hideAllSubPanels();document.getElementById('modal-category-panel').classList.add('show');renderModalCatGrid(evt)}
+    function renderModalCatGrid(evt){const grid=document.getElementById('modal-category-grid');let tmc=evt.mainCategoryId||'',tsi=[...(evt.subCategories||[])];function rf(){grid.innerHTML='';categories.forEach(cat=>{const w=document.createElement('div');w.className='sheet-category-item-wrapper';const mr=document.createElement('div');mr.className='sheet-cat-main-row';mr.style.background=cat.id===tmc?cat.color+'20':'';mr.innerHTML='<span class="dot" style="background:'+cat.color+';"></span><span style="flex:1;">'+cat.name+'</span>'+(cat.id===tmc?'<span style="color:var(--primary);font-size:0.75rem;">✓</span>':'');mr.onclick=()=>{tmc=cat.id;tsi=[];rf()};w.appendChild(mr);if(cat.id===tmc&&cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach(g=>{const sb=document.createElement('div');sb.className='sheet-sub-group-block';sb.innerHTML='<div class="sheet-sub-group-title">'+g.title+'</div>';const sr=document.createElement('div');sr.className='sheet-sub-grid-row';g.items.forEach(item=>{const p=document.createElement('button');p.className='sheet-sub-pill-btn';p.innerText=item;if(tsi.includes(item))p.classList.add('active');p.onclick=()=>{const i=tsi.indexOf(item);if(i>=0)tsi.splice(i,1);else tsi.push(item);rf()};sr.appendChild(p)});sb.appendChild(sr);w.appendChild(sb)});grid.appendChild(w)})}rf();document.getElementById('modal-category-submit').onclick=()=>{const mc=categories.find(c=>c.id===tmc);evt.mainCategoryId=tmc;evt.mainCategoryName=mc?mc.name:'';evt.mainCategoryColor=mc?mc.color:'';evt.subCategories=[...tsi];saveToStorage();renderTimeline();closeActionModal()}}
 
-/* ===== Month Calendar ===== */
-function openMonthModal(){const p=currentDate.split('-').map(Number);viewYear=p[0];viewMonth=p[1]-1;renderMonthCalendar();document.getElementById('month-modal').classList.add('show')}
-function closeMonthModal(){document.getElementById('month-modal').classList.remove('show')}
-function renderMonthCalendar(){document.getElementById('month-picker-title').innerText=viewYear+' 年 '+(viewMonth+1)+' 月';const grid=document.getElementById('month-calendar-grid');grid.innerHTML='';['日','一','二','三','四','五','六'].forEach(d=>{const h=document.createElement('div');h.className='month-day-header';h.innerText=d;grid.appendChild(h)});const dc={};events.forEach(e=>{const p=e.date.split('-').map(Number);if(p[0]===viewYear&&p[1]===viewMonth+1)dc[p[2]]=(dc[p[2]]||0)+1});const fd=new Date(viewYear,viewMonth,1).getDay(),dim=new Date(viewYear,viewMonth+1,0).getDate(),today=getLocalTodayString();for(let i=0;i<fd;i++)grid.appendChild(document.createElement('div'));for(let d=1;d<=dim;d++){const cell=document.createElement('div');cell.className='month-day-cell';const ds=viewYear+'-'+String(viewMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(ds===today)cell.classList.add('is-today');if(ds===currentDate)cell.classList.add('is-selected');cell.innerHTML='<span class="month-day-number">'+d+'</span>'+(dc[d]?'<span class="month-event-count">'+dc[d]+'</span>':'');cell.onclick=()=>{currentDate=ds;initDateConfig();renderTimeline();renderQuickJumpBar();closeMonthModal()};grid.appendChild(cell)}}
+    function deleteFromModal(evt){if(confirm('確定要刪除「'+evt.title+'」嗎？')){events=events.filter(e=>e.id!==evt.id);saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}}
+    function deleteEventDirect(id){const evt=events.find(e=>e.id===id);if(!evt||!confirm('確定要刪除「'+evt.title+'」嗎？'))return;events=events.filter(e=>e.id!==id);saveToStorage();renderTimeline();renderQuickJumpBar()}
 
-/* ===== Manage Panel ===== */
-function openManageModal(){if(categories.length>0)managementActiveCatId=categories[0].id;renderManageTabs();renderManagePanel();document.getElementById('manage-modal').classList.add('show')}
-function closeManageModal(){document.getElementById('manage-modal').classList.remove('show');if(!categories.find(c=>c.id===selectedMainCatId)&&categories.length>0)selectedMainCatId=categories[0].id;renderCategorySelectors()}
-function renderManageTabs(){const c=document.getElementById('manage-tabs-container');c.innerHTML='';categories.forEach(cat=>{const t=document.createElement('button');t.className='manage-tab-item';t.innerText=cat.name;if(cat.id===managementActiveCatId)t.classList.add('active');t.onclick=()=>{managementActiveCatId=cat.id;renderManageTabs();renderManagePanel()};c.appendChild(t)})}
-function renderManagePanel(){const cat=categories.find(c=>c.id===managementActiveCatId),ct=document.getElementById('manage-categories-list');ct.innerHTML='';if(!cat){ct.innerHTML='<p style="color:var(--text-muted);font-size:0.75rem;">請先新增類別</p>';return}const mi=document.createElement('div');mi.className='manage-list-item';mi.innerHTML='<div class="manage-main-row" style="border-left-color:'+cat.color+';"><div class="left"><span style="font-weight:800;">'+cat.name+'</span><input type="color" value="'+cat.color+'" onchange="updateCatColor(\''+cat.id+'\',this.value)"></div><div class="cat-action-btn-group"><button class="cat-panel-btn cat-btn-edit" onclick="renameCategory(\''+cat.id+'\')">✏️</button><button class="cat-panel-btn cat-btn-del" onclick="deleteCategory(\''+cat.id+'\')">🗑️</button></div></div>';const sb=document.createElement('div');sb.className='manage-sub-box';if(cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach(g=>{const bl=document.createElement('div');bl.className='manage-sub-group-block';bl.innerHTML='<div class="manage-sub-group-header"><span>📁 '+g.title+'</span><div class="group-action-links"><span class="group-link-btn" onclick="renameSubGroup(\''+cat.id+'\',\''+g.id+'\')">改名</span><span class="group-link-btn del" onclick="deleteSubGroup(\''+cat.id+'\',\''+g.id+'\')">刪除</span></div></div>';const sl=document.createElement('div');sl.className='manage-sub-list';g.items.forEach((item,ii)=>{const p=document.createElement('div');p.className='manage-sub-pill';p.innerHTML=item+' <span style="font-size:0.58rem;color:var(--text-muted);" onclick="event.stopPropagation();deleteSubItem(\''+cat.id+'\',\''+g.id+'\','+ii+')">✕</span>';p.onclick=()=>{const nm=prompt('修改子分類：',item);if(nm&&nm.trim()){g.items[ii]=nm.trim();saveToStorage();renderManagePanel();renderCategorySelectors()}};sl.appendChild(p)});const ar=document.createElement('div');ar.style.cssText='display:flex;gap:3px;margin-top:3px;';const ai=document.createElement('input');ai.type='text';ai.placeholder='新子分類...';ai.style.cssText='font-family:inherit;flex:1;padding:2px 5px;border:1px solid var(--border);border-radius:4px;font-size:0.68rem;background:var(--bg-main);color:var(--text-main);';const ab=document.createElement('button');ab.innerText='+';ab.style.cssText='font-family:inherit;background:var(--primary);color:#fff;border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;';ab.onclick=()=>{const v=ai.value.trim();if(v){g.items.push(v);saveToStorage();renderManagePanel();renderCategorySelectors()}};ar.appendChild(ai);ar.appendChild(ab);bl.appendChild(sl);bl.appendChild(ar);sb.appendChild(bl)});const agr=document.createElement('div');agr.style.cssText='display:flex;gap:3px;margin-top:5px;';const agi=document.createElement('input');agi.type='text';agi.placeholder='新子群組名稱...';agi.style.cssText='font-family:inherit;flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:0.7rem;background:var(--bg-main);color:var(--text-main);';const agb=document.createElement('button');agb.innerText='➕ 新增群組';agb.style.cssText='font-family:inherit;background:var(--text-main);color:var(--bg-card);border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:0.7rem;font-weight:700;';agb.onclick=()=>{const v=agi.value.trim();if(v){if(!cat.subGroups)cat.subGroups=[];cat.subGroups.push({id:'g'+Date.now(),title:v,items:[]});saveToStorage();renderManagePanel();renderCategorySelectors()}};agr.appendChild(agi);agr.appendChild(agb);mi.appendChild(sb);mi.appendChild(agr);ct.appendChild(mi)}
-function updateCatColor(cid,c){const cat=categories.find(x=>x.id===cid);if(cat){cat.color=c;saveToStorage();renderCategorySelectors()}}
-function renameCategory(cid){const cat=categories.find(x=>x.id===cid);if(!cat)return;const n=prompt('修改類別名稱：',cat.name);if(n&&n.trim()){cat.name=n.trim();saveToStorage();renderManageTabs();renderManagePanel();renderCategorySelectors()}}
-function deleteCategory(cid){const cat=categories.find(x=>x.id===cid);if(!cat||!confirm('確定刪除「'+cat.name+'」及其所有子分類？'))return;categories=categories.filter(x=>x.id!==cid);saveToStorage();if(categories.length>0)managementActiveCatId=categories[0].id;else managementActiveCatId='';renderManageTabs();renderManagePanel();renderCategorySelectors()}
-function renameSubGroup(cid,gid){const cat=categories.find(x=>x.id===cid);if(!cat||!cat.subGroups)return;const g=cat.subGroups.find(x=>x.id===gid);if(!g)return;const n=prompt('修改群組名稱：',g.title);if(n&&n.trim()){g.title=n.trim();saveToStorage();renderManagePanel();renderCategorySelectors()}}
-function deleteSubGroup(cid,gid){const cat=categories.find(x=>x.id===cid);if(!cat||!cat.subGroups||!confirm('確定刪除此子群組？'))return;cat.subGroups=cat.subGroups.filter(x=>x.id!==gid);saveToStorage();renderManagePanel();renderCategorySelectors()}
-function deleteSubItem(cid,gid,ii){const cat=categories.find(x=>x.id===cid);if(!cat||!cat.subGroups)return;const g=cat.subGroups.find(x=>x.id===gid);if(!g)return;g.items.splice(ii,1);saveToStorage();renderManagePanel();renderCategorySelectors()}
+    function openMonthModal(){const p=currentDate.split('-').map(Number);viewYear=p[0];viewMonth=p[1]-1;renderMonthCalendar();document.getElementById('month-modal').classList.add('show')}
+    function closeMonthModal(){document.getElementById('month-modal').classList.remove('show')}
+    function renderMonthCalendar(){document.getElementById('month-picker-title').innerText=viewYear+' 年 '+(viewMonth+1)+' 月';const grid=document.getElementById('month-calendar-grid');grid.innerHTML='';['日','一','二','三','四','五','六'].forEach(d=>{const h=document.createElement('div');h.className='month-day-header';h.innerText=d;grid.appendChild(h)});const dc={};events.forEach(e=>{const p=e.date.split('-').map(Number);if(p[0]===viewYear&&p[1]===viewMonth+1)dc[p[2]]=(dc[p[2]]||0)+1});const fd=new Date(viewYear,viewMonth,1).getDay(),dim=new Date(viewYear,viewMonth+1,0).getDate(),today=getLocalTodayString();for(let i=0;i<fd;i++)grid.appendChild(document.createElement('div'));for(let d=1;d<=dim;d++){const cell=document.createElement('div');cell.className='month-day-cell';const ds=viewYear+'-'+String(viewMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(ds===today)cell.classList.add('is-today');if(ds===currentDate)cell.classList.add('is-selected');cell.innerHTML='<span class="month-day-number">'+d+'</span>'+(dc[d]?'<span class="month-event-count">'+dc[d]+'</span>':'');cell.onclick=()=>{currentDate=ds;initDateConfig();renderTimeline();renderQuickJumpBar();closeMonthModal()};grid.appendChild(cell)}}
 
-document.addEventListener('DOMContentLoaded',()=>{document.getElementById('add-new-cat-btn').addEventListener('click',()=>{const n=document.getElementById('new-cat-name').value.trim();if(!n)return;categories.push({id:'cat_'+Date.now(),name:n,color:document.getElementById('new-cat-color').value,subGroups:[]});saveToStorage();managementActiveCatId=categories[categories.length-1].id;document.getElementById('new-cat-name').value='';renderManageTabs();renderManagePanel();renderCategorySelectors()})});
+    function openManageModal(){if(categories.length>0)managementActiveCatId=categories[0].id;renderManageTabs();renderManagePanel();document.getElementById('manage-modal').classList.add('show')}
+    function closeManageModal(){document.getElementById('manage-modal').classList.remove('show');if(!categories.find(c=>c.id===selectedMainCatId)&&categories.length>0)selectedMainCatId=categories[0].id;renderCategorySelectors()}
+    function renderManageTabs(){const c=document.getElementById('manage-tabs-container');c.innerHTML='';categories.forEach(cat=>{const t=document.createElement('button');t.className='manage-tab-item';t.innerText=cat.name;if(cat.id===managementActiveCatId)t.classList.add('active');t.onclick=()=>{managementActiveCatId=cat.id;renderManageTabs();renderManagePanel()};c.appendChild(t)})}
+    function renderManagePanel(){const cat=categories.find(c=>c.id===managementActiveCatId),ct=document.getElementById('manage-categories-list');ct.innerHTML='';if(!cat){ct.innerHTML='<p style="color:var(--text-muted);font-size:0.75rem;">請先新增類別</p>';return}const mi=document.createElement('div');mi.className='manage-list-item';mi.innerHTML='<div class="manage-main-row" style="border-left-color:'+cat.color+';"><div class="left"><span style="font-weight:800;">'+cat.name+'</span><input type="color" value="'+cat.color+'" onchange="updateCatColor(\''+cat.id+'\',this.value)"></div><div class="cat-action-btn-group"><button class="cat-panel-btn cat-btn-edit" onclick="renameCategory(\''+cat.id+'\')">✏️</button><button class="cat-panel-btn cat-btn-del" onclick="deleteCategory(\''+cat.id+'\')">🗑️</button></div></div>';const sb=document.createElement('div');sb.className='manage-sub-box';if(cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach(g=>{const bl=document.createElement('div');bl.className='manage-sub-group-block';bl.innerHTML='<div class="manage-sub-group-header"><span>📁 '+g.title+'</span><div class="group-action-links"><span class="group-link-btn" onclick="renameSubGroup(\''+cat.id+'\',\''+g.id+'\')">改名</span><span class="group-link-btn del" onclick="deleteSubGroup(\''+cat.id+'\',\''+g.id+'\')">刪除</span></div></div>';const sl=document.createElement('div');sl.className='manage-sub-list';g.items.forEach((item,ii)=>{const p=document.createElement('div');p.className='manage-sub-pill';p.innerHTML=item+' <span style="font-size:0.58rem;color:var(--text-muted);" onclick="event.stopPropagation();deleteSubItem(\''+cat.id+'\',\''+g.id+'\','+ii+')">✕</span>';p.onclick=()=>{const nm=prompt('修改子分類：',item);if(nm&&nm.trim()){g.items[ii]=nm.trim();saveToStorage();renderManagePanel();renderCategorySelectors()}};sl.appendChild(p)});const ar=document.createElement('div');ar.style.cssText='display:flex;gap:3px;margin-top:3px;';const ai=document.createElement('input');ai.type='text';ai.placeholder='新子分類...';ai.style.cssText='font-family:inherit;flex:1;padding:2px 5px;border:1px solid var(--border);border-radius:4px;font-size:0.68rem;background:var(--bg-main);color:var(--text-main);';const ab=document.createElement('button');ab.innerText='+';ab.style.cssText='font-family:inherit;background:var(--primary);color:#fff;border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-weight:700;';ab.onclick=()=>{const v=ai.value.trim();if(v){g.items.push(v);saveToStorage();renderManagePanel();renderCategorySelectors()}};ar.appendChild(ai);ar.appendChild(ab);bl.appendChild(sl);bl.appendChild(ar);sb.appendChild(bl)});const agr=document.createElement('div');agr.style.cssText='display:flex;gap:3px;margin-top:5px;';const agi=document.createElement('input');agi.type='text';agi.placeholder='新子群組名稱...';agi.style.cssText='font-family:inherit;flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:0.7rem;background:var(--bg-main);color:var(--text-main);';const agb=document.createElement('button');agb.innerText='➕ 新增群組';agb.style.cssText='font-family:inherit;background:var(--text-main);color:var(--bg-card);border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:0.7rem;font-weight:700;';agb.onclick=()=>{const v=agi.value.trim();if(v){if(!cat.subGroups)cat.subGroups=[];cat.subGroups.push({id:'g'+Date.now(),title:v,items:[]});saveToStorage();renderManagePanel();renderCategorySelectors()}};agr.appendChild(agi);agr.appendChild(agb);mi.appendChild(sb);mi.appendChild(agr);ct.appendChild(mi)}
+    function updateCatColor(cid,c){const cat=categories.find(x=>x.id===cid);if(cat){cat.color=c;saveToStorage();renderCategorySelectors()}}
+    function renameCategory(cid){const cat=categories.find(x=>x.id===cid);if(!cat)return;const n=prompt('修改類別名稱：',cat.name);if(n&&n.trim()){cat.name=n.trim();saveToStorage();renderManageTabs();renderManagePanel();renderCategorySelectors()}}
+    function deleteCategory(cid){const cat=categories.find(x=>x.id===cid);if(!cat||!confirm('確定刪除「'+cat.name+'」及其所有子分類？'))return;categories=categories.filter(x=>x.id!==cid);saveToStorage();if(categories.length>0)managementActiveCatId=categories[0].id;else managementActiveCatId='';renderManageTabs();renderManagePanel();renderCategorySelectors()}
+    function renameSubGroup(cid,gid){const cat=categories.find(x=>x.id===cid);if(!cat||!cat.subGroups)return;const g=cat.subGroups.find(x=>x.id===gid);if(!g)return;const n=prompt('修改群組名稱：',g.title);if(n&&n.trim()){g.title=n.trim();saveToStorage();renderManagePanel();renderCategorySelectors()}}
+    function deleteSubGroup(cid,gid){const cat=categories.find(x=>x.id===cid);if(!cat||!cat.subGroups||!confirm('確定刪除此子群組？'))return;cat.subGroups=cat.subGroups.filter(x=>x.id!==gid);saveToStorage();renderManagePanel();renderCategorySelectors()}
+    function deleteSubItem(cid,gid,ii){const cat=categories.find(x=>x.id===cid);if(!cat||!cat.subGroups)return;const g=cat.subGroups.find(x=>x.id===gid);if(!g)return;g.items.splice(ii,1);saveToStorage();renderManagePanel();renderCategorySelectors()}
+    document.getElementById('add-new-cat-btn').addEventListener('click',()=>{const n=document.getElementById('new-cat-name').value.trim();if(!n)return;categories.push({id:'cat_'+Date.now(),name:n,color:document.getElementById('new-cat-color').value,subGroups:[]});saveToStorage();managementActiveCatId=categories[categories.length-1].id;document.getElementById('new-cat-name').value='';renderManageTabs();renderManagePanel();renderCategorySelectors()});
 
-/* ===== Emoji / Export ===== */
-function openEmojiModal(){document.getElementById('emoji-modal').classList.add('show')}
-function closeEmojiModal(){document.getElementById('emoji-modal').classList.remove('show')}
-function renderEmojiGrid(){const c=document.getElementById('emoji-grid-container');c.innerHTML='';EMOJIS.forEach(e=>{const b=document.createElement('button');b.className='emoji-item-btn';b.innerText=e;b.onclick=()=>{const i=document.getElementById('evt-title');i.value+=e;i.focus();closeEmojiModal()};c.appendChild(b)})}
-function jumpToInputTitle(){document.getElementById('evt-title').focus()}
-function exportAsImage(){const el=document.querySelector('.calendar-container');if(!el||typeof html2canvas==='undefined')return alert('圖片匯出模組載入失敗！');html2canvas(el,{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.body).getPropertyValue('--bg-main')}).then(canvas=>{const a=document.createElement('a');a.download='日程表_'+currentDate+'.png';a.href=canvas.toDataURL('image/png');a.click()})}
+    function openEmojiModal(){document.getElementById('emoji-modal').classList.add('show')}
+    function closeEmojiModal(){document.getElementById('emoji-modal').classList.remove('show')}
+    function renderEmojiGrid(){const c=document.getElementById('emoji-grid-container');c.innerHTML='';EMOJIS.forEach(e=>{const b=document.createElement('button');b.className='emoji-item-btn';b.innerText=e;b.onclick=()=>{const i=document.getElementById('evt-title');i.value+=e;i.focus();closeEmojiModal()};c.appendChild(b)})}
+    function jumpToInputTitle(){document.getElementById('evt-title').focus()}
+    function exportAsImage(){const el=document.querySelector('.calendar-container');if(!el||typeof html2canvas==='undefined')return alert('圖片匯出模組載入失敗！');html2canvas(el,{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.body).getPropertyValue('--bg-main')}).then(canvas=>{const a=document.createElement('a');a.download='日程表_'+currentDate+'.png';a.href=canvas.toDataURL('image/png');a.click()})}
 
-/* ===== Event Listeners ===== */
-function setupEventListeners(){
-    document.getElementById('btn-prev').addEventListener('click',()=>changeDate(-1));
-    document.getElementById('btn-next').addEventListener('click',()=>changeDate(1));
-    document.getElementById('btn-today').addEventListener('click',()=>{currentDate=getLocalTodayString();initDateConfig();renderTimeline();renderQuickJumpBar()});
-    document.getElementById('btn-month').addEventListener('click',openMonthModal);
-    document.getElementById('date-select').addEventListener('change',e=>{if(e.target.value){currentDate=e.target.value;updateDateDisplay();renderTimeline();renderQuickJumpBar()}});
-    document.getElementById('btn-jump-to-input').addEventListener('click',jumpToInputTitle);
-    document.getElementById('btn-jump-to-sort').addEventListener('click',()=>{document.getElementById('sort-order-section').scrollIntoView({behavior:'smooth',block:'start'})});
-    document.getElementById('btn-toggle-emoji-modal').addEventListener('click',openEmojiModal);
-    document.getElementById('add-evt-btn').addEventListener('click',submitEventForm);
-    document.getElementById('btn-quick-time').addEventListener('click',insertQuickTime);
-    document.getElementById('color-toggle-btn').addEventListener('click',openManageModal);
-    document.querySelectorAll('#theme-btn-group .sort-btn').forEach(b=>b.addEventListener('click',()=>setTheme(b.getAttribute('data-theme'))));
-    document.getElementById('sort-btn-manual').addEventListener('click',()=>setSortMode('manual'));
-    document.getElementById('sort-btn-az').addEventListener('click',()=>setSortMode('az'));
-    document.getElementById('sort-btn-za').addEventListener('click',()=>setSortMode('za'));
-    document.getElementById('btn-month-prev').addEventListener('click',()=>{viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--}renderMonthCalendar()});
-    document.getElementById('btn-month-next').addEventListener('click',()=>{viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++}renderMonthCalendar()});
-    document.getElementById('btn-export-pdf').addEventListener('click',()=>{document.getElementById('print-timestamp').innerText=new Date().toLocaleString('zh-TW');window.print()});
-    document.getElementById('btn-export-img').addEventListener('click',exportAsImage);
-    document.getElementById('evt-title').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitEventForm()}})
-}
+    function setupEventListeners(){
+        document.getElementById('btn-prev').addEventListener('click',()=>changeDate(-1));
+        document.getElementById('btn-next').addEventListener('click',()=>changeDate(1));
+        document.getElementById('btn-today').addEventListener('click',()=>{currentDate=getLocalTodayString();initDateConfig();renderTimeline();renderQuickJumpBar()});
+        document.getElementById('btn-month').addEventListener('click',openMonthModal);
+        document.getElementById('date-select').addEventListener('change',e=>{if(e.target.value){currentDate=e.target.value;updateDateDisplay();renderTimeline();renderQuickJumpBar()}});
+        document.getElementById('btn-jump-to-input').addEventListener('click',jumpToInputTitle);
+        document.getElementById('btn-jump-to-sort').addEventListener('click',()=>{document.getElementById('sort-order-section').scrollIntoView({behavior:'smooth',block:'start'})});
+        document.getElementById('btn-toggle-emoji-modal').addEventListener('click',openEmojiModal);
+        document.getElementById('add-evt-btn').addEventListener('click',submitEventForm);
+        document.getElementById('btn-quick-time').addEventListener('click',insertQuickTime);
+        document.getElementById('color-toggle-btn').addEventListener('click',openManageModal);
+        
+        // 綁定下拉選單事件
+        document.getElementById('theme-select').addEventListener('change', (e) => setTheme(e.target.value));
+
+        document.getElementById('sort-btn-manual').addEventListener('click',()=>setSortMode('manual'));
+        document.getElementById('sort-btn-az').addEventListener('click',()=>setSortMode('az'));
+        document.getElementById('sort-btn-za').addEventListener('click',()=>setSortMode('za'));
+        document.getElementById('btn-month-prev').addEventListener('click',()=>{viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--}renderMonthCalendar()});
+        document.getElementById('btn-month-next').addEventListener('click',()=>{viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++}renderMonthCalendar()});
+        document.getElementById('btn-export-pdf').addEventListener('click',()=>{document.getElementById('print-timestamp').innerText=new Date().toLocaleString('zh-TW');window.print()});
+        document.getElementById('btn-export-img').addEventListener('click',exportAsImage);
+        document.getElementById('evt-title').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitEventForm()}})
+    }
 </script>
 </body>
 </html>
