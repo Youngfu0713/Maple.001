@@ -189,7 +189,8 @@
         <div class="date-picker-row">
             <div class="date-picker-label-group"><label for="date-select">跳轉：</label><input type="date" id="date-select"></div>
             <div class="font-color-picker-container"><label for="evt-font-color">🪄</label><input type="color" id="evt-font-color" value="#000000"></div>
-            <button class="quick-jump-btn" id="btn-toggle-emoji-modal" style="margin-left:auto;background:var(--bg-card);border-color:var(--primary);color:var(--primary);padding:4px 10px;font-size:1rem;">😃</button>
+            <button class="quick-jump-btn" id="btn-toggle-emoji-modal" style="margin-left:auto;background:var(--bg-card);border-color:var(--primary);color:var(--primary);padding:4px 10px;font-size:0.9rem;">😃</button>
+            <button class="quick-jump-btn" id="btn-toggle-phrase-modal" style="background:var(--bg-card);border-color:var(--primary);color:var(--primary);padding:4px 10px;font-size:0.9rem;">📄</button>
         </div>
         <div class="quick-jump-bar">
             <span class="quick-jump-title">📍</span>
@@ -233,11 +234,27 @@
 <!-- Modal 區塊 -->
 <div class="modal-overlay" id="emoji-modal" onclick="closeEmojiModal()">
     <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius:18px;max-height:75vh;margin:auto 12px;">
-        <div class="sheet-header"><span class="sheet-title-desc">😀 常用圖示</span></div>
-        <div class="emoji-grid" id="emoji-grid-container"></div>
-        <button class="sheet-close-btn" onclick="closeEmojiModal()">關閉</button>
+        <div class="sheet-header"><span class="sheet-title-desc">🛠️ 常用項目管理</span></div>
+        <div style="margin-top:10px;">
+            <label class="sheet-title-desc">😀 自訂 Emoji</label>
+            <div id="emoji-grid-container" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;"></div>
+            <div style="display:flex;gap:4px;margin-bottom:15px;">
+                <input type="text" id="new-emoji-input" placeholder="新增 Emoji..." style="flex:1;padding:5px;border:1px solid var(--border);border-radius:4px;background:var(--bg-main);">
+                <button onclick="addEmoji()" style="padding:5px 10px;background:var(--primary);color:#fff;border:none;border-radius:4px;cursor:pointer;">➕</button>
+            </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:10px;">
+            <label class="sheet-title-desc">📄 常用詞組</label>
+            <div id="phrase-grid-container" style="display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:200px;overflow-y:auto;"></div>
+            <div style="display:flex;gap:4px;">
+                <input type="text" id="new-phrase-input" placeholder="新增常用語..." style="flex:1;padding:5px;border:1px solid var(--border);border-radius:4px;background:var(--bg-main);">
+                <button onclick="addPhrase()" style="padding:5px 10px;background:var(--primary);color:#fff;border:none;border-radius:4px;cursor:pointer;">➕</button>
+            </div>
+        </div>
+        <button class="sheet-close-btn" style="margin-top:15px;" onclick="closeEmojiModal()">關閉</button>
     </div>
 </div>
+
 <div class="modal-overlay" id="month-modal" onclick="closeMonthModal()">
     <div class="action-sheet" onclick="event.stopPropagation()" style="border-radius:18px;max-height:82vh;margin:auto 12px;">
         <div class="sheet-header">
@@ -252,6 +269,7 @@
         <button class="sheet-close-btn" onclick="closeMonthModal()">關閉</button>
     </div>
 </div>
+
 <div class="modal-overlay" id="manage-modal" onclick="closeManageModal()">
     <div class="action-sheet" onclick="event.stopPropagation()">
         <div class="sheet-drag-indicator"></div>
@@ -268,6 +286,7 @@
         <button class="sheet-close-btn" onclick="closeManageModal()">完成</button>
     </div>
 </div>
+
 <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
     <div class="action-sheet" onclick="event.stopPropagation()">
         <div class="sheet-drag-indicator"></div>
@@ -311,17 +330,23 @@
 </div>
 
 <script>
+    // 資料管理與設定
     function getLocalTodayString(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
     function genId(){return 'evt-'+Date.now()+'-'+Math.random().toString(36).substr(2,6)}
+    
     let currentDate=getLocalTodayString();
     let events=JSON.parse(localStorage.getItem('calendar_events'))||[];
     let sortMode=localStorage.getItem('calendar_sort_mode')||'manual';
     let currentTheme=localStorage.getItem('calendar_theme')||'default';
+    
+    // Emoji 與 常用詞組
+    let userEmojis = JSON.parse(localStorage.getItem('user_emojis')) || ['✅', '✔️', '⭕', '❌', '★'];
+    let userPhrases = JSON.parse(localStorage.getItem('user_phrases')) || ['待處理', '緊急事項', '電話會議', '郵件回覆'];
+
     let categories=JSON.parse(localStorage.getItem('calendar_categories'))||[
         {id:"cat_work",name:"工作公務",color:"#5151e5",subGroups:[{id:"g1",title:"專案A組",items:["開發","測試","上線"]},{id:"g2",title:"客戶聯絡群",items:["緊急","待審核"]}]},
         {id:"cat_life",name:"日常生活",color:"#10b981",subGroups:[{id:"g3",title:"家庭事務",items:["吃飯","購物清單","娛樂"]},{id:"g4",title:"健身運動",items:["日常","健康"]}]}
     ];
-    const EMOJIS=['✅','✔️','☑️','🔘','⚪','➕','➖','⭕','❌','🙆‍♀️','🙅‍♀️','🙆‍♂️','🙅‍♂️','☒','☐','■','□','✕','✓','✔','✖','✗','✘','×','●','○','ⓧ','★','☆'];
     let selectedMainCatId=categories[0]?.id||"",selectedSubItems=[],activeTargetEventId=null,managementActiveCatId=categories[0]?.id||"";
     let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth();
 
@@ -330,16 +355,19 @@
         themeSelect.value = currentTheme;
         setTheme(currentTheme);
         initDateConfig();renderCategorySelectors();renderTimeline();renderQuickJumpBar();
-        setupEventListeners();updateSortBtnUI();renderEmojiGrid();
+        setupEventListeners();updateSortBtnUI();
     });
 
-    function saveToStorage(){localStorage.setItem('calendar_events',JSON.stringify(events));localStorage.setItem('calendar_categories',JSON.stringify(categories));localStorage.setItem('calendar_sort_mode',sortMode);localStorage.setItem('calendar_theme',currentTheme)}
-    
-    function setTheme(t){
-        currentTheme=t;
-        document.body.setAttribute('data-theme',t);
-        localStorage.setItem('calendar_theme',t);
+    function saveToStorage(){
+        localStorage.setItem('calendar_events',JSON.stringify(events));
+        localStorage.setItem('calendar_categories',JSON.stringify(categories));
+        localStorage.setItem('calendar_sort_mode',sortMode);
+        localStorage.setItem('calendar_theme',currentTheme);
+        localStorage.setItem('user_emojis', JSON.stringify(userEmojis));
+        localStorage.setItem('user_phrases', JSON.stringify(userPhrases));
     }
+    
+    function setTheme(t){currentTheme=t;document.body.setAttribute('data-theme',t);localStorage.setItem('calendar_theme',t);}
 
     function initDateConfig(){document.getElementById('date-select').value=currentDate;updateDateDisplay()}
     function updateDateDisplay(){const days=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];const p=currentDate.split('-').map(Number);const d=new Date(p[0],p[1]-1,p[2]);document.getElementById('current-day').innerText=currentDate+' ('+days[d.getDay()]+')';document.getElementById('print-date-title').innerText=currentDate+' 日程安排表'}
@@ -347,6 +375,7 @@
     function setSortMode(m){sortMode=m;saveToStorage();updateSortBtnUI();renderTimeline()}
     function updateSortBtnUI(){['manual','az','za'].forEach(m=>{const b=document.getElementById('sort-btn-'+m);if(b)b.classList.toggle('active',sortMode===m)})}
 
+    // UI 渲染與互動
     function renderCategorySelectors(){
         const c=document.getElementById('category-buttons-list');c.innerHTML='';
         if(categories.length===0){c.innerHTML='<span style="font-size:0.72rem;color:var(--text-muted);">尚無類別，點 ⚙️ 新增</span>';document.getElementById('sub-category-container').classList.remove('active');return}
@@ -400,9 +429,9 @@
         })
     }
     function moveOrderStep(eid,dir){let de=events.filter(e=>e.date===currentDate).sort((a,b)=>(a.orderIndex||0)-(b.orderIndex||0));const i=de.findIndex(e=>e.id===eid);if(i===-1)return;const s=i+dir;if(s<0||s>=de.length)return;const t=de[i].orderIndex;de[i].orderIndex=de[s].orderIndex;de[s].orderIndex=t;saveToStorage();renderTimeline()}
-
     function renderQuickJumpBar(){const l=document.getElementById('quick-jump-list');l.innerHTML='';const ds=new Set(events.map(e=>e.date)),sd=[...ds].sort();if(sd.length===0)return;sd.slice(-12).forEach(d=>{const b=document.createElement('button');b.className='quick-jump-btn';const p=d.split('-');b.innerText=parseInt(p[1])+'/'+parseInt(p[2]);b.onclick=()=>{currentDate=d;initDateConfig();renderTimeline();renderQuickJumpBar()};l.appendChild(b)})}
 
+    // Modal 與管理視窗
     function openActionModal(eid){activeTargetEventId=eid;const evt=events.find(e=>e.id===eid);if(!evt)return;document.getElementById('modal-event-title').innerText=evt.title;hideAllSubPanels();document.getElementById('standard-action-grid').style.display='grid';document.getElementById('modal-btn-edit').onclick=()=>showEditPanel(evt);document.getElementById('modal-btn-move').onclick=()=>showMovePanel(evt);document.getElementById('modal-btn-copy').onclick=()=>copyEvent(evt);document.getElementById('modal-btn-category').onclick=()=>showCatPanel(evt);document.getElementById('modal-btn-delete').onclick=()=>deleteFromModal(evt);document.getElementById('modal-edit-back').onclick=resetToGrid;document.getElementById('modal-edit-submit').onclick=()=>submitEdit(evt);document.getElementById('modal-move-back').onclick=resetToGrid;document.getElementById('modal-move-submit').onclick=()=>submitMove(evt);document.getElementById('modal-category-back').onclick=resetToGrid;document.getElementById('action-modal').classList.add('show')}
     function hideAllSubPanels(){document.getElementById('standard-action-grid').style.display='none';['modal-edit-panel','modal-move-panel','modal-category-panel'].forEach(id=>document.getElementById(id).classList.remove('show'))}
     function resetToGrid(){hideAllSubPanels();document.getElementById('standard-action-grid').style.display='grid'}
@@ -410,18 +439,55 @@
 
     function showEditPanel(evt){hideAllSubPanels();document.getElementById('modal-edit-title-input').value=evt.title;document.getElementById('modal-edit-panel').classList.add('show')}
     function submitEdit(evt){const t=document.getElementById('modal-edit-title-input').value.trim();if(!t)return;evt.title=t;saveToStorage();renderTimeline();closeActionModal()}
-
     function showMovePanel(evt){hideAllSubPanels();document.getElementById('modal-move-date-input').value=evt.date;document.getElementById('modal-move-panel').classList.add('show')}
     function submitMove(evt){const d=document.getElementById('modal-move-date-input').value;if(!d)return;evt.date=d;saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}
-
     function copyEvent(evt){const n={...evt,id:genId(),orderIndex:events.length};n.subCategories=[...(evt.subCategories||[])];events.push(n);saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}
-
     function showCatPanel(evt){hideAllSubPanels();document.getElementById('modal-category-panel').classList.add('show');renderModalCatGrid(evt)}
     function renderModalCatGrid(evt){const grid=document.getElementById('modal-category-grid');let tmc=evt.mainCategoryId||'',tsi=[...(evt.subCategories||[])];function rf(){grid.innerHTML='';categories.forEach(cat=>{const w=document.createElement('div');w.className='sheet-category-item-wrapper';const mr=document.createElement('div');mr.className='sheet-cat-main-row';mr.style.background=cat.id===tmc?cat.color+'20':'';mr.innerHTML='<span class="dot" style="background:'+cat.color+';"></span><span style="flex:1;">'+cat.name+'</span>'+(cat.id===tmc?'<span style="color:var(--primary);font-size:0.75rem;">✓</span>':'');mr.onclick=()=>{tmc=cat.id;tsi=[];rf()};w.appendChild(mr);if(cat.id===tmc&&cat.subGroups&&cat.subGroups.length)cat.subGroups.forEach(g=>{const sb=document.createElement('div');sb.className='sheet-sub-group-block';sb.innerHTML='<div class="sheet-sub-group-title">'+g.title+'</div>';const sr=document.createElement('div');sr.className='sheet-sub-grid-row';g.items.forEach(item=>{const p=document.createElement('button');p.className='sheet-sub-pill-btn';p.innerText=item;if(tsi.includes(item))p.classList.add('active');p.onclick=()=>{const i=tsi.indexOf(item);if(i>=0)tsi.splice(i,1);else tsi.push(item);rf()};sr.appendChild(p)});sb.appendChild(sr);w.appendChild(sb)});grid.appendChild(w)})}rf();document.getElementById('modal-category-submit').onclick=()=>{const mc=categories.find(c=>c.id===tmc);evt.mainCategoryId=tmc;evt.mainCategoryName=mc?mc.name:'';evt.mainCategoryColor=mc?mc.color:'';evt.subCategories=[...tsi];saveToStorage();renderTimeline();closeActionModal()}}
 
     function deleteFromModal(evt){if(confirm('確定要刪除「'+evt.title+'」嗎？')){events=events.filter(e=>e.id!==evt.id);saveToStorage();renderTimeline();renderQuickJumpBar();closeActionModal()}}
     function deleteEventDirect(id){const evt=events.find(e=>e.id===id);if(!evt||!confirm('確定要刪除「'+evt.title+'」嗎？'))return;events=events.filter(e=>e.id!==id);saveToStorage();renderTimeline();renderQuickJumpBar()}
 
+    // Emoji 與 詞組管理 UI
+    function openEmojiModal(){document.getElementById('emoji-modal').classList.add('show');renderItemsGrid()}
+    function closeEmojiModal(){document.getElementById('emoji-modal').classList.remove('show')}
+    
+    function renderItemsGrid() {
+        const eCont = document.getElementById('emoji-grid-container');
+        const pCont = document.getElementById('phrase-grid-container');
+        eCont.innerHTML = '';
+        pCont.innerHTML = '';
+
+        userEmojis.forEach((e, idx) => {
+            const b = document.createElement('button');
+            b.className = 'emoji-item-btn';
+            b.style.cssText = 'padding:5px 10px; background:var(--bg-main); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:1.1rem; position:relative;';
+            b.innerHTML = `${e} <span style="position:absolute;top:-5px;right:-5px;font-size:0.6rem;color:red;background:#fff;border-radius:50%;padding:1px;" onclick="event.stopPropagation();removeEmoji(${idx})">✕</span>`;
+            b.onclick = () => { document.getElementById('evt-title').value += e; closeEmojiModal(); };
+            eCont.appendChild(b);
+        });
+
+        userPhrases.forEach((p, idx) => {
+            const b = document.createElement('div');
+            b.style.cssText = 'padding:8px 12px; background:var(--bg-main); border:1px solid var(--border); border-radius:8px; cursor:pointer; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;';
+            b.innerHTML = `<span>${p}</span> <span style="color:#ef4444;font-size:0.7rem;font-weight:bold;" onclick="event.stopPropagation();removePhrase(${idx})">刪除</span>`;
+            b.onclick = () => { document.getElementById('evt-title').value += p; closeEmojiModal(); };
+            pCont.appendChild(b);
+        });
+    }
+
+    function addEmoji() {
+        const val = document.getElementById('new-emoji-input').value.trim();
+        if(val) { userEmojis.push(val); saveToStorage(); document.getElementById('new-emoji-input').value = ''; renderItemsGrid(); }
+    }
+    function addPhrase() {
+        const val = document.getElementById('new-phrase-input').value.trim();
+        if(val) { userPhrases.push(val); saveToStorage(); document.getElementById('new-phrase-input').value = ''; renderItemsGrid(); }
+    }
+    function removeEmoji(idx) { userEmojis.splice(idx, 1); saveToStorage(); renderItemsGrid(); }
+    function removePhrase(idx) { userPhrases.splice(idx, 1); saveToStorage(); renderItemsGrid(); }
+
+    // 月曆、分類管理等原有功能
     function openMonthModal(){const p=currentDate.split('-').map(Number);viewYear=p[0];viewMonth=p[1]-1;renderMonthCalendar();document.getElementById('month-modal').classList.add('show')}
     function closeMonthModal(){document.getElementById('month-modal').classList.remove('show')}
     function renderMonthCalendar(){document.getElementById('month-picker-title').innerText=viewYear+' 年 '+(viewMonth+1)+' 月';const grid=document.getElementById('month-calendar-grid');grid.innerHTML='';['日','一','二','三','四','五','六'].forEach(d=>{const h=document.createElement('div');h.className='month-day-header';h.innerText=d;grid.appendChild(h)});const dc={};events.forEach(e=>{const p=e.date.split('-').map(Number);if(p[0]===viewYear&&p[1]===viewMonth+1)dc[p[2]]=(dc[p[2]]||0)+1});const fd=new Date(viewYear,viewMonth,1).getDay(),dim=new Date(viewYear,viewMonth+1,0).getDate(),today=getLocalTodayString();for(let i=0;i<fd;i++)grid.appendChild(document.createElement('div'));for(let d=1;d<=dim;d++){const cell=document.createElement('div');cell.className='month-day-cell';const ds=viewYear+'-'+String(viewMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(ds===today)cell.classList.add('is-today');if(ds===currentDate)cell.classList.add('is-selected');cell.innerHTML='<span class="month-day-number">'+d+'</span>'+(dc[d]?'<span class="month-event-count">'+dc[d]+'</span>':'');cell.onclick=()=>{currentDate=ds;initDateConfig();renderTimeline();renderQuickJumpBar();closeMonthModal()};grid.appendChild(cell)}}
@@ -429,37 +495,9 @@
     function openManageModal(){if(categories.length>0)managementActiveCatId=categories[0].id;renderManageTabs();renderManagePanel();document.getElementById('manage-modal').classList.add('show')}
     function closeManageModal(){document.getElementById('manage-modal').classList.remove('show');if(!categories.find(c=>c.id===selectedMainCatId)&&categories.length>0)selectedMainCatId=categories[0].id;renderCategorySelectors()}
     function renderManageTabs(){const c=document.getElementById('manage-tabs-container');c.innerHTML='';categories.forEach(cat=>{const t=document.createElement('button');t.className='manage-tab-item';t.innerText=cat.name;if(cat.id===managementActiveCatId)t.classList.add('active');t.onclick=()=>{managementActiveCatId=cat.id;renderManageTabs();renderManagePanel()};c.appendChild(t)})}
-    
-    // --- 新增的排序邏輯 ---
-    function moveCategory(cid, direction) {
-        const idx = categories.findIndex(c => c.id === cid);
-        const newIdx = idx + direction;
-        if (newIdx >= 0 && newIdx < categories.length) {
-            const temp = categories[idx];
-            categories[idx] = categories[newIdx];
-            categories[newIdx] = temp;
-            saveToStorage();
-            renderManageTabs(); 
-            renderManagePanel(); 
-            renderCategorySelectors();
-        }
-    }
-    function moveSubGroup(catId, gid, direction) {
-        const cat = categories.find(c => c.id === catId);
-        if (!cat || !cat.subGroups) return;
-        const idx = cat.subGroups.findIndex(g => g.id === gid);
-        const newIdx = idx + direction;
-        if (newIdx >= 0 && newIdx < cat.subGroups.length) {
-            const temp = cat.subGroups[idx];
-            cat.subGroups[idx] = cat.subGroups[newIdx];
-            cat.subGroups[newIdx] = temp;
-            saveToStorage();
-            renderManagePanel();
-            renderCategorySelectors();
-        }
-    }
+    function moveCategory(cid, direction) { const idx = categories.findIndex(c => c.id === cid); const newIdx = idx + direction; if (newIdx >= 0 && newIdx < categories.length) { const temp = categories[idx]; categories[idx] = categories[newIdx]; categories[newIdx] = temp; saveToStorage(); renderManageTabs(); renderManagePanel(); renderCategorySelectors(); } }
+    function moveSubGroup(catId, gid, direction) { const cat = categories.find(c => c.id === catId); if (!cat || !cat.subGroups) return; const idx = cat.subGroups.findIndex(g => g.id === gid); const newIdx = idx + direction; if (newIdx >= 0 && newIdx < cat.subGroups.length) { const temp = cat.subGroups[idx]; cat.subGroups[idx] = cat.subGroups[newIdx]; cat.subGroups[newIdx] = temp; saveToStorage(); renderManagePanel(); renderCategorySelectors(); } }
 
-    // --- 修改後的管理面板渲染 ---
     function renderManagePanel(){
         const cat=categories.find(c=>c.id===managementActiveCatId), ct=document.getElementById('manage-categories-list');
         ct.innerHTML='';
@@ -510,10 +548,6 @@
     function deleteSubItem(cid,gid,ii){const cat=categories.find(x=>x.id===cid);if(!cat||!cat.subGroups)return;const g=cat.subGroups.find(x=>x.id===gid);if(!g)return;g.items.splice(ii,1);saveToStorage();renderManagePanel();renderCategorySelectors()}
     document.getElementById('add-new-cat-btn').addEventListener('click',()=>{const n=document.getElementById('new-cat-name').value.trim();if(!n)return;categories.push({id:'cat_'+Date.now(),name:n,color:document.getElementById('new-cat-color').value,subGroups:[]});saveToStorage();managementActiveCatId=categories[categories.length-1].id;document.getElementById('new-cat-name').value='';renderManageTabs();renderManagePanel();renderCategorySelectors()});
 
-    function openEmojiModal(){document.getElementById('emoji-modal').classList.add('show')}
-    function closeEmojiModal(){document.getElementById('emoji-modal').classList.remove('show')}
-    function renderEmojiGrid(){const c=document.getElementById('emoji-grid-container');c.innerHTML='';EMOJIS.forEach(e=>{const b=document.createElement('button');b.className='emoji-item-btn';b.innerText=e;b.onclick=()=>{const i=document.getElementById('evt-title');i.value+=e;i.focus();closeEmojiModal()};c.appendChild(b)})}
-    function jumpToInputTitle(){document.getElementById('evt-title').focus()}
     function exportAsImage(){const el=document.querySelector('.calendar-container');if(!el||typeof html2canvas==='undefined')return alert('圖片匯出模組載入失敗！');html2canvas(el,{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.body).getPropertyValue('--bg-main')}).then(canvas=>{const a=document.createElement('a');a.download='日程表_'+currentDate+'.png';a.href=canvas.toDataURL('image/png');a.click()})}
 
     function setupEventListeners(){
@@ -522,9 +556,13 @@
         document.getElementById('btn-today').addEventListener('click',()=>{currentDate=getLocalTodayString();initDateConfig();renderTimeline();renderQuickJumpBar()});
         document.getElementById('btn-month').addEventListener('click',openMonthModal);
         document.getElementById('date-select').addEventListener('change',e=>{if(e.target.value){currentDate=e.target.value;updateDateDisplay();renderTimeline();renderQuickJumpBar()}});
-        document.getElementById('btn-jump-to-input').addEventListener('click',jumpToInputTitle);
+        document.getElementById('btn-jump-to-input').addEventListener('click',()=>document.getElementById('evt-title').focus());
         document.getElementById('btn-jump-to-sort').addEventListener('click',()=>{document.getElementById('sort-order-section').scrollIntoView({behavior:'smooth',block:'start'})});
-        document.getElementById('btn-toggle-emoji-modal').addEventListener('click',openEmojiModal);
+        
+        // Emoji & Phrase Listeners
+        document.getElementById('btn-toggle-emoji-modal').addEventListener('click',()=>openEmojiModal());
+        document.getElementById('btn-toggle-phrase-modal').addEventListener('click',()=>openEmojiModal());
+
         document.getElementById('add-evt-btn').addEventListener('click',submitEventForm);
         document.getElementById('btn-quick-time').addEventListener('click',insertQuickTime);
         document.getElementById('color-toggle-btn').addEventListener('click',openManageModal);
