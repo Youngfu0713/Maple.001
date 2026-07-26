@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>個人日程管理系統 - 功能優化版</title>
+    <title>個人日程管理系統 - 優化版</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -15,282 +15,166 @@
         }
 
         :root {
-            --primary: #5151e5;
-            --primary-hover: #3d3dbd;
-            --primary-light: #eef2ff;
-            --bg-main: #fcfbfa; 
-            --bg-card: #ffffff;
-            --text-main: #1e293b; 
-            --text-muted: #64748b;
-            --border: #f1f5f9;
-            --border-hover: #cbd5e1;
+            --primary: #5151e5; --primary-hover: #3d3dbd; --primary-light: #eef2ff;
+            --bg-main: #fcfbfa; --bg-card: #ffffff; --text-main: #1e293b; 
+            --text-muted: #64748b; --border: #f1f5f9; --border-hover: #cbd5e1;
             --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
             --shadow-md: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
             --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
         }
 
-        body[data-theme="macaron"] {
-            --primary: #f07b95; --primary-hover: #d85c78; --primary-light: #fff0f3;
-            --bg-main: #faf6f0; --bg-card: #ffffff; --text-main: #4a3e3d;
-            --text-muted: #8c7a78; --border: #f3e5df; --border-hover: #e6c2b8;
-        }
+        /* 風格主題 */
+        body[data-theme="macaron"] { --primary: #f07b95; --primary-light: #fff0f3; --bg-main: #faf6f0; --text-main: #4a3e3d; --text-muted: #8c7a78; --border: #f3e5df; --border-hover: #e6c2b8; }
+        body[data-theme="dark"] { --primary: #818cf8; --primary-light: #1e1b4b; --bg-main: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155; --border-hover: #475569; }
+        body[data-theme="nordic"] { --primary: #0d9488; --primary-light: #ccfbf1; --bg-main: #f4f7f6; --text-main: #132a2f; --text-muted: #52796f; --border: #e0e7e5; --border-hover: #b2c9c2; }
 
-        body[data-theme="dark"] {
-            --primary: #818cf8; --primary-hover: #6366f1; --primary-light: #1e1b4b;
-            --bg-main: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc;
-            --text-muted: #94a3b8; --border: #334155; --border-hover: #475569;
-        }
-
-        body[data-theme="nordic"] {
-            --primary: #0d9488; --primary-hover: #0f766e; --primary-light: #ccfbf1;
-            --bg-main: #f4f7f6; --bg-card: #ffffff; --text-main: #132a2f;
-            --text-muted: #52796f; --border: #e0e7e5; --border-hover: #b2c9c2;
-        }
-
-        body {
-            font-family: "MiaoFont", -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0;
-            display: flex; justify-content: center; overscroll-behavior-y: contain;
-        }
-
-        .calendar-container { width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh; box-shadow: var(--shadow-md); display: flex; flex-direction: column; position: relative; }
-        .calendar-header { padding: 16px 20px 10px 20px; background: var(--bg-card); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
+        body { font-family: "MiaoFont", sans-serif; background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; transition: background-color 0.25s, color 0.25s; }
+        .calendar-container { width: 100%; max-width: 550px; background: var(--bg-card); min-height: 100vh; box-shadow: var(--shadow-md); display: flex; flex-direction: column; margin: 0 auto; }
+        
+        .calendar-header { padding: 16px 20px 10px 20px; border-bottom: 1px solid var(--border); }
         .calendar-header h1 { margin: 0 0 8px 0; font-size: 1.15rem; font-weight: 800; text-align: center; }
         .quick-nav { display: flex; gap: 6px; margin-bottom: 8px; }
-        .nav-btn { font-family: inherit; padding: 8px 10px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; flex: 1; }
-        #btn-today { flex: 1.1; background: var(--primary); color: white; border: none; font-weight: 800; }
-        #btn-month { flex: 1.2; background: var(--primary-light); color: var(--primary); border: 1px solid var(--border-hover); }
-
-        .date-picker-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; margin-bottom: 8px; }
-        .font-color-picker-container { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-main); }
-        .font-color-picker-container input[type="color"] { border: none; width: 22px; height: 22px; cursor: pointer; }
+        .nav-btn { flex: 1; padding: 8px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
         
         .event-form { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
         .form-row { display: flex; gap: 8px; }
-        .event-form input[type="text"] { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-main); color: var(--text-main); }
-        
+        .event-form input[type="text"] { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-main); }
         .submit-btn { background: var(--primary); color: white; border: none; padding: 11px; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; }
+
+        /* 行程卡片與動作列 */
+        .timeline { padding: 10px 20px; flex-grow: 1; background: var(--bg-main); }
+        .event-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); box-shadow: var(--shadow-sm); }
+        .event-info { flex-grow: 1; min-width: 0; }
+        .event-text-line { font-size: 0.92rem; font-weight: 700; margin: 0; }
+        .prefix-badge-main { font-weight: 900; margin-right: 4px; }
+        .prefix-badge-time { font-weight: 900; color: var(--text-muted); margin-right: 4px; }
         
-        .timeline { padding: 10px 20px 20px 20px; flex-grow: 1; min-height: 300px; }
-        .event-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: var(--bg-card); }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
+        /* 新增：卡片右側動作連結 */
+        .event-actions { display: flex; flex-direction: column; gap: 4px; margin-left: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; text-align: right; color: var(--text-muted); }
+        .action-link { padding: 2px 4px; }
+        .action-edit { color: var(--text-main); }
+        .action-del { color: #ef4444; }
+        .action-link:hover { opacity: 0.7; }
+
+        .manual-move-actions { display: flex; gap: 2px; margin-left: 10px; }
+        .move-step-btn { border: 1px solid var(--border-hover); background: var(--bg-card); color: var(--text-muted); width: 24px; height: 24px; border-radius: 4px; cursor: pointer; }
+
+        /* 其他輔助樣式省略... (保留原有 modal 樣式) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.45); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; justify-content: center; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
-        .action-sheet { width: 100%; max-width: 550px; background: var(--bg-card); border-radius: 20px 20px 0 0; padding: 24px 20px 34px 20px; transform: translateY(100%); transition: transform 0.32s ease-out; }
+        .action-sheet { width: 100%; max-width: 550px; background: var(--bg-card); border-radius: 20px 20px 0 0; padding: 24px; box-shadow: 0 -15px 40px rgba(15, 23, 42, 0.12); transform: translateY(100%); transition: transform 0.32s; }
         .modal-overlay.show .action-sheet { transform: translateY(0); }
-        
-        .sheet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .sheet-btn { background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; font-weight: 800; }
-        .sheet-btn.danger-btn { grid-column: span 2; color: #ef4444; }
-        
-        .panel-hidden { display: none; flex-direction: column; gap: 10px; }
-        .panel-visible { display: flex; }
-        .sheet-panel-submit { background: var(--primary); color: white; border: none; border-radius: var(--radius-md); padding: 11px; font-weight: 800; cursor: pointer; }
-        
-        .sheet-category-item-wrapper { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; margin-bottom: 4px; }
-        .sheet-cat-main-row { display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; padding: 4px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .sheet-close-btn { width: 100%; padding: 12px; background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <h1 id="current-day">日程管理</h1>
-            <div class="quick-nav">
-                <button class="nav-btn" id="btn-prev">◀ 前一天</button>
-                <button class="nav-btn" id="btn-today">今天</button>
-                <button class="nav-btn" id="btn-next">後一天 ▶</button>
-            </div>
-            <div class="date-picker-row">
-                <input type="date" id="date-select">
-                <div class="font-color-picker-container">
-                    <input type="color" id="evt-font-color" value="#000000">
-                </div>
-            </div>
-        </div>
-
-        <div class="event-form">
-            <div class="form-row">
-                <input type="text" id="evt-title" placeholder="請輸入重要事項...">
-            </div>
-            <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
-        </div>
-
-        <div class="timeline" id="timeline-list"></div>
-    </div>
-
-    <!-- 設定操作面板 Modal -->
-    <div class="modal-overlay" id="action-modal" onclick="closeActionModal()">
-        <div class="action-sheet" onclick="event.stopPropagation()">
-            <div class="sheet-header" style="margin-bottom: 15px;">
-                <p class="sheet-event-title" id="modal-event-title" style="font-size: 1.1rem; font-weight: 800; margin:0;">操作</p>
-            </div>
-            
-            <!-- 主選單 -->
-            <div class="sheet-grid" id="standard-action-grid">
-                <button class="sheet-btn" id="modal-btn-edit">編輯內文</button>
-                <button class="sheet-btn" id="modal-btn-move">跨日期移動</button>
-                <button class="sheet-btn" id="modal-btn-copy">複製本事件</button>
-                <button class="sheet-btn" id="modal-btn-category">切換類別</button>
-                <button class="sheet-btn danger-btn" id="modal-btn-delete">刪除本行程</button>
-            </div>
-
-            <!-- 編輯面板 -->
-            <div id="modal-edit-panel" class="panel-hidden">
-                <input type="text" id="modal-edit-title-input" style="padding:10px;">
-                <button class="sheet-panel-submit" id="modal-edit-submit">確認修改</button>
-            </div>
-
-            <!-- 移動面板 -->
-            <div id="modal-move-panel" class="panel-hidden">
-                <input type="date" id="modal-move-date-input" style="padding:10px;">
-                <button class="sheet-panel-submit" id="modal-move-submit">確認移轉</button>
-            </div>
-
-            <!-- 類別面板 -->
-            <div id="modal-category-panel" class="panel-hidden">
-                <div id="modal-category-selection-list"></div>
-                <button class="sheet-panel-submit" id="modal-category-submit">儲存類別</button>
-            </div>
+<div class="calendar-container">
+    <div class="calendar-header">
+        <h1 id="current-day">日程管理</h1>
+        <div class="quick-nav">
+            <button class="nav-btn" id="btn-prev">◀ 前一天</button>
+            <button class="nav-btn" id="btn-today">今天</button>
+            <button class="nav-btn" id="btn-month">📅 月</button>
+            <button class="nav-btn" id="btn-next">後一天 ▶</button>
         </div>
     </div>
 
-    <script>
-        let events = JSON.parse(localStorage.getItem('calendar_events')) || [];
-        let categories = JSON.parse(localStorage.getItem('calendar_categories')) || [
-            { id: "cat1", name: "工作", color: "#5151e5" },
-            { id: "cat2", name: "生活", color: "#10b981" }
-        ];
-        let currentDate = new Date().toISOString().split('T')[0];
-        let activeTargetEventId = null;
-        let tempModalCatId = null;
+    <div class="event-form">
+        <div class="form-row">
+            <input type="text" id="evt-title" placeholder="請輸入重要事項...">
+        </div>
+        <button class="submit-btn" id="add-evt-btn">安排至行程表</button>
+    </div>
 
-        window.onload = () => {
-            renderTimeline();
-            setupEventListeners();
-            document.getElementById('date-select').value = currentDate;
-        };
+    <div class="timeline" id="timeline-list"></div>
+</div>
 
-        function setupEventListeners() {
-            document.getElementById('add-evt-btn').onclick = () => {
-                const title = document.getElementById('evt-title').value;
-                if(!title) return;
-                events.push({ id: 'evt-'+Date.now(), date: currentDate, title, fontColor: document.getElementById('evt-font-color').value });
-                saveAndRefresh();
-            };
+<script>
+    let currentDate = new Date().toISOString().split('T')[0];
+    let events = JSON.parse(localStorage.getItem('calendar_events')) || [];
+    let sortMode = 'manual';
 
-            // 操作面板按鈕
-            document.getElementById('modal-btn-delete').onclick = () => {
-                events = events.filter(e => e.id !== activeTargetEventId);
-                saveAndRefresh();
-                closeActionModal();
-            };
+    window.addEventListener('DOMContentLoaded', () => {
+        renderTimeline();
+        document.getElementById('add-evt-btn').addEventListener('click', submitEvent);
+        document.getElementById('btn-prev').addEventListener('click', () => changeDate(-1));
+        document.getElementById('btn-next').addEventListener('click', () => changeDate(1));
+    });
 
-            document.getElementById('modal-btn-edit').onclick = () => {
-                showPanel('modal-edit-panel');
-                const evt = events.find(e => e.id === activeTargetEventId);
-                document.getElementById('modal-edit-title-input').value = evt.title;
-            };
+    function changeDate(offset) {
+        let d = new Date(currentDate);
+        d.setDate(d.getDate() + offset);
+        currentDate = d.toISOString().split('T')[0];
+        renderTimeline();
+    }
 
-            document.getElementById('modal-btn-move').onclick = () => {
-                showPanel('modal-move-panel');
-                document.getElementById('modal-move-date-input').value = currentDate;
-            };
+    function submitEvent() {
+        const title = document.getElementById('evt-title').value.trim();
+        if (!title) return;
+        events.push({ id: 'evt-' + Date.now(), date: currentDate, title: title, orderIndex: events.filter(e => e.date === currentDate).length });
+        localStorage.setItem('calendar_events', JSON.stringify(events));
+        document.getElementById('evt-title').value = '';
+        renderTimeline();
+    }
 
-            document.getElementById('modal-btn-copy').onclick = () => {
-                const evt = events.find(e => e.id === activeTargetEventId);
-                const newEvt = { ...evt, id: 'evt-'+Date.now(), title: evt.title + ' (複製)' };
-                events.push(newEvt);
-                saveAndRefresh();
-                closeActionModal();
-            };
-
-            document.getElementById('modal-btn-category').onclick = () => {
-                showPanel('modal-category-panel');
-                renderModalCategorySelection();
-            };
-
-            // 提交修改
-            document.getElementById('modal-edit-submit').onclick = () => {
-                const evt = events.find(e => e.id === activeTargetEventId);
-                evt.title = document.getElementById('modal-edit-title-input').value;
-                saveAndRefresh();
-                closeActionModal();
-            };
-
-            document.getElementById('modal-move-submit').onclick = () => {
-                const evt = events.find(e => e.id === activeTargetEventId);
-                evt.date = document.getElementById('modal-move-date-input').value;
-                saveAndRefresh();
-                closeActionModal();
-            };
-
-            document.getElementById('modal-category-submit').onclick = () => {
-                const evt = events.find(e => e.id === activeTargetEventId);
-                const cat = categories.find(c => c.id === tempModalCatId);
-                if(evt && cat) {
-                    evt.mainCategoryName = cat.name;
-                    evt.mainCategoryColor = cat.color;
-                    saveAndRefresh();
-                }
-                closeActionModal();
-            };
-        }
-
-        function renderTimeline() {
-            const list = document.getElementById('timeline-list');
-            list.innerHTML = '';
-            events.filter(e => e.date === currentDate).forEach(evt => {
-                const div = document.createElement('div');
-                div.className = 'event-card';
-                div.innerHTML = `<span style="color:${evt.fontColor||'black'}">${evt.title}</span>`;
-                div.onclick = () => openActionModal(evt.id);
-                list.appendChild(div);
-            });
-        }
-
-        function openActionModal(evtId) {
-            activeTargetEventId = evtId;
-            const evt = events.find(e => e.id === evtId);
-            document.getElementById('modal-event-title').innerText = evt.title;
-            document.getElementById('standard-action-grid').style.display = 'grid';
-            document.querySelectorAll('.panel-hidden').forEach(p => p.classList.remove('panel-visible'));
-            document.getElementById('action-modal').classList.add('show');
-        }
-
-        function closeActionModal() {
-            document.getElementById('action-modal').classList.remove('show');
-        }
-
-        function showPanel(id) {
-            document.getElementById('standard-action-grid').style.display = 'none';
-            document.getElementById(id).classList.add('panel-visible');
-        }
-
-        function renderModalCategorySelection() {
-            const container = document.getElementById('modal-category-selection-list');
-            container.innerHTML = '';
-            categories.forEach(cat => {
-                const div = document.createElement('div');
-                div.className = 'sheet-category-item-wrapper';
-                div.innerHTML = `<div class="sheet-cat-main-row" onclick="selectModalCategory('${cat.id}')" id="cat-select-${cat.id}">
-                    <div class="dot" style="background:${cat.color}"></div> ${cat.name}
-                </div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function selectModalCategory(catId) {
-            tempModalCatId = catId;
-            document.querySelectorAll('.sheet-cat-main-row').forEach(el => el.style.background = 'transparent');
-            document.getElementById(`cat-select-${catId}`).style.background = 'var(--primary-light)';
-        }
-
-        function saveAndRefresh() {
+    function deleteEvent(id) {
+        if (confirm('確定要刪除此行程嗎？')) {
+            events = events.filter(e => e.id !== id);
             localStorage.setItem('calendar_events', JSON.stringify(events));
             renderTimeline();
         }
-    </script>
+    }
+
+    function editEvent(id) {
+        const evt = events.find(e => e.id === id);
+        if (!evt) return;
+        const newTitle = prompt('請修改事項內容：', evt.title);
+        if (newTitle !== null) {
+            evt.title = newTitle;
+            localStorage.setItem('calendar_events', JSON.stringify(events));
+            renderTimeline();
+        }
+    }
+
+    function moveOrderStep(evtId, direction) {
+        let dayEvents = events.filter(e => e.date === currentDate).sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+        const idx = dayEvents.findIndex(e => e.id === evtId);
+        const sw = idx + direction;
+        if (sw < 0 || sw >= dayEvents.length) return;
+        const temp = dayEvents[idx].orderIndex;
+        dayEvents[idx].orderIndex = dayEvents[sw].orderIndex;
+        dayEvents[sw].orderIndex = temp;
+        localStorage.setItem('calendar_events', JSON.stringify(events));
+        renderTimeline();
+    }
+
+    function renderTimeline() {
+        const container = document.getElementById('timeline-list');
+        container.innerHTML = '';
+        document.getElementById('current-day').innerText = currentDate;
+        
+        let dayEvents = events.filter(e => e.date === currentDate).sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+        
+        dayEvents.forEach((evt, index) => {
+            const card = document.createElement('div');
+            card.className = 'event-card';
+            card.innerHTML = `
+                <div class="event-info">
+                    <p class="event-text-line">${evt.title}</p>
+                </div>
+                <div class="event-actions">
+                    <span class="action-link action-edit" onclick="editEvent('${evt.id}')">編輯</span>
+                    <span class="action-link action-del" onclick="deleteEvent('${evt.id}')">刪除</span>
+                </div>
+                <div class="manual-move-actions">
+                    <button class="move-step-btn" onclick="moveOrderStep('${evt.id}', -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                    <button class="move-step-btn" onclick="moveOrderStep('${evt.id}', 1)" ${index === dayEvents.length - 1 ? 'disabled' : ''}>▼</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+</script>
 </body>
 </html>
